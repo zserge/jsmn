@@ -1,0 +1,25 @@
+JSMN - Minimalistic JSON parser library
+=======================================
+
+jsmn (pronounced right as `jasmine`) is a simple and clean library for parsing
+JSON (JavaScript Object Notation) data format.
+
+You can find more information on JSON at http://www.json.org/
+
+Philosophy
+==========
+
+jsmn will never be large and complex. This means it will never have extra
+features or any bloated dependencies, besides libc.
+It will always be suitable for embedded systems and other resource-limited
+systems. It will always have clear API.
+
+Features
+========
+
+o Just 200 lines of code
+o Full C89 compatibility
+o No memory allocation inside the library code
+o A single pass is required to parse JSON data
+o MIT license (you can include this code into your proprietary software)
+
