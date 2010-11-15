@@ -103,14 +103,15 @@ int jsmn_parse(const unsigned char *js, jsontok_t *tokens, size_t num_tokens, in
 	struct jsmn_params params;
 
 	int r;
+	unsigned int i;
 	const unsigned char *p;
+	jsontype_t type;
 	jsontok_t *cur_token;
 
 	params.num_tokens = num_tokens;
 	params.tokens = tokens;
 	params.errpos = errpos;
 
-	unsigned int i;
 	for (i = 0; i<num_tokens; i++) {
 		tokens[i].start = tokens[i].end = -1;
 		tokens[i].type = JSON_OTHER;
@@ -119,11 +120,13 @@ int jsmn_parse(const unsigned char *js, jsontok_t *tokens, size_t num_tokens, in
 	for (p = js; *p != '\0'; ) {
 		switch (*p) {
 			case '{': case '[':
-				cur_token = jsmn_token_start(&params, JSON_OBJECT, p - js);
+				type = (*p == '{' ? JSON_OBJECT : JSON_ARRAY);
+				cur_token = jsmn_token_start(&params, type, p - js);
 				cur_token->start = p - js;
 				break;
 			case '}' : case ']':
-				cur_token = jsmn_token_end(&params, JSON_OBJECT, p - js + 1);
+				type = (*p == '}' ? JSON_OBJECT : JSON_ARRAY);
+				cur_token = jsmn_token_end(&params, type, p - js + 1);
 				cur_token->end = p - js + 1;
 				break;
 
