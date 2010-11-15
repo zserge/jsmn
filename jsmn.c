@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <stdio.h>
 
 #include "jsmn.h"
 
@@ -53,7 +52,7 @@ int jsmn_parse(const unsigned char *js, jsontok_t *tokens, size_t num_tokens, in
 	}
 
 	int jsmn_token_end(jsontype_t type, int pos) {
-		unsigned int i;
+		int i;
 		for (i = num_tokens - 1; i>= 0; i--) {
 			if (tokens[i].type == type && tokens[i].start != -1 && tokens[i].end == -1) {
 				tokens[i].end = pos;
@@ -64,7 +63,6 @@ int jsmn_parse(const unsigned char *js, jsontok_t *tokens, size_t num_tokens, in
 	}
 	
 	const unsigned char *p;
-	jsontok_t *cur_token;
 
 	int obj_common[] = {
 		JSON_SYM_ERROR(0 ... 255),
@@ -96,9 +94,7 @@ int jsmn_parse(const unsigned char *js, jsontok_t *tokens, size_t num_tokens, in
 
 	int *obj_state = obj_common;
 
-	cur_token = tokens;
-
-	int i;
+	unsigned int i;
 	for (i = 0; i<num_tokens; i++) {
 		tokens[i].start = tokens[i].end = -1;
 		tokens[i].type = JSON_OTHER;
@@ -144,55 +140,3 @@ int jsmn_parse(const unsigned char *js, jsontok_t *tokens, size_t num_tokens, in
 	return 0;
 }
 
-void json_dump_obj(jsontok_t *obj, const char *js) {
-	int len;
-
-	printf("[%d,%d]", obj->start, obj->end);
-	len = obj->end - obj->start;
-
-	char *type;
-	switch (obj->type) {
-		case JSON_OTHER:
-			type = "other";
-			break;
-		case JSON_STRING:
-			type = "string";
-			break;
-		case JSON_ARRAY:
-			type = "array";
-			break;
-		case JSON_OBJECT:
-			type = "object";
-			break;
-	}
-
-	printf(" %s ", type);
-
-	if (len > 0) {
-			char *s = strndup(&js[obj->start], len);
-			printf("%s", s);
-			free(s);
-	}
-	printf("\n");
-}
-
-int main(int argc, char *argv[]) {
-	int i;
-#define NUM_TOKENS 20
-	jsontok_t tokens[NUM_TOKENS];
-
-	const char *js = 
-		"{"
-			"\"foo\": \"bar\","
-			"\"bar\": [1,2, 3],"
-			"\"obj\": { \"true\": false}"
-		"}";
-
-	jsmn_parse(js, tokens, NUM_TOKENS, NULL);
-
-	for (i = 0; i<NUM_TOKENS; i++) {
-		json_dump_obj(&tokens[i], js);
-	}
-
-	return 0;
-}
