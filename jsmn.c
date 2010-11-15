@@ -104,7 +104,7 @@ int jsmn_parse(const unsigned char *js, jsontok_t *tokens, size_t num_tokens, in
 		switch (obj_state[*p]) {
 			case JSON_ERROR:
 				if (errpos != NULL) {
-					*errpos = p;
+					*errpos = p - js;
 				}
 				return -1;
 
