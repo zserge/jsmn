@@ -5,7 +5,7 @@
 struct jsmn_params {
 	jsontok_t *tokens;
 	size_t num_tokens;
-	int **errpos;
+	int *errpos;
 };
 
 /**
@@ -98,7 +98,7 @@ static jsontok_t *jsmn_token_end(struct jsmn_params *params, jsontype_t type, in
 	return NULL;
 }
 
-int jsmn_parse(const unsigned char *js, jsontok_t *tokens, size_t num_tokens, int **errpos) {
+int jsmn_parse(const unsigned char *js, jsontok_t *tokens, size_t num_tokens, int *errpos) {
 
 	struct jsmn_params params;
 

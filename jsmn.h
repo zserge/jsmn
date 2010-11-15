@@ -33,6 +33,6 @@ typedef struct {
  * Run JSON parser. It parses a JSON data string into and array of tokens, each describing
  * a single JSON object.
  */
-int jsmn_parse(const unsigned char *js, jsontok_t *tokens, size_t num_tokens, int **errpos);
+int jsmn_parse(const unsigned char *js, jsontok_t *tokens, size_t num_tokens, int *errpos);
 
 #endif /* __JSMN_H_ */
