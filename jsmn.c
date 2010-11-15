@@ -2,97 +2,113 @@
 
 #include "jsmn.h"
 
-enum {
-	JSON_SKIP = 0,
-	JSON_OPEN = 1,
-	JSON_CLOSE = 2,
-	JSON_BARE = 3,
-	JSON_UNBARE = 4,
-	JSON_QUOTE = 5,
-	JSON_UNQUOTE = 6,
-	JSON_ERROR = 7
+struct jsmn_params {
+	jsontok_t *tokens;
+	size_t num_tokens;
+	int **errpos;
 };
 
-#define JSON_SYM_SKIP(sym)	\
-	[sym] = JSON_SKIP
+/**
+ * Read the string from JSON data. Store string 
+ */
+static int jsmn_parse_string(const unsigned char *js, jsontok_t *token) {
+	const unsigned char *p;
 
-#define JSON_SYM_ERROR(sym)	\
-	[sym] = JSON_ERROR
+	/* Check if string begins from a quote */
+	if (js[token->start] != '\"') {
+		return -1;
+	}
 
-#define JSON_SYM_OPEN(sym)	\
-	[sym] = JSON_OPEN
+	/* Skip starting quote */
+	token->start++;
 
-#define JSON_SYM_CLOSE(sym)	\
-	[sym] = JSON_CLOSE
+	for (p = &js[token->start]; *p != '\0'; p++) {
+		/* Quote: end of string */
+		if (*p == '\"') {
+			token->end = p - js;
+			return 0;
+		}
 
-#define JSON_SYM_BARE(sym)	\
-	[sym] = JSON_BARE
+		/* Backslash: Quoted symbol expected */
+		if (*p == '\\') {
+			p++;
+			switch (*p) {
+				/* Allowed escaped symbols */
+				case '\"': case '/' : case '\\' : case 'b' :
+				case 'f' : case 'r' : case 'n'  : case 't' :
+					break;
+				/* Allows escaped symbol \uXXXX */
+				case 'u':
+					/* TODO */
+					break;
+				/* Unexpected symbol */
+				default:
+					return -1;
+			}
+		}
+	}
+	return -1;
+}
 
-#define JSON_SYM_UNBARE(sym)	\
-	[sym] = JSON_UNBARE
+static int jsmn_parse_primitive(const unsigned char *js, jsontok_t *token) {
+	const unsigned char *p;
 
-#define JSON_SYM_QUOTE(sym)	\
-	[sym] = JSON_QUOTE
+	for (p = &js[token->start]; *p != '\0'; p++) {
+		switch (*p) {
+			case '\t' : case '\r' : case '\n' : case ' ' :
+			case ','  : case ']'  : case '}' :
+				token->end = p - js;
+				return 0;
+		}
+		if (*p < 32 || *p >= 127) {
+			return -1;
+		}
+	}
+	return -1;
+}
 
-#define JSON_SYM_UNQUOTE(sym)	\
-	[sym] = JSON_UNQUOTE
+static void jsmn_error(struct jsmn_params *params, int pos) {
+	if (params->errpos != NULL) {
+		*params->errpos = pos;
+	}
+}
+
+static jsontok_t *jsmn_token_start(struct jsmn_params *params, jsontype_t type, int pos) {
+	unsigned int i;
+	jsontok_t *tokens = params->tokens;
+	for (i = 0; i<params->num_tokens; i++) {
+		if (tokens[i].start == -1 && tokens[i].end == -1) {
+			tokens[i].start = pos;
+			tokens[i].type = type;
+			return &tokens[i];
+		}
+	}
+	return NULL;
+}
+
+static jsontok_t *jsmn_token_end(struct jsmn_params *params, jsontype_t type, int pos) {
+	int i;
+	jsontok_t *tokens = params->tokens;
+	for (i = params->num_tokens - 1; i>= 0; i--) {
+		if (tokens[i].type == type && tokens[i].start != -1 && tokens[i].end == -1) {
+			tokens[i].end = pos;
+			return &tokens[i];
+		}
+	}
+	return NULL;
+}
 
 int jsmn_parse(const unsigned char *js, jsontok_t *tokens, size_t num_tokens, int **errpos) {
 
-	int jsmn_token_start(jsontype_t type, int pos) {
-		unsigned int i;
-		for (i = 0; i<num_tokens; i++) {
-			if (tokens[i].start == -1 && tokens[i].end == -1) {
-				tokens[i].start = pos;
-				tokens[i].type = type;
-				return 0;
-			}
-		}
-		return -1;
-	}
+	struct jsmn_params params;
 
-	int jsmn_token_end(jsontype_t type, int pos) {
-		int i;
-		for (i = num_tokens - 1; i>= 0; i--) {
-			if (tokens[i].type == type && tokens[i].start != -1 && tokens[i].end == -1) {
-				tokens[i].end = pos;
-				return 0;
-			}
-		}
-		return -1;
-	}
-	
+	int r;
 	const unsigned char *p;
+	jsontok_t *cur_token;
 
-	int obj_common[] = {
-		JSON_SYM_ERROR(0 ... 255),
-		JSON_SYM_SKIP('\t'), JSON_SYM_SKIP('\r'),JSON_SYM_SKIP('\n'),
-		JSON_SYM_SKIP(':'), JSON_SYM_SKIP(','), JSON_SYM_SKIP(' '),
-		JSON_SYM_QUOTE('\"'),
-		JSON_SYM_OPEN('['), JSON_SYM_CLOSE(']'),
-		JSON_SYM_OPEN('{'), JSON_SYM_CLOSE('}'),
-		JSON_SYM_BARE('-'), JSON_SYM_BARE('0'...'9'),
-		JSON_SYM_BARE('t'), JSON_SYM_BARE('f'), JSON_SYM_BARE('n') /* true false null */
-	};
-
-	int obj_bare[] = {
-		JSON_SYM_ERROR(0 ... 31),
-		JSON_SYM_ERROR(127 ... 255),
-		JSON_SYM_SKIP(32 ... 126),
-		JSON_SYM_UNBARE('\t'), JSON_SYM_UNBARE(' '),
-		JSON_SYM_UNBARE('\r'), JSON_SYM_UNBARE('\n'),
-		JSON_SYM_UNBARE(','), JSON_SYM_UNBARE(']'),
-		JSON_SYM_UNBARE('}')
-	};
-
-	int obj_string[] = {
-		JSON_SYM_ERROR(0 ... 31), JSON_SYM_ERROR(127),
-		JSON_SYM_SKIP(32 ... 126),
-		JSON_SYM_UNQUOTE('\"'),
-		JSON_SYM_ERROR(248 ... 255),
-	};
-
-	int *obj_state = obj_common;
+	params.num_tokens = num_tokens;
+	params.tokens = tokens;
+	params.errpos = errpos;
 
 	unsigned int i;
 	for (i = 0; i<num_tokens; i++) {
@@ -101,42 +117,48 @@ int jsmn_parse(const unsigned char *js, jsontok_t *tokens, size_t num_tokens, in
 	}
 
 	for (p = js; *p != '\0'; ) {
-		switch (obj_state[*p]) {
-			case JSON_ERROR:
-				if (errpos != NULL) {
-					*errpos = p - js;
+		switch (*p) {
+			case '{': case '[':
+				cur_token = jsmn_token_start(&params, JSON_OBJECT, p - js);
+				cur_token->start = p - js;
+				break;
+			case '}' : case ']':
+				cur_token = jsmn_token_end(&params, JSON_OBJECT, p - js + 1);
+				cur_token->end = p - js + 1;
+				break;
+
+			case '-': case '0': case '1' : case '2': case '3' : case '4':
+			case '5': case '6': case '7' : case '8': case '9':
+			case 't': case 'f': case 'n' :
+				cur_token = jsmn_token_start(&params, JSON_OTHER, p - js);
+				r = jsmn_parse_primitive(js, cur_token);
+				if (r < 0) {
+					jsmn_error(&params, p - js);
+					return -1;
 				}
+				p = &js[cur_token->end];
+				break;
+
+			case '\"':
+				cur_token = jsmn_token_start(&params, JSON_STRING, p - js);
+				r = jsmn_parse_string(js, cur_token);
+				if (r < 0) {
+					jsmn_error(&params, p - js);
+					return -1;
+				}
+				p = &js[cur_token->end];
+				break;
+
+			case '\t' : case '\r' : case '\n' : case ':' : case ',': case ' ': 
+				break;
+
+			default:
+				jsmn_error(&params, p - js);
 				return -1;
-
-			case JSON_OPEN:
-				jsmn_token_start(JSON_OBJECT, p - js);
-				break;
-			case JSON_CLOSE:
-				jsmn_token_end(JSON_OBJECT, p - js + 1);
-				break;
-
-			case JSON_BARE:
-				jsmn_token_start(JSON_OTHER, p - js);
-				obj_state = obj_bare;
-				break;
-			case JSON_UNBARE:
-				jsmn_token_end(JSON_OTHER, p - js);
-				obj_state = obj_common;
-				continue;
-
-			case JSON_QUOTE:
-				jsmn_token_start(JSON_STRING, p - js + 1);
-				obj_state = obj_string;
-				break;
-			case JSON_UNQUOTE:
-				jsmn_token_end(JSON_STRING, p - js);
-				obj_state = obj_common;
-				break;
-			case JSON_SKIP:
-				break;
 		}
 		p++;
 	}
+	jsmn_error(&params, 0);
 	return 0;
 }
 
