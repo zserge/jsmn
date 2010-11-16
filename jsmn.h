@@ -17,6 +17,13 @@ typedef enum {
 	JSON_NUMBER
 } jsontype_t;
 
+typedef enum {
+	JSMN_ERROR_NOMEM = -1,
+	JSMN_ERROR_INVAL = -2,
+	JSMN_ERROR_PART = -3,
+	JSMN_SUCCESS = 0
+} jsmnerr_t;
+
 /**
  * JSON token description.
  * @param		type	type (object, array, string etc.)
