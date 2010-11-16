@@ -8,9 +8,9 @@
 
 #include "jsmn.h"
 
-#define NUM_TOKENS 20
+#define NUM_TOKENS 30
 
-static void json_dump_obj(jsontok_t *obj, const char *js) {
+static void jsmn_dump_obj(jsontok_t *obj, const char *js) {
 	size_t len;
 
 	if (obj->end < 0 || obj->start < 0) {
@@ -87,12 +87,12 @@ int main(int argc, char *argv[]) {
 
 	r = jsmn_parse((unsigned char *) js, tokens, NUM_TOKENS, &errpos);
 	if (r < 0) {
-		printf("error at pos %d: %s\n", errpos, &js[errpos]);
+		printf("error %d at pos %d: %s\n", r, errpos, &js[errpos]);
 		exit(EXIT_FAILURE);
 	}
 
 	for (i = 0; i<NUM_TOKENS; i++) {
-		json_dump_obj(&tokens[i], js);
+		jsmn_dump_obj(&tokens[i], js);
 	}
 
 	free(js);
