@@ -67,12 +67,6 @@ static int jsmn_parse_primitive(const unsigned char *js, jsontok_t *token) {
 	return -1;
 }
 
-static void jsmn_error(struct jsmn_params *params, int pos) {
-	if (params->errpos != NULL) {
-		*params->errpos = pos;
-	}
-}
-
 static jsontok_t *jsmn_token_start(struct jsmn_params *params, jsontype_t type, int pos) {
 	unsigned int i;
 	jsontok_t *tokens = params->tokens;
@@ -100,10 +94,17 @@ static jsontok_t *jsmn_token_end(struct jsmn_params *params, jsontype_t type, in
 
 int jsmn_parse(const unsigned char *js, jsontok_t *tokens, size_t num_tokens, int *errpos) {
 
-#define jsmn_assert(cond, pos, err)	\
-	if (!(cond)) {	\
-		jsmn_error(&params, pos);	\
-		return (err);	\
+#define jsmn_return(error)        \
+	do {                            \
+		if ((errpos) != NULL) {       \
+			*(errpos) = (p - js);       \
+		}                             \
+		return (error);               \
+	} while (0)
+
+#define jsmn_assert(cond, error)  \
+	if (!(cond)) {                  \
+		jsmn_return(error);           \
 	}
 
 	struct jsmn_params params;
@@ -128,31 +129,29 @@ int jsmn_parse(const unsigned char *js, jsontok_t *tokens, size_t num_tokens, in
 			case '{': case '[':
 				type = (*p == '{' ? JSON_OBJECT : JSON_ARRAY);
 				cur_token = jsmn_token_start(&params, type, p - js);
-				jsmn_assert(cur_token != NULL, p - js, -1);
-				cur_token->start = p - js;
+				jsmn_assert(cur_token != NULL, -1);
 				break;
 			case '}' : case ']':
 				type = (*p == '}' ? JSON_OBJECT : JSON_ARRAY);
 				cur_token = jsmn_token_end(&params, type, p - js + 1);
-				jsmn_assert(cur_token != NULL, p - js, -1);
-				cur_token->end = p - js + 1;
+				jsmn_assert(cur_token != NULL, -1);
 				break;
 
 			case '-': case '0': case '1' : case '2': case '3' : case '4':
 			case '5': case '6': case '7' : case '8': case '9':
 			case 't': case 'f': case 'n' :
 				cur_token = jsmn_token_start(&params, JSON_OTHER, p - js);
-				jsmn_assert(cur_token != NULL, p - js, -1);
+				jsmn_assert(cur_token != NULL, -1);
 				r = jsmn_parse_primitive(js, cur_token);
-				jsmn_assert(r == 0, p - js, -2);
+				jsmn_assert(r == 0, -2);
 				p = &js[cur_token->end] - 1;
 				break;
 
 			case '\"':
 				cur_token = jsmn_token_start(&params, JSON_STRING, p - js);
-				jsmn_assert(cur_token != NULL, p - js, -1);
+				jsmn_assert(cur_token != NULL, -1);
 				r = jsmn_parse_string(js, cur_token);
-				jsmn_assert(r == 0, p - js, -2);
+				jsmn_assert(r == 0, -2);
 				p = &js[cur_token->end];
 				break;
 
@@ -160,12 +159,13 @@ int jsmn_parse(const unsigned char *js, jsontok_t *tokens, size_t num_tokens, in
 				break;
 
 			default:
-				jsmn_error(&params, p - js);
-				return -1;
+				jsmn_assert(0, -1); /* Assert always fails */
 		}
 		p++;
 	}
-	jsmn_error(&params, 0);
+	if (errpos != NULL) *errpos = 0;
 	return 0;
+#undef jsmn_return
+#undef jsmn_assert
 }
 
