@@ -139,6 +139,12 @@ int jsmn_parse(const unsigned char *js, jsontok_t *tokens, size_t num_tokens, in
 
 			case '-': case '0': case '1' : case '2': case '3' : case '4':
 			case '5': case '6': case '7' : case '8': case '9':
+				cur_token = jsmn_token_start(&params, JSON_NUMBER, p - js);
+				jsmn_assert(cur_token != NULL, -1);
+				r = jsmn_parse_primitive(js, cur_token);
+				jsmn_assert(r == 0, -2);
+				p = &js[cur_token->end] - 1;
+				break;
 			case 't': case 'f': case 'n' :
 				cur_token = jsmn_token_start(&params, JSON_OTHER, p - js);
 				jsmn_assert(cur_token != NULL, -1);

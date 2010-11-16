@@ -7,7 +7,7 @@
  * 	o Array
  * 	o String
  * 	o Number
- * 	o Primitive: boolean (true/false) or null
+ * 	o Other primitive: boolean (true/false) or null
  */
 typedef enum {
 	JSON_OTHER = 0,
