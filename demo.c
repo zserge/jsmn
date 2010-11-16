@@ -50,7 +50,6 @@ static void jsmn_dump_obj(jsontok_t *obj, const char *js) {
 int main(int argc, char *argv[]) {
 	int i;
 	int r;
-	int errpos;
 	jsontok_t tokens[NUM_TOKENS];
 	FILE *f;
 	int filesize = 0;
@@ -85,14 +84,18 @@ int main(int argc, char *argv[]) {
 
 	fclose(f);
 
-	r = jsmn_parse((unsigned char *) js, tokens, NUM_TOKENS, &errpos);
+	jsmn_parser parser;
+
+	jsmn_init_parser(&parser, js, tokens, NUM_TOKENS);
+
+	r = jsmn_parse(&parser);
 	if (r < 0) {
-		printf("error %d at pos %d: %s\n", r, errpos, &js[errpos]);
+		printf("error %d at pos %d: %s\n", r, parser.pos, &js[parser.pos]);
 		exit(EXIT_FAILURE);
 	}
 
 	for (i = 0; i<NUM_TOKENS; i++) {
-		jsmn_dump_obj(&tokens[i], js);
+		jsmn_dump_obj(&parser.tokens[i], js);
 	}
 
 	free(js);

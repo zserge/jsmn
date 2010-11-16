@@ -11,10 +11,10 @@
  */
 typedef enum {
 	JSON_OTHER = 0,
-	JSON_OBJECT,
-	JSON_ARRAY,
-	JSON_STRING,
-	JSON_NUMBER
+	JSON_OBJECT = 1,
+	JSON_ARRAY = 2,
+	JSON_STRING = 3,
+	JSON_NUMBER = 4
 } jsontype_t;
 
 typedef enum {
@@ -37,9 +37,26 @@ typedef struct {
 } jsontok_t;
 
 /**
+ * JSON parser. Contains an array of token blocks available. Also stores
+ * the string being parsed now and current position in that string
+ */
+typedef struct {
+	const char *js;
+	unsigned int pos;
+	size_t num_tokens;
+	jsontok_t *tokens;
+} jsmn_parser;
+
+/**
+ * Create JSON parser over an array of tokens
+ */
+void jsmn_init_parser(jsmn_parser *parser, const char *js, 
+                      jsontok_t *tokens, size_t num_tokens);
+
+/**
  * Run JSON parser. It parses a JSON data string into and array of tokens, each describing
  * a single JSON object.
  */
-int jsmn_parse(const unsigned char *js, jsontok_t *tokens, size_t num_tokens, int *errpos);
+jsmnerr_t jsmn_parse(jsmn_parser *parser);
 
 #endif /* __JSMN_H_ */

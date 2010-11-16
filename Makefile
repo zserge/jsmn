@@ -1,4 +1,4 @@
-CFLAGS=-Wall -std=c89
+CFLAGS=-Wall -std=c89 -g
 
 OBJS=jsmn.o demo.o
 
