@@ -5,10 +5,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <getopt.h>
+#include <errno.h>
 
 #include "jsmn.h"
-
-#define NUM_TOKENS 30
 
 static void jsmn_dump_obj(jsontok_t *obj, const char *js) {
 	size_t len;
@@ -44,27 +45,54 @@ static void jsmn_dump_obj(jsontok_t *obj, const char *js) {
 	free(s);
 }
 
+void usage(void) {
+		fprintf(stderr, "Usage: ./demo <file.js>\n");
+		exit(EXIT_SUCCESS);
+}
+
 int main(int argc, char *argv[]) {
 	int i;
 	int r;
-	jsontok_t tokens[NUM_TOKENS];
+	int c;
+	jsontok_t *tokens;
+	int num_tokens = 100;
 	FILE *f;
 	int filesize = 0;
 	char *js = NULL;
 
-	if (argc != 2) {
-		fprintf(stderr, "Usage: ./demo <file.js>\n");
-		exit(EXIT_SUCCESS);
+	while ((c = getopt(argc, argv, "ht:")) != -1) {
+		switch (c) {
+			case 'h':
+				usage();
+				break;
+			case 't':
+				num_tokens = atoi(optarg);
+				if (errno || num_tokens < 0) {
+					fprintf(stderr, "Invalid token number: %s!\n", optarg);
+					exit(EXIT_FAILURE);
+				}
+				break;
+		}
 	}
 
-	if (strcmp(argv[1], "-") == 0) {
+	if (optind >= argc) {
+		usage();
+	}
+
+	if (strcmp(argv[optind], "-") == 0) {
 		f = stdin;
 	} else {
-		f = fopen(argv[1], "r");
+		f = fopen(argv[optind], "r");
 		if (f == NULL) {
 			fprintf(stderr, "Failed to open file `%s`\n", argv[1]);
 			exit(EXIT_FAILURE);
 		}
+	}
+
+	tokens = malloc(num_tokens * sizeof(jsontok_t));
+	if (tokens == NULL) {
+		fprintf(stderr, "Cannot allocate anough memory\n");
+		exit(EXIT_FAILURE);
 	}
 
 	while (1) {
@@ -86,15 +114,14 @@ int main(int argc, char *argv[]) {
 	fclose(f);
 
 	jsmn_parser parser;
-
-	jsmn_init_parser(&parser, js, tokens, NUM_TOKENS);
+	jsmn_init_parser(&parser, js, tokens, num_tokens);
 
 	r = jsmn_parse(&parser);
 	if (r < 0) {
 		printf("error %d at pos %d: %s\n", r, parser.pos, &js[parser.pos]);
 	}
 
-	for (i = 0; i<NUM_TOKENS; i++) {
+	for (i = 0; i<num_tokens; i++) {
 		jsmn_dump_obj(&parser.tokens[i], js);
 	}
 
