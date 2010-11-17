@@ -95,36 +95,39 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
+	jsmn_parser parser;
+	jsmn_init_parser(&parser, js, tokens, num_tokens);
+
 	while (1) {
 		char buf[BUFSIZ];
-		r = fread(buf, 1, BUFSIZ, f);
+		r = fread(buf, 1, 1, f);
 		if (r <= 0) {
 			break;
 		}
-		js = (char *) realloc(js, filesize + r);
+		js = (char *) realloc(js, filesize + r + 1);
 		if (js == NULL) {
 			fprintf(stderr, "Cannot allocate anough memory\n");
 			fclose(f);
 			exit(EXIT_FAILURE);
 		}
+		parser.js = js;
+
 		memcpy(js + filesize, buf, r);
 		filesize += r;
+		js[filesize] = '\0';
+
+		r = jsmn_parse(&parser);
+		if (r < 0) {
+			printf("error %d at pos %d: %s\n", r, parser.pos, &js[parser.pos]);
+		}
+
+		for (i = 0; i<num_tokens; i++) {
+			jsmn_dump_obj(&parser.tokens[i], js);
+		}
 	}
 
 	fclose(f);
-
-	jsmn_parser parser;
-	jsmn_init_parser(&parser, js, tokens, num_tokens);
-
-	r = jsmn_parse(&parser);
-	if (r < 0) {
-		printf("error %d at pos %d: %s\n", r, parser.pos, &js[parser.pos]);
-	}
-
-	for (i = 0; i<num_tokens; i++) {
-		jsmn_dump_obj(&parser.tokens[i], js);
-	}
-
+	free(tokens);
 	free(js);
 
 	return 0;

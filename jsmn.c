@@ -2,67 +2,63 @@
 
 #include "jsmn.h"
 
+static jsontok_t *jsmn_get_token(jsmn_parser *parser) {
+	unsigned int i;
+	jsontok_t *tokens = parser->tokens;
+	for (i = parser->curtoken; i<parser->num_tokens; i++) {
+		if (tokens[i].start == -1 && tokens[i].end == -1) {
+			parser->curtoken = i;
+			return &tokens[i];
+		}
+	}
+	return NULL;
+}
+
+static void jsmn_fill_token(jsontok_t *token, jsontype_t type, int start, int end) {
+	token->type = type;
+	token->start = start;
+	token->end = end;
+}
+
 void jsmn_init_parser(jsmn_parser *parser, const char *js, 
-                      jsontok_t *tokens, size_t num_tokens) {
+                      jsontok_t *tokens, unsigned int num_tokens) {
 	unsigned int i;
 
 	parser->js = js;
 	parser->pos = 0;
 	parser->tokens = tokens;
 	parser->num_tokens = num_tokens;
+	parser->curtoken = 0;
 
 	for (i = 0; i < parser->num_tokens; i++) {
-		parser->tokens[i].start = -1;
-		parser->tokens[i].end = -1;
-		parser->tokens[i].type = JSON_PRIMITIVE;
+		jsmn_fill_token(&parser->tokens[i], JSON_PRIMITIVE, -1, -1);
 	}
-}
-
-jsontok_t *jsmn_start_token(jsmn_parser *parser, jsontype_t type) {
-	unsigned int i;
-	jsontok_t *tokens = parser->tokens;
-	for (i = 0; i<parser->num_tokens; i++) {
-		if (tokens[i].start == -1 && tokens[i].end == -1) {
-			tokens[i].start = parser->pos;
-			tokens[i].type = type;
-			return &tokens[i];
-		}
-	}
-	return NULL;
-}
-
-jsontok_t *jsmn_end_token(jsmn_parser *parser, jsontype_t type) {
-	int i;
-	jsontok_t *tokens = parser->tokens;
-	for (i = parser->num_tokens - 1; i>= 0; i--) {
-		if (tokens[i].type == type && tokens[i].start != -1 && tokens[i].end == -1) {
-			tokens[i].end = parser->pos;
-			return &tokens[i];
-		}
-	}
-	return NULL;
 }
 
 static int jsmn_parse_primitive(jsmn_parser *parser) {
 	const char *js;
 	jsontok_t *token;
+	int start;
+
+	start = parser->pos;
 
 	js = parser->js;
-
-	token = jsmn_start_token(parser, JSON_PRIMITIVE);
 
 	for (; js[parser->pos] != '\0'; parser->pos++) {
 		switch (js[parser->pos]) {
 			case '\t' : case '\r' : case '\n' : case ' ' :
 			case ','  : case ']'  : case '}' :
-				token->end = parser->pos;
+				token = jsmn_get_token(parser);
+				jsmn_fill_token(token, JSON_PRIMITIVE, start, parser->pos);
 				parser->pos--;
 				return JSMN_SUCCESS;
 		}
 		if (js[parser->pos] < 32 || js[parser->pos] >= 127) {
+			parser->pos = start;
 			return JSMN_ERROR_INVAL;
 		}
 	}
+	parser->pos = start;
 	return JSMN_ERROR_PART;
 }
 
@@ -70,23 +66,20 @@ static int jsmn_parse_string(jsmn_parser *parser) {
 	const char *js;
 	jsontok_t *token;
 
-	js = parser->js;
+	int start = parser->pos;
 
-	/* Check if string begins from a quote */
-	if (js[parser->pos] != '\"') {
-		return JSMN_ERROR_INVAL;
-	}
+	js = parser->js;
 
 	parser->pos++;
 
-	token = jsmn_start_token(parser, JSON_STRING);
 	/* Skip starting quote */
 	for (; js[parser->pos] != '\0'; parser->pos++) {
 		char c = js[parser->pos];
 
 		/* Quote: end of string */
 		if (c == '\"') {
-			token->end = parser->pos;
+			token = jsmn_get_token(parser);
+			jsmn_fill_token(token, JSON_PRIMITIVE, start, parser->pos);
 			return JSMN_SUCCESS;
 		}
 
@@ -104,14 +97,18 @@ static int jsmn_parse_string(jsmn_parser *parser) {
 					break;
 				/* Unexpected symbol */
 				default:
+					parser->pos = start;
 					return JSMN_ERROR_INVAL;
 			}
 		}
 	}
+	parser->pos = start;
 	return JSMN_ERROR_PART;
 }
 
 jsmnerr_t jsmn_parse(jsmn_parser *parser) {
+	int r;
+	unsigned int i;
 	const char *js;
 	jsontype_t type;
 	jsontok_t *token;
@@ -123,21 +120,32 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser) {
 		c = js[parser->pos];
 		switch (c) {
 			case '{': case '[':
-				type = (c == '{' ? JSON_OBJECT : JSON_ARRAY);
-				token = jsmn_start_token(parser, type);
+				token = jsmn_get_token(parser);
+				token->type = (c == '{' ? JSON_OBJECT : JSON_ARRAY);
+				token->start = parser->pos;
 				break;
 			case '}': case ']':
 				type = (c == '}' ? JSON_OBJECT : JSON_ARRAY);
-				token = jsmn_end_token(parser, type);
-				token->end++;
+				for (i = parser->curtoken; i >= 0; i--) {
+					token = &parser->tokens[i];
+					if (token->start != -1 && token->end == -1) {
+						if (token->type != type) {
+							return JSMN_ERROR_INVAL;
+						}
+						token->end = parser->pos + 1;
+						break;
+					}
+				}
 				break;
 			case '-': case '0': case '1' : case '2': case '3' : case '4':
 			case '5': case '6': case '7' : case '8': case '9':
 			case 't': case 'f': case 'n' :
-				jsmn_parse_primitive(parser);
+				r = jsmn_parse_primitive(parser);
+				if (r < 0) return r;
 				break;
 			case '\"':
-				jsmn_parse_string(parser);
+				r = jsmn_parse_string(parser);
+				if (r < 0) return r;
 				break;
 			case '\t' : case '\r' : case '\n' : case ':' : case ',': case ' ': 
 				break;

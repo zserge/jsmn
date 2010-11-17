@@ -6,8 +6,7 @@
  * 	o Object
  * 	o Array
  * 	o String
- * 	o Number
- * 	o Other primitive: boolean (true/false) or null
+ * 	o Other primitive: number, boolean (true/false) or null
  */
 typedef enum {
 	JSON_PRIMITIVE = 0,
@@ -42,7 +41,8 @@ typedef struct {
 typedef struct {
 	const char *js;
 	unsigned int pos;
-	size_t num_tokens;
+	unsigned int num_tokens;
+	int curtoken;
 	jsontok_t *tokens;
 } jsmn_parser;
 
@@ -50,7 +50,7 @@ typedef struct {
  * Create JSON parser over an array of tokens
  */
 void jsmn_init_parser(jsmn_parser *parser, const char *js, 
-                      jsontok_t *tokens, size_t num_tokens);
+                      jsontok_t *tokens, unsigned int num_tokens);
 
 /**
  * Run JSON parser. It parses a JSON data string into and array of tokens, each describing
