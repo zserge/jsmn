@@ -14,7 +14,7 @@ void jsmn_init_parser(jsmn_parser *parser, const char *js,
 	for (i = 0; i < parser->num_tokens; i++) {
 		parser->tokens[i].start = -1;
 		parser->tokens[i].end = -1;
-		parser->tokens[i].type = JSON_OTHER;
+		parser->tokens[i].type = JSON_PRIMITIVE;
 	}
 }
 
@@ -49,7 +49,7 @@ static int jsmn_parse_primitive(jsmn_parser *parser) {
 
 	js = parser->js;
 
-	token = jsmn_start_token(parser, JSON_NUMBER);
+	token = jsmn_start_token(parser, JSON_PRIMITIVE);
 
 	for (; js[parser->pos] != '\0'; parser->pos++) {
 		switch (js[parser->pos]) {
@@ -65,7 +65,6 @@ static int jsmn_parse_primitive(jsmn_parser *parser) {
 	}
 	return JSMN_ERROR_PART;
 }
-
 
 static int jsmn_parse_string(jsmn_parser *parser) {
 	const char *js;
@@ -112,7 +111,6 @@ static int jsmn_parse_string(jsmn_parser *parser) {
 	return JSMN_ERROR_PART;
 }
 
-
 jsmnerr_t jsmn_parse(jsmn_parser *parser) {
 	const char *js;
 	jsontype_t type;
@@ -131,6 +129,7 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser) {
 			case '}': case ']':
 				type = (c == '}' ? JSON_OBJECT : JSON_ARRAY);
 				token = jsmn_end_token(parser, type);
+				token->end++;
 				break;
 			case '-': case '0': case '1' : case '2': case '3' : case '4':
 			case '5': case '6': case '7' : case '8': case '9':

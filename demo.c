@@ -19,18 +19,15 @@ static void jsmn_dump_obj(jsontok_t *obj, const char *js) {
 
 	len = obj->end - obj->start;
 
-	printf("[%d,%d]\t", obj->start, obj->end);
+	printf("[%3d,%3d]\t", obj->start, obj->end);
 
 	char *type;
 	switch (obj->type) {
-		case JSON_OTHER:
-			type = "(?)";
-			break;
-		case JSON_NUMBER:
-			type = "(N)";
+		case JSON_PRIMITIVE:
+			type = "(.)";
 			break;
 		case JSON_STRING:
-			type = "(S)";
+			type = "(s)";
 			break;
 		case JSON_ARRAY:
 			type = "(A)";
@@ -91,7 +88,6 @@ int main(int argc, char *argv[]) {
 	r = jsmn_parse(&parser);
 	if (r < 0) {
 		printf("error %d at pos %d: %s\n", r, parser.pos, &js[parser.pos]);
-		exit(EXIT_FAILURE);
 	}
 
 	for (i = 0; i<NUM_TOKENS; i++) {

@@ -10,11 +10,10 @@
  * 	o Other primitive: boolean (true/false) or null
  */
 typedef enum {
-	JSON_OTHER = 0,
+	JSON_PRIMITIVE = 0,
 	JSON_OBJECT = 1,
 	JSON_ARRAY = 2,
-	JSON_STRING = 3,
-	JSON_NUMBER = 4
+	JSON_STRING = 3
 } jsontype_t;
 
 typedef enum {
