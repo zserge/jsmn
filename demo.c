@@ -57,10 +57,14 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_SUCCESS);
 	}
 
-	f = fopen(argv[1], "r");
-	if (f == NULL) {
-		fprintf(stderr, "Failed to open file `%s`\n", argv[1]);
-		exit(EXIT_FAILURE);
+	if (strcmp(argv[1], "-") == 0) {
+		f = stdin;
+	} else {
+		f = fopen(argv[1], "r");
+		if (f == NULL) {
+			fprintf(stderr, "Failed to open file `%s`\n", argv[1]);
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	while (1) {
