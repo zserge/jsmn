@@ -13,6 +13,7 @@
 
 static void jsmn_dump_obj(jsontok_t *obj, const char *js) {
 	size_t len;
+	char *s;
 
 	if (obj->end < 0 || obj->start < 0) {
 		return;
@@ -20,27 +21,19 @@ static void jsmn_dump_obj(jsontok_t *obj, const char *js) {
 
 	len = obj->end - obj->start;
 
-	printf("[%3d,%3d]\t", obj->start, obj->end);
+	printf("[%3d,%3d] (%c)\t", obj->start, obj->end,
+		({
+			char c;
+			switch (obj->type) {
+				case JSON_PRIMITIVE: c = '.'; break;
+				case JSON_STRING: c = 's'; break;
+				case JSON_ARRAY: c = 'A'; break;
+				case JSON_OBJECT: c = 'O'; break;
+				default: c = '?';
+			}; c;
+		}));
 
-	char *type;
-	switch (obj->type) {
-		case JSON_PRIMITIVE:
-			type = "(.)";
-			break;
-		case JSON_STRING:
-			type = "(s)";
-			break;
-		case JSON_ARRAY:
-			type = "(A)";
-			break;
-		case JSON_OBJECT:
-			type = "(O)";
-			break;
-	}
-
-	printf("%s ", type);
-
-	char *s = strndup((const char *) &js[obj->start], len);
+	s = strndup((const char *) &js[obj->start], len);
 	printf("%s\n", s);
 	free(s);
 }
@@ -54,11 +47,14 @@ int main(int argc, char *argv[]) {
 	int i;
 	int r;
 	int c;
-	jsontok_t *tokens;
-	int num_tokens = 100;
+
 	FILE *f;
 	int filesize = 0;
+
+	jsmn_parser parser;
 	char *js = NULL;
+	jsontok_t *tokens;
+	int num_tokens = 100;
 
 	while ((c = getopt(argc, argv, "ht:")) != -1) {
 		switch (c) {
@@ -95,7 +91,6 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	jsmn_parser parser;
 	jsmn_init_parser(&parser, js, tokens, num_tokens);
 
 	while (1) {
