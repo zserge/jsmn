@@ -79,7 +79,7 @@ static int jsmn_parse_string(jsmn_parser *parser) {
 		/* Quote: end of string */
 		if (c == '\"') {
 			token = jsmn_get_token(parser);
-			jsmn_fill_token(token, JSON_PRIMITIVE, start, parser->pos);
+			jsmn_fill_token(token, JSON_PRIMITIVE, start+1, parser->pos);
 			return JSMN_SUCCESS;
 		}
 
