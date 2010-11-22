@@ -54,9 +54,10 @@ int main(int argc, char *argv[]) {
 	jsmn_parser parser;
 	char *js = NULL;
 	jsontok_t *tokens;
+	int block_size = 1024;
 	int num_tokens = 100;
 
-	while ((c = getopt(argc, argv, "ht:")) != -1) {
+	while ((c = getopt(argc, argv, "ht:b:")) != -1) {
 		switch (c) {
 			case 'h':
 				usage();
@@ -68,6 +69,12 @@ int main(int argc, char *argv[]) {
 					exit(EXIT_FAILURE);
 				}
 				break;
+			case 'b':
+				block_size = atoi(optarg);
+				if (errno || block_size < 0) {
+					fprintf(stderr, "Invalid block size: %s!\n", optarg);
+					exit(EXIT_FAILURE);
+				}
 		}
 	}
 
@@ -93,9 +100,9 @@ int main(int argc, char *argv[]) {
 
 	jsmn_init_parser(&parser, js, tokens, num_tokens);
 
+	char *buf = malloc(block_size);
 	while (1) {
-		char buf[BUFSIZ];
-		r = fread(buf, 1, 1, f);
+		r = fread(buf, 1, block_size, f);
 		if (r <= 0) {
 			break;
 		}
@@ -122,6 +129,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	fclose(f);
+	free(buf);
 	free(tokens);
 	free(js);
 
