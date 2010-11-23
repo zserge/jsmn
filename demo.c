@@ -21,7 +21,7 @@ static void jsmn_dump_obj(jsontok_t *obj, const char *js) {
 
 	len = obj->end - obj->start;
 
-	printf("[%3d,%3d] (%c)\t", obj->start, obj->end,
+	printf("[%3d,%3d] (%c) ", obj->start, obj->end,
 		({
 			char c;
 			switch (obj->type) {
@@ -34,7 +34,11 @@ static void jsmn_dump_obj(jsontok_t *obj, const char *js) {
 		}));
 
 	s = strndup((const char *) &js[obj->start], len);
-	printf("%s\n", s);
+	char *p;
+	for (p = s; *p; p++) {
+		printf("%c", *p == '\n' ? ' ' : *p);
+	}
+	printf("\n", s);
 	free(s);
 }
 
