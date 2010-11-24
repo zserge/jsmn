@@ -110,6 +110,22 @@ expect 'objField' 'value' << JSON_END
 }
 JSON_END
 
+expect 'foo' 'bar' << JSON_END
+{
+	"foo" : "bar"
+	"a" : [
+		{
+			"x" : "y",
+			"z" : "zz"
+		},
+		3,
+		false,
+		true,
+		"end"
+	],
+}
+JSON_END
+
 echo
 echo "Passed: $PASSED"
 echo "Failed: $FAILED"
