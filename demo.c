@@ -38,7 +38,7 @@ static void jsmn_dump_obj(jsontok_t *obj, const char *js) {
 	for (p = s; *p; p++) {
 		printf("%c", *p == '\n' ? ' ' : *p);
 	}
-	printf("\n", s);
+	printf("\n");
 	free(s);
 }
 
