@@ -49,6 +49,8 @@ static int jsmn_parse_primitive(jsmn_parser *parser) {
 			case '\t' : case '\r' : case '\n' : case ' ' :
 			case ','  : case ']'  : case '}' :
 				token = jsmn_get_token(parser);
+				if (token == NULL)
+					return JSMN_ERROR_NOMEM;
 				jsmn_fill_token(token, JSON_PRIMITIVE, start, parser->pos);
 				parser->pos--;
 				return JSMN_SUCCESS;
@@ -79,6 +81,8 @@ static int jsmn_parse_string(jsmn_parser *parser) {
 		/* Quote: end of string */
 		if (c == '\"') {
 			token = jsmn_get_token(parser);
+			if (token == NULL)
+				return JSMN_ERROR_NOMEM;
 			jsmn_fill_token(token, JSON_PRIMITIVE, start+1, parser->pos);
 			return JSMN_SUCCESS;
 		}
@@ -121,6 +125,8 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser) {
 		switch (c) {
 			case '{': case '[':
 				token = jsmn_get_token(parser);
+				if (token == NULL)
+					return JSMN_ERROR_NOMEM;
 				token->type = (c == '{' ? JSON_OBJECT : JSON_ARRAY);
 				token->start = parser->pos;
 				break;
