@@ -21,7 +21,7 @@ PASSED=0
 FAILED=0
 
 function expect() {	
-	ret=$(./jsmn_demo -t 10 -b 256 - | grep -A 1 $1 | tail -n 1 | cut -c 15-)
+	ret=$(./jsmn_demo -t 10 -b 256 - | grep -A 1 "$1" | tail -n 1 | cut -c 15-)
 	if [ "x$ret" = "x$2" ]; then
 		PASSED=$(($PASSED+1))
 	else
@@ -30,11 +30,12 @@ function expect() {
 	fi
 }
 
+
 #
 # TEST SET: Basic types (simple values)
 #
 expect 'boolVar' 'true' << JSON_END
-"boolVal" : true
+"boolVar" : true
 JSON_END
 
 expect 'boolVar' 'false'<< JSON_END
