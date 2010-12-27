@@ -2,6 +2,9 @@
 
 #include "jsmn.h"
 
+/**
+ * Allocates a fresh unused token from the token pull.
+ */
 static jsmntok_t *jsmn_get_token(jsmn_parser *parser) {
 	unsigned int i;
 	jsmntok_t *tokens = parser->tokens;
@@ -14,12 +17,20 @@ static jsmntok_t *jsmn_get_token(jsmn_parser *parser) {
 	return NULL;
 }
 
-static void jsmn_fill_token(jsmntok_t *token, jsmntype_t type, int start, int end) {
+/**
+ * Fills token type and boundaries.
+ */
+static void jsmn_fill_token(jsmntok_t *token, jsmntype_t type, 
+                            int start, int end) {
 	token->type = type;
 	token->start = start;
 	token->end = end;
 }
 
+/**
+ * Creates a new parser based over a given  buffer with an array of tokens 
+ * available.
+ */
 void jsmn_init_parser(jsmn_parser *parser, const char *js, 
                       jsmntok_t *tokens, unsigned int num_tokens) {
 	unsigned int i;
@@ -35,6 +46,9 @@ void jsmn_init_parser(jsmn_parser *parser, const char *js,
 	}
 }
 
+/**
+ * Fills next available token with JSON primitive.
+ */
 static int jsmn_parse_primitive(jsmn_parser *parser) {
 	const char *js;
 	jsmntok_t *token;
@@ -64,6 +78,9 @@ static int jsmn_parse_primitive(jsmn_parser *parser) {
 	return JSMN_ERROR_PART;
 }
 
+/**
+ * Filsl next token with JSON string.
+ */
 static int jsmn_parse_string(jsmn_parser *parser) {
 	const char *js;
 	jsmntok_t *token;
@@ -110,6 +127,9 @@ static int jsmn_parse_string(jsmn_parser *parser) {
 	return JSMN_ERROR_PART;
 }
 
+/**
+ * Parse JSON string and fill tokens.
+ */
 jsmnerr_t jsmn_parse(jsmn_parser *parser) {
 	int r;
 	unsigned int i;
