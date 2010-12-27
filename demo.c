@@ -11,7 +11,7 @@
 
 #include "jsmn.h"
 
-static void jsmn_dump_obj(jsontok_t *obj, const char *js) {
+static void jsmn_dump_obj(jsmntok_t *obj, const char *js) {
 	size_t len;
 	char *s;
 
@@ -25,10 +25,10 @@ static void jsmn_dump_obj(jsontok_t *obj, const char *js) {
 		({
 			char c;
 			switch (obj->type) {
-				case JSON_PRIMITIVE: c = '.'; break;
-				case JSON_STRING: c = 's'; break;
-				case JSON_ARRAY: c = 'A'; break;
-				case JSON_OBJECT: c = 'O'; break;
+				case JSMN_PRIMITIVE: c = '.'; break;
+				case JSMN_STRING: c = 's'; break;
+				case JSMN_ARRAY: c = 'A'; break;
+				case JSMN_OBJECT: c = 'O'; break;
 				default: c = '?';
 			}; c;
 		}));
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
 
 	jsmn_parser parser;
 	char *js = NULL;
-	jsontok_t *tokens;
+	jsmntok_t *tokens;
 	int block_size = 1024;
 	int num_tokens = 100;
 
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	tokens = malloc(num_tokens * sizeof(jsontok_t));
+	tokens = malloc(num_tokens * sizeof(jsmntok_t));
 	if (tokens == NULL) {
 		fprintf(stderr, "Cannot allocate anough memory\n");
 		exit(EXIT_FAILURE);

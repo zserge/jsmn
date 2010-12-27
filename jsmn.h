@@ -9,11 +9,11 @@
  * 	o Other primitive: number, boolean (true/false) or null
  */
 typedef enum {
-	JSON_PRIMITIVE = 0,
-	JSON_OBJECT = 1,
-	JSON_ARRAY = 2,
-	JSON_STRING = 3
-} jsontype_t;
+	JSMN_PRIMITIVE = 0,
+	JSMN_OBJECT = 1,
+	JSMN_ARRAY = 2,
+	JSMN_STRING = 3
+} jsmntype_t;
 
 typedef enum {
 	JSMN_ERROR_NOMEM = -1,
@@ -29,10 +29,10 @@ typedef enum {
  * @param		end		end position in JSON data string
  */
 typedef struct {
-	jsontype_t type;
+	jsmntype_t type;
 	int start;
 	int end;
-} jsontok_t;
+} jsmntok_t;
 
 /**
  * JSON parser. Contains an array of token blocks available. Also stores
@@ -43,14 +43,14 @@ typedef struct {
 	unsigned int pos;
 	unsigned int num_tokens;
 	int curtoken;
-	jsontok_t *tokens;
+	jsmntok_t *tokens;
 } jsmn_parser;
 
 /**
  * Create JSON parser over an array of tokens
  */
 void jsmn_init_parser(jsmn_parser *parser, const char *js, 
-                      jsontok_t *tokens, unsigned int num_tokens);
+                      jsmntok_t *tokens, unsigned int num_tokens);
 
 /**
  * Run JSON parser. It parses a JSON data string into and array of tokens, each describing

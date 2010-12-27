@@ -1,17 +1,22 @@
 CFLAGS=-Wall -std=c89 -g -O2
 
-OBJS=jsmn.o demo.o
+all: libjsmn.a 
 
-all: jsmn_demo
+demo: libjsmn.a demo.o
+	$(CC) $(LDFLAGS) demo.o -L. -ljsmn -o $@
 
-jsmn_demo: $(OBJS)
-	$(CC) $(LDFLAGS) $(OBJS) -o $@
+libjsmn.a: jsmn.o
+	ar rc $@ $^
 
 %.o: %.c jsmn.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
-clean:
-	rm -f $(OBJS)
-	rm -f jsmn_demo
+test: all demo
+	sh test.sh
 
-.PHONY: clean all
+clean:
+	rm -f jsmn.o demo.o
+	rm -f libjsmn.a
+	rm -f demo
+
+.PHONY: all clean test demo

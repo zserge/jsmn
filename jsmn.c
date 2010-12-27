@@ -2,9 +2,9 @@
 
 #include "jsmn.h"
 
-static jsontok_t *jsmn_get_token(jsmn_parser *parser) {
+static jsmntok_t *jsmn_get_token(jsmn_parser *parser) {
 	unsigned int i;
-	jsontok_t *tokens = parser->tokens;
+	jsmntok_t *tokens = parser->tokens;
 	for (i = parser->curtoken; i<parser->num_tokens; i++) {
 		if (tokens[i].start == -1 && tokens[i].end == -1) {
 			parser->curtoken = i;
@@ -14,14 +14,14 @@ static jsontok_t *jsmn_get_token(jsmn_parser *parser) {
 	return NULL;
 }
 
-static void jsmn_fill_token(jsontok_t *token, jsontype_t type, int start, int end) {
+static void jsmn_fill_token(jsmntok_t *token, jsmntype_t type, int start, int end) {
 	token->type = type;
 	token->start = start;
 	token->end = end;
 }
 
 void jsmn_init_parser(jsmn_parser *parser, const char *js, 
-                      jsontok_t *tokens, unsigned int num_tokens) {
+                      jsmntok_t *tokens, unsigned int num_tokens) {
 	unsigned int i;
 
 	parser->js = js;
@@ -31,13 +31,13 @@ void jsmn_init_parser(jsmn_parser *parser, const char *js,
 	parser->curtoken = 0;
 
 	for (i = 0; i < parser->num_tokens; i++) {
-		jsmn_fill_token(&parser->tokens[i], JSON_PRIMITIVE, -1, -1);
+		jsmn_fill_token(&parser->tokens[i], JSMN_PRIMITIVE, -1, -1);
 	}
 }
 
 static int jsmn_parse_primitive(jsmn_parser *parser) {
 	const char *js;
-	jsontok_t *token;
+	jsmntok_t *token;
 	int start;
 
 	start = parser->pos;
@@ -51,7 +51,7 @@ static int jsmn_parse_primitive(jsmn_parser *parser) {
 				token = jsmn_get_token(parser);
 				if (token == NULL)
 					return JSMN_ERROR_NOMEM;
-				jsmn_fill_token(token, JSON_PRIMITIVE, start, parser->pos);
+				jsmn_fill_token(token, JSMN_PRIMITIVE, start, parser->pos);
 				parser->pos--;
 				return JSMN_SUCCESS;
 		}
@@ -66,7 +66,7 @@ static int jsmn_parse_primitive(jsmn_parser *parser) {
 
 static int jsmn_parse_string(jsmn_parser *parser) {
 	const char *js;
-	jsontok_t *token;
+	jsmntok_t *token;
 
 	int start = parser->pos;
 
@@ -83,7 +83,7 @@ static int jsmn_parse_string(jsmn_parser *parser) {
 			token = jsmn_get_token(parser);
 			if (token == NULL)
 				return JSMN_ERROR_NOMEM;
-			jsmn_fill_token(token, JSON_PRIMITIVE, start+1, parser->pos);
+			jsmn_fill_token(token, JSMN_PRIMITIVE, start+1, parser->pos);
 			return JSMN_SUCCESS;
 		}
 
@@ -114,8 +114,8 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser) {
 	int r;
 	unsigned int i;
 	const char *js;
-	jsontype_t type;
-	jsontok_t *token;
+	jsmntype_t type;
+	jsmntok_t *token;
 
 	js = parser->js;
 
@@ -127,11 +127,11 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser) {
 				token = jsmn_get_token(parser);
 				if (token == NULL)
 					return JSMN_ERROR_NOMEM;
-				token->type = (c == '{' ? JSON_OBJECT : JSON_ARRAY);
+				token->type = (c == '{' ? JSMN_OBJECT : JSMN_ARRAY);
 				token->start = parser->pos;
 				break;
 			case '}': case ']':
-				type = (c == '}' ? JSON_OBJECT : JSON_ARRAY);
+				type = (c == '}' ? JSMN_OBJECT : JSMN_ARRAY);
 				for (i = parser->curtoken; i >= 0; i--) {
 					token = &parser->tokens[i];
 					if (token->start != -1 && token->end == -1) {
