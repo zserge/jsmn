@@ -32,6 +32,7 @@ typedef struct {
 	jsmntype_t type;
 	int start;
 	int end;
+	int size;
 } jsmntok_t;
 
 /**
@@ -43,6 +44,7 @@ typedef struct {
 	unsigned int pos;
 	unsigned int num_tokens;
 	int curtoken;
+	int *cursize;
 	jsmntok_t *tokens;
 } jsmn_parser;
 

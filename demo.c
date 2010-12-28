@@ -21,7 +21,7 @@ static void jsmn_dump_obj(jsmntok_t *obj, const char *js) {
 
 	len = obj->end - obj->start;
 
-	printf("[%3d,%3d] (%c) ", obj->start, obj->end,
+	printf("[%3d,%3d - %2d] (%c) ", obj->start, obj->end, obj->size,
 		({
 			char c;
 			switch (obj->type) {

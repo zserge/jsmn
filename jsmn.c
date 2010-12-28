@@ -11,6 +11,7 @@ static jsmntok_t *jsmn_get_token(jsmn_parser *parser) {
 	for (i = parser->curtoken; i<parser->num_tokens; i++) {
 		if (tokens[i].start == -1 && tokens[i].end == -1) {
 			parser->curtoken = i;
+			tokens[i].size = 0;
 			return &tokens[i];
 		}
 	}
@@ -40,6 +41,7 @@ void jsmn_init_parser(jsmn_parser *parser, const char *js,
 	parser->tokens = tokens;
 	parser->num_tokens = num_tokens;
 	parser->curtoken = 0;
+	parser->cursize = NULL;
 
 	for (i = 0; i < parser->num_tokens; i++) {
 		jsmn_fill_token(&parser->tokens[i], JSMN_PRIMITIVE, -1, -1);
@@ -132,7 +134,7 @@ static int jsmn_parse_string(jsmn_parser *parser) {
  */
 jsmnerr_t jsmn_parse(jsmn_parser *parser) {
 	int r;
-	unsigned int i;
+	int i;
 	const char *js;
 	jsmntype_t type;
 	jsmntok_t *token;
@@ -147,8 +149,11 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser) {
 				token = jsmn_get_token(parser);
 				if (token == NULL)
 					return JSMN_ERROR_NOMEM;
+				if (parser->cursize != NULL)
+					(*parser->cursize)++;
 				token->type = (c == '{' ? JSMN_OBJECT : JSMN_ARRAY);
 				token->start = parser->pos;
+				parser->cursize = &token->size;
 				break;
 			case '}': case ']':
 				type = (c == '}' ? JSMN_OBJECT : JSMN_ARRAY);
@@ -158,7 +163,15 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser) {
 						if (token->type != type) {
 							return JSMN_ERROR_INVAL;
 						}
+						parser->cursize = NULL;
 						token->end = parser->pos + 1;
+						break;
+					}
+				}
+				for (; i >= 0; i--) {
+					token = &parser->tokens[i];
+					if (token->start != -1 && token->end == -1) {
+						parser->cursize = &token->size;
 						break;
 					}
 				}
@@ -168,10 +181,14 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser) {
 			case 't': case 'f': case 'n' :
 				r = jsmn_parse_primitive(parser);
 				if (r < 0) return r;
+				if (parser->cursize != NULL)
+					(*parser->cursize)++;
 				break;
 			case '\"':
 				r = jsmn_parse_string(parser);
 				if (r < 0) return r;
+				if (parser->cursize != NULL)
+					(*parser->cursize)++;
 				break;
 			case '\t' : case '\r' : case '\n' : case ':' : case ',': case ' ': 
 				break;

@@ -21,7 +21,7 @@ PASSED=0
 FAILED=0
 
 function expect() {	
-	ret=$(./demo -t 10 -b 256 - | grep -A 1 "$1" | tail -n 1 | cut -c 15-)
+	ret=$(./demo -t 10 -b 256 - | grep -A 1 "$1" | tail -n 1 | cut -c 20-)
 	if [ "x$ret" = "x$2" ]; then
 		PASSED=$(($PASSED+1))
 	else
