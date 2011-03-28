@@ -102,7 +102,7 @@ static int jsmn_parse_string(jsmn_parser *parser) {
 			token = jsmn_get_token(parser);
 			if (token == NULL)
 				return JSMN_ERROR_NOMEM;
-			jsmn_fill_token(token, JSMN_PRIMITIVE, start+1, parser->pos);
+			jsmn_fill_token(token, JSMN_STRING, start+1, parser->pos);
 			return JSMN_SUCCESS;
 		}
 
