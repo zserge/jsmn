@@ -1,4 +1,5 @@
-CFLAGS=-Wall -std=c89 -g -O2
+# You can put your build options here
+-include config.mk
 
 all: libjsmn.a 
 
@@ -6,7 +7,7 @@ demo: libjsmn.a demo.o
 	$(CC) $(LDFLAGS) demo.o -L. -ljsmn -o $@
 
 libjsmn.a: jsmn.o
-	ar rc $@ $^
+	$(AR) rc $@ $^
 
 %.o: %.c jsmn.h
 	$(CC) -c $(CFLAGS) $< -o $@
@@ -20,3 +21,4 @@ clean:
 	rm -f demo
 
 .PHONY: all clean test demo
+
