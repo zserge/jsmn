@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "jsmn.c"
 
@@ -30,28 +32,45 @@ static void test(int (*func)(void), const char *name) {
 	 && (t).end == tok_end  \
 	 && (t).type == (tok_type))
 
+#define TOKEN_STIRNG(js, t, s) \
+	(strncmp(js+(t).start, s, (t).end - (t).start) == 0 \
+	 && strlen(s) == (t).end - (t).start)
+
 #define TOKEN_PRINT(t) \
 	printf("start: %d, end: %d, type: %d\n", (t).start, (t).end, (t).type)
 
 
 
-int test_primitive() {
+int test_simple() {
+	const char *js;
 	int r;
 	jsmn_parser p;
 	jsmntok_t tokens[10];
 
-	jsmn_init_parser(&p, "{\"a\": 0}", tokens, 10);
+	js = "{\"a\": 0}";
 
-	r = jsmn_parse(&p);
+	jsmn_init(&p);
+	r = jsmn_parse(&p, js, tokens, 10);
 	check(r == JSMN_SUCCESS);
 	check(TOKEN_EQ(tokens[0], 0, 8, JSMN_OBJECT));
 	check(TOKEN_EQ(tokens[1], 2, 3, JSMN_STRING));
 	check(TOKEN_EQ(tokens[2], 6, 7, JSMN_PRIMITIVE));
 
+	check(TOKEN_STIRNG(js, tokens[0], js));
+	check(TOKEN_STIRNG(js, tokens[1], "a"));
+	check(TOKEN_STIRNG(js, tokens[2], "0"));
+
 	return 0;
 }
 
+int test_primitive() {
+	jsmn_parser p;
+	jsmntok_t tokens[10];
+	const char *js;
+}
+
 int main() {
-	test(test_primitive, "test primitive values");
+	test(test_simple, "general test for a simple JSON string");
 	return 0;
 }
+

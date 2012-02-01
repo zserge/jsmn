@@ -29,26 +29,6 @@ static void jsmn_fill_token(jsmntok_t *token, jsmntype_t type,
 }
 
 /**
- * Creates a new parser based over a given  buffer with an array of tokens 
- * available.
- */
-void jsmn_init_parser(jsmn_parser *parser, const char *js, 
-                      jsmntok_t *tokens, unsigned int num_tokens) {
-	unsigned int i;
-
-	parser->js = js;
-	parser->pos = 0;
-	parser->tokens = tokens;
-	parser->num_tokens = num_tokens;
-	parser->curtoken = 0;
-	parser->cursize = NULL;
-
-	for (i = 0; i < parser->num_tokens; i++) {
-		jsmn_fill_token(&parser->tokens[i], JSMN_PRIMITIVE, -1, -1);
-	}
-}
-
-/**
  * Fills next available token with JSON primitive.
  */
 static int jsmn_parse_primitive(jsmn_parser *parser) {
@@ -132,14 +112,20 @@ static int jsmn_parse_string(jsmn_parser *parser) {
 /**
  * Parse JSON string and fill tokens.
  */
-jsmnerr_t jsmn_parse(jsmn_parser *parser) {
+jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, jsmntok_t *tokens, 
+		unsigned int num_tokens) {
 	int r;
 	int i;
-	const char *js;
 	jsmntype_t type;
 	jsmntok_t *token;
 
-	js = parser->js;
+	/* initialize the rest of tokens (they could be reallocated) */
+	parser->num_tokens = num_tokens;
+	parser->tokens = tokens;
+	parser->js = js;
+	for (i = parser->curtoken; i < parser->num_tokens; i++) {
+		jsmn_fill_token(&parser->tokens[i], JSMN_PRIMITIVE, -1, -1);
+	}
 
 	for (; js[parser->pos] != '\0'; parser->pos++) {
 		char c;
@@ -197,5 +183,15 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser) {
 		}
 	}
 	return JSMN_SUCCESS;
+}
+
+/**
+ * Creates a new parser based over a given  buffer with an array of tokens 
+ * available.
+ */
+void jsmn_init(jsmn_parser *parser) {
+	parser->pos = 0;
+	parser->curtoken = 0;
+	parser->cursize = NULL;
 }
 
