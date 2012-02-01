@@ -3,8 +3,8 @@
 
 all: libjsmn.a 
 
-demo: libjsmn.a demo.o
-	$(CC) $(LDFLAGS) demo.o -L. -ljsmn -o $@
+#demo: libjsmn.a demo.o
+#	$(CC) $(LDFLAGS) demo.o -L. -ljsmn -o $@
 
 libjsmn.a: jsmn.o
 	$(AR) rc $@ $^
@@ -12,8 +12,11 @@ libjsmn.a: jsmn.o
 %.o: %.c jsmn.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
-test: all demo
-	sh test.sh
+test: jsmn_test
+	./jsmn_test
+
+jsmn_test: jsmn_test.o
+	$(CC) -L. -ljsmn $< -o $@
 
 clean:
 	rm -f jsmn.o demo.o
