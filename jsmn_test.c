@@ -67,10 +67,12 @@ int test_primitive() {
 	jsmn_parser p;
 	jsmntok_t tokens[10];
 	const char *js;
+	return 0;
 }
 
 int main() {
 	test(test_simple, "general test for a simple JSON string");
+	test(test_primitive, "test primitive JSON data types");
 	return 0;
 }
 

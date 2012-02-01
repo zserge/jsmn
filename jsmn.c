@@ -5,10 +5,10 @@
 /**
  * Allocates a fresh unused token from the token pull.
  */
-static jsmntok_t *jsmn_alloc_token(jsmn_parser *parser) {
+static jsmntok_t *jsmn_alloc_token(jsmn_parser *parser, 
+		jsmntok_t *tokens, size_t num_tokens) {
 	unsigned int i;
-	jsmntok_t *tokens = parser->tokens;
-	for (i = parser->curtoken; i<parser->num_tokens; i++) {
+	for (i = parser->curtoken; i < num_tokens; i++) {
 		if (tokens[i].start == -1 && tokens[i].end == -1) {
 			parser->curtoken = i;
 			tokens[i].size = 0;
@@ -31,20 +31,18 @@ static void jsmn_fill_token(jsmntok_t *token, jsmntype_t type,
 /**
  * Fills next available token with JSON primitive.
  */
-static int jsmn_parse_primitive(jsmn_parser *parser) {
-	const char *js;
+static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
+		jsmntok_t *tokens, size_t num_tokens) {
 	jsmntok_t *token;
 	int start;
 
 	start = parser->pos;
 
-	js = parser->js;
-
 	for (; js[parser->pos] != '\0'; parser->pos++) {
 		switch (js[parser->pos]) {
 			case '\t' : case '\r' : case '\n' : case ' ' :
 			case ','  : case ']'  : case '}' :
-				token = jsmn_alloc_token(parser);
+				token = jsmn_alloc_token(parser, tokens, num_tokens);
 				if (token == NULL)
 					return JSMN_ERROR_NOMEM;
 				jsmn_fill_token(token, JSMN_PRIMITIVE, start, parser->pos);
@@ -63,13 +61,11 @@ static int jsmn_parse_primitive(jsmn_parser *parser) {
 /**
  * Filsl next token with JSON string.
  */
-static int jsmn_parse_string(jsmn_parser *parser) {
-	const char *js;
+static int jsmn_parse_string(jsmn_parser *parser, const char *js,
+		jsmntok_t *tokens, size_t num_tokens) {
 	jsmntok_t *token;
 
 	int start = parser->pos;
-
-	js = parser->js;
 
 	parser->pos++;
 
@@ -79,7 +75,7 @@ static int jsmn_parse_string(jsmn_parser *parser) {
 
 		/* Quote: end of string */
 		if (c == '\"') {
-			token = jsmn_alloc_token(parser);
+			token = jsmn_alloc_token(parser, tokens, num_tokens);
 			if (token == NULL)
 				return JSMN_ERROR_NOMEM;
 			jsmn_fill_token(token, JSMN_STRING, start+1, parser->pos);
@@ -120,11 +116,8 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, jsmntok_t *tokens,
 	jsmntok_t *token;
 
 	/* initialize the rest of tokens (they could be reallocated) */
-	parser->num_tokens = num_tokens;
-	parser->tokens = tokens;
-	parser->js = js;
-	for (i = parser->curtoken; i < parser->num_tokens; i++) {
-		jsmn_fill_token(&parser->tokens[i], JSMN_PRIMITIVE, -1, -1);
+	for (i = parser->curtoken; i < num_tokens; i++) {
+		jsmn_fill_token(&tokens[i], JSMN_PRIMITIVE, -1, -1);
 	}
 
 	for (; js[parser->pos] != '\0'; parser->pos++) {
@@ -132,7 +125,7 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, jsmntok_t *tokens,
 		c = js[parser->pos];
 		switch (c) {
 			case '{': case '[':
-				token = jsmn_alloc_token(parser);
+				token = jsmn_alloc_token(parser, tokens, num_tokens);
 				if (token == NULL)
 					return JSMN_ERROR_NOMEM;
 				if (parser->cursize != NULL)
@@ -144,7 +137,7 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, jsmntok_t *tokens,
 			case '}': case ']':
 				type = (c == '}' ? JSMN_OBJECT : JSMN_ARRAY);
 				for (i = parser->curtoken; i >= 0; i--) {
-					token = &parser->tokens[i];
+					token = &tokens[i];
 					if (token->start != -1 && token->end == -1) {
 						if (token->type != type) {
 							return JSMN_ERROR_INVAL;
@@ -155,7 +148,7 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, jsmntok_t *tokens,
 					}
 				}
 				for (; i >= 0; i--) {
-					token = &parser->tokens[i];
+					token = &tokens[i];
 					if (token->start != -1 && token->end == -1) {
 						parser->cursize = &token->size;
 						break;
@@ -165,13 +158,13 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, jsmntok_t *tokens,
 			case '-': case '0': case '1' : case '2': case '3' : case '4':
 			case '5': case '6': case '7' : case '8': case '9':
 			case 't': case 'f': case 'n' :
-				r = jsmn_parse_primitive(parser);
+				r = jsmn_parse_primitive(parser, js, tokens, num_tokens);
 				if (r < 0) return r;
 				if (parser->cursize != NULL)
 					(*parser->cursize)++;
 				break;
 			case '\"':
-				r = jsmn_parse_string(parser);
+				r = jsmn_parse_string(parser, js, tokens, num_tokens);
 				if (r < 0) return r;
 				if (parser->cursize != NULL)
 					(*parser->cursize)++;

@@ -44,12 +44,9 @@ typedef struct {
  * the string being parsed now and current position in that string
  */
 typedef struct {
-	const char *js;
 	unsigned int pos;
-	unsigned int num_tokens;
 	int curtoken;
 	int *cursize;
-	jsmntok_t *tokens;
 } jsmn_parser;
 
 /**
