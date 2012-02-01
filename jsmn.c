@@ -40,7 +40,10 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
 
 	for (; js[parser->pos] != '\0'; parser->pos++) {
 		switch (js[parser->pos]) {
-			case '\t' : case '\r' : case '\n' : case ' ' :
+#ifndef JSMN_STRICT
+			/* In strict mode primitive must be followed by "," or "}" or "]" */
+			case '\t' : case '\r' : case '\n' : case ' ' : case ':': 
+#endif
 			case ','  : case ']'  : case '}' :
 				goto found;
 		}
@@ -49,8 +52,8 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
 			return JSMN_ERROR_INVAL;
 		}
 	}
-	/* TODO: CHECK THIS ONLY WHEN IN JSON STRICT MODE */
-#if 0
+#ifdef JSMN_STRICT
+	/* In strict mode primitive must be followed by a comma/object/array */
 	parser->pos = start;
 	return JSMN_ERROR_PART;
 #endif
@@ -162,14 +165,6 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, jsmntok_t *tokens,
 					}
 				}
 				break;
-			case '-': case '0': case '1' : case '2': case '3' : case '4':
-			case '5': case '6': case '7' : case '8': case '9':
-			case 't': case 'f': case 'n' :
-				r = jsmn_parse_primitive(parser, js, tokens, num_tokens);
-				if (r < 0) return r;
-				if (parser->cursize != NULL)
-					(*parser->cursize)++;
-				break;
 			case '\"':
 				r = jsmn_parse_string(parser, js, tokens, num_tokens);
 				if (r < 0) return r;
@@ -178,8 +173,27 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, jsmntok_t *tokens,
 				break;
 			case '\t' : case '\r' : case '\n' : case ':' : case ',': case ' ': 
 				break;
+#ifdef JSMN_STRICT
+			/* In strict mode primitives are: numbers and booleans */
+			case '-': case '0': case '1' : case '2': case '3' : case '4':
+			case '5': case '6': case '7' : case '8': case '9':
+			case 't': case 'f': case 'n' :
+#else
+			/* In non-strict mode every unquoted value is a primitive */
+			default:
+#endif
+				r = jsmn_parse_primitive(parser, js, tokens, num_tokens);
+				if (r < 0) return r;
+				if (parser->cursize != NULL)
+					(*parser->cursize)++;
+				break;
+
+#ifdef JSMN_STRICT
+			/* Unexpected char in strict mode */
 			default:
 				return JSMN_ERROR_INVAL;
+#endif
+
 		}
 	}
 	return JSMN_SUCCESS;
