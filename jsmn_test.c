@@ -171,6 +171,16 @@ int test_partial_string() {
 	check(TOKEN_STIRNG(js, tok[0], "x"));
 	check(TOKEN_STIRNG(js, tok[1], "value"));
 
+	js = "\"x\": \"value\", \"y\": \"value y\"";
+	r = jsmn_parse(&p, js, tok, 10);
+	check(r == JSMN_SUCCESS && tok[0].type == JSMN_STRING
+			&& tok[1].type == JSMN_STRING && tok[2].type == JSMN_STRING
+			&& tok[3].type == JSMN_STRING);
+	check(TOKEN_STIRNG(js, tok[0], "x"));
+	check(TOKEN_STIRNG(js, tok[1], "value"));
+	check(TOKEN_STIRNG(js, tok[2], "y"));
+	check(TOKEN_STIRNG(js, tok[3], "value y"));
+
 	return 0;
 }
 
