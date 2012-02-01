@@ -15,6 +15,8 @@ test: jsmn_test
 jsmn_test: jsmn_test.o
 	$(CC) -L. -ljsmn $< -o $@
 
+jsmn_test.o: jsmn_test.c libjsmn.a
+
 clean:
 	rm -f jsmn.o jsmn_test.o
 	rm -f jsmn_test

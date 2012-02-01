@@ -45,7 +45,7 @@ typedef struct {
  */
 typedef struct {
 	unsigned int pos;
-	int curtoken;
+	int toknext;
 	int *cursize;
 } jsmn_parser;
 

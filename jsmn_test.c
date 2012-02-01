@@ -109,6 +109,15 @@ int test_primitive() {
 	check(TOKEN_STIRNG(js, tok[0], "nullVar"));
 	check(TOKEN_STIRNG(js, tok[1], "null"));
 
+	return 0;
+}
+
+int test_string() {
+	int r;
+	jsmn_parser p;
+	jsmntok_t tok[10];
+	const char *js;
+
 	js = "\"strVar\" : \"hello world\"";
 	jsmn_init(&p);
 	r = jsmn_parse(&p, js, tok, 10);
@@ -117,12 +126,61 @@ int test_primitive() {
 	check(TOKEN_STIRNG(js, tok[0], "strVar"));
 	check(TOKEN_STIRNG(js, tok[1], "hello world"));
 
+	js = "\"strVar\" : \"escapes: \\/\\r\\n\\t\\b\\f\\\"\\\\\"";
+	jsmn_init(&p);
+	r = jsmn_parse(&p, js, tok, 10);
+	check(r == JSMN_SUCCESS && tok[0].type == JSMN_STRING 
+			&& tok[1].type == JSMN_STRING);
+	check(TOKEN_STIRNG(js, tok[0], "strVar"));
+	check(TOKEN_STIRNG(js, tok[1], "escapes: \\/\\r\\n\\t\\b\\f\\\"\\\\"));
+
+	js = "\"strVar\" : \"\"";
+	jsmn_init(&p);
+	r = jsmn_parse(&p, js, tok, 10);
+	check(r == JSMN_SUCCESS && tok[0].type == JSMN_STRING 
+			&& tok[1].type == JSMN_STRING);
+	check(TOKEN_STIRNG(js, tok[0], "strVar"));
+	check(TOKEN_STIRNG(js, tok[1], ""));
+
+	return 0;
+}
+
+int test_partial_string() {
+	int r;
+	jsmn_parser p;
+	jsmntok_t tok[10];
+	const char *js;
+
+	jsmn_init(&p);
+	js = "\"x\": \"va";
+	r = jsmn_parse(&p, js, tok, 10);
+	check(r == JSMN_ERROR_PART && tok[0].type == JSMN_STRING);
+	check(TOKEN_STIRNG(js, tok[0], "x"));
+	check(TOKEN_EQ(tok[1], -1, -1, 0));
+
+	js = "\"x\": \"valu";
+	r = jsmn_parse(&p, js, tok, 10);
+	check(r == JSMN_ERROR_PART && tok[0].type == JSMN_STRING);
+	check(TOKEN_STIRNG(js, tok[0], "x"));
+	check(TOKEN_EQ(tok[1], -1, -1, 0));
+
+	js = "\"x\": \"value\"";
+	r = jsmn_parse(&p, js, tok, 10);
+	check(r == JSMN_SUCCESS && tok[0].type == JSMN_STRING
+			&& tok[1].type == JSMN_STRING);
+	check(TOKEN_STIRNG(js, tok[0], "x"));
+	check(TOKEN_STIRNG(js, tok[1], "value"));
+
 	return 0;
 }
 
 int main() {
+#if 0
 	test(test_simple, "general test for a simple JSON string");
 	test(test_primitive, "test primitive JSON data types");
+	test(test_string, "test string JSON data types");
+#endif
+	test(test_partial_string, "test partial JSON string parsing");
 	printf("\nPASSED: %d\nFAILED: %d\n", test_passed, test_failed);
 	return 0;
 }

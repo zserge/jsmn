@@ -8,9 +8,9 @@
 static jsmntok_t *jsmn_alloc_token(jsmn_parser *parser, 
 		jsmntok_t *tokens, size_t num_tokens) {
 	unsigned int i;
-	for (i = parser->curtoken; i < num_tokens; i++) {
+	for (i = parser->toknext; i < num_tokens; i++) {
 		if (tokens[i].start == -1 && tokens[i].end == -1) {
-			parser->curtoken = i;
+			parser->toknext = i + 1;
 			tokens[i].size = 0;
 			return &tokens[i];
 		}
@@ -121,7 +121,7 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, jsmntok_t *tokens,
 	jsmntok_t *token;
 
 	/* initialize the rest of tokens (they could be reallocated) */
-	for (i = parser->curtoken; i < num_tokens; i++) {
+	for (i = parser->toknext; i < num_tokens; i++) {
 		jsmn_fill_token(&tokens[i], JSMN_PRIMITIVE, -1, -1);
 	}
 
@@ -143,7 +143,7 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, jsmntok_t *tokens,
 				break;
 			case '}': case ']':
 				type = (c == '}' ? JSMN_OBJECT : JSMN_ARRAY);
-				for (i = parser->curtoken; i >= 0; i--) {
+				for (i = parser->toknext - 1; i >= 0; i--) {
 					token = &tokens[i];
 					if (token->start != -1 && token->end == -1) {
 						if (token->type != type) {
@@ -191,7 +191,7 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, jsmntok_t *tokens,
  */
 void jsmn_init(jsmn_parser *parser) {
 	parser->pos = 0;
-	parser->curtoken = 0;
+	parser->toknext = 0;
 	parser->cursize = NULL;
 }
 
