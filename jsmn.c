@@ -42,20 +42,26 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
 		switch (js[parser->pos]) {
 			case '\t' : case '\r' : case '\n' : case ' ' :
 			case ','  : case ']'  : case '}' :
-				token = jsmn_alloc_token(parser, tokens, num_tokens);
-				if (token == NULL)
-					return JSMN_ERROR_NOMEM;
-				jsmn_fill_token(token, JSMN_PRIMITIVE, start, parser->pos);
-				parser->pos--;
-				return JSMN_SUCCESS;
+				goto found;
 		}
 		if (js[parser->pos] < 32 || js[parser->pos] >= 127) {
 			parser->pos = start;
 			return JSMN_ERROR_INVAL;
 		}
 	}
+	/* TODO: CHECK THIS ONLY WHEN IN JSON STRICT MODE */
+#if 0
 	parser->pos = start;
 	return JSMN_ERROR_PART;
+#endif
+
+found:
+	token = jsmn_alloc_token(parser, tokens, num_tokens);
+	if (token == NULL)
+		return JSMN_ERROR_NOMEM;
+	jsmn_fill_token(token, JSMN_PRIMITIVE, start, parser->pos);
+	parser->pos--;
+	return JSMN_SUCCESS;
 }
 
 /**
@@ -112,7 +118,6 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, jsmntok_t *tokens,
 		unsigned int num_tokens) {
 	int r;
 	int i;
-	jsmntype_t type;
 	jsmntok_t *token;
 
 	/* initialize the rest of tokens (they could be reallocated) */
@@ -122,6 +127,8 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, jsmntok_t *tokens,
 
 	for (; js[parser->pos] != '\0'; parser->pos++) {
 		char c;
+		jsmntype_t type;
+
 		c = js[parser->pos];
 		switch (c) {
 			case '{': case '[':
