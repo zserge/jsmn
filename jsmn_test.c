@@ -254,8 +254,9 @@ int test_array_nomem() {
 	js = "  [ 1, true, [123, \"hello\"]]";
 
 	for (i = 0; i < 6; i++) {
-		printf("i = %d\n", i);
 		jsmn_init(&p);
+		memset(toksmall, 0, sizeof(toksmall));
+		memset(toklarge, 0, sizeof(toklarge));
 		r = jsmn_parse(&p, js, toksmall, i);
 		check(r == JSMN_ERROR_NOMEM);
 
@@ -263,6 +264,9 @@ int test_array_nomem() {
 
 		r = jsmn_parse(&p, js, toklarge, 10);
 		check(r == JSMN_SUCCESS);
+
+		check(toklarge[0].type == JSMN_ARRAY && toklarge[0].size == 3);
+		check(toklarge[3].type == JSMN_ARRAY && toklarge[3].size == 2);
 	}
 	return 0;
 }
