@@ -206,11 +206,50 @@ int test_unquoted_keys() {
 	return 0;
 }
 
+int test_partial_array() {
+	int r;
+	jsmn_parser p;
+	jsmntok_t tok[10];
+	const char *js;
+
+	jsmn_init(&p);
+	js = "  [ 1, true, ";
+	r = jsmn_parse(&p, js, tok, 10);
+	check(r == JSMN_ERROR_PART && tok[0].type == JSMN_ARRAY 
+			&& tok[1].type == JSMN_PRIMITIVE && tok[2].type == JSMN_PRIMITIVE);
+
+	js = "  [ 1, true, [123, \"hello";
+	r = jsmn_parse(&p, js, tok, 10);
+	check(r == JSMN_ERROR_PART && tok[0].type == JSMN_ARRAY 
+			&& tok[1].type == JSMN_PRIMITIVE && tok[2].type == JSMN_PRIMITIVE
+			&& tok[3].type == JSMN_ARRAY && tok[4].type == JSMN_PRIMITIVE);
+
+	js = "  [ 1, true, [123, \"hello\"]";
+	r = jsmn_parse(&p, js, tok, 10);
+	check(r == JSMN_ERROR_PART && tok[0].type == JSMN_ARRAY 
+			&& tok[1].type == JSMN_PRIMITIVE && tok[2].type == JSMN_PRIMITIVE
+			&& tok[3].type == JSMN_ARRAY && tok[4].type == JSMN_PRIMITIVE
+			&& tok[5].type == JSMN_STRING);
+	/* check child nodes of the 2nd array */
+	check(tok[3].size == 2);
+
+	js = "  [ 1, true, [123, \"hello\"]]";
+	r = jsmn_parse(&p, js, tok, 10);
+	check(r == JSMN_SUCCESS && tok[0].type == JSMN_ARRAY 
+			&& tok[1].type == JSMN_PRIMITIVE && tok[2].type == JSMN_PRIMITIVE
+			&& tok[3].type == JSMN_ARRAY && tok[4].type == JSMN_PRIMITIVE
+			&& tok[5].type == JSMN_STRING);
+	check(tok[3].size == 2);
+	check(tok[0].size == 3);
+	return 0;
+}
+
 int main() {
 	test(test_simple, "general test for a simple JSON string");
 	test(test_primitive, "test primitive JSON data types");
 	test(test_string, "test string JSON data types");
 	test(test_partial_string, "test partial JSON string parsing");
+	test(test_partial_array, "test partial array reading");
 	test(test_unquoted_keys, "test unquoted keys (like in JavaScript)");
 	printf("\nPASSED: %d\nFAILED: %d\n", test_passed, test_failed);
 	return 0;
