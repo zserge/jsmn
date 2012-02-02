@@ -60,8 +60,10 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
 
 found:
 	token = jsmn_alloc_token(parser, tokens, num_tokens);
-	if (token == NULL)
+	if (token == NULL) {
+		parser->pos = start;
 		return JSMN_ERROR_NOMEM;
+	}
 	jsmn_fill_token(token, JSMN_PRIMITIVE, start, parser->pos);
 	parser->pos--;
 	return JSMN_SUCCESS;
@@ -85,8 +87,10 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
 		/* Quote: end of string */
 		if (c == '\"') {
 			token = jsmn_alloc_token(parser, tokens, num_tokens);
-			if (token == NULL)
+			if (token == NULL) {
+				parser->pos = start;
 				return JSMN_ERROR_NOMEM;
+			}
 			jsmn_fill_token(token, JSMN_STRING, start+1, parser->pos);
 			return JSMN_SUCCESS;
 		}

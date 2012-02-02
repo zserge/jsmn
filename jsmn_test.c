@@ -244,12 +244,36 @@ int test_partial_array() {
 	return 0;
 }
 
+int test_array_nomem() {
+	int i;
+	int r;
+	jsmn_parser p;
+	jsmntok_t toksmall[10], toklarge[10];
+	const char *js;
+
+	js = "  [ 1, true, [123, \"hello\"]]";
+
+	for (i = 0; i < 6; i++) {
+		printf("i = %d\n", i);
+		jsmn_init(&p);
+		r = jsmn_parse(&p, js, toksmall, i);
+		check(r == JSMN_ERROR_NOMEM);
+
+		memcpy(toklarge, toksmall, sizeof(toksmall));
+
+		r = jsmn_parse(&p, js, toklarge, 10);
+		check(r == JSMN_SUCCESS);
+	}
+	return 0;
+}
+
 int main() {
 	test(test_simple, "general test for a simple JSON string");
 	test(test_primitive, "test primitive JSON data types");
 	test(test_string, "test string JSON data types");
 	test(test_partial_string, "test partial JSON string parsing");
 	test(test_partial_array, "test partial array reading");
+	test(test_array_nomem, "test array reading with a smaller number of tokens");
 	test(test_unquoted_keys, "test unquoted keys (like in JavaScript)");
 	printf("\nPASSED: %d\nFAILED: %d\n", test_passed, test_failed);
 	return 0;
