@@ -156,13 +156,13 @@ int test_partial_string() {
 	r = jsmn_parse(&p, js, tok, 10);
 	check(r == JSMN_ERROR_PART && tok[0].type == JSMN_STRING);
 	check(TOKEN_STRING(js, tok[0], "x"));
-	check(TOKEN_EQ(tok[1], -1, -1, 0));
+	check(p.toknext == 1);
 
 	js = "\"x\": \"valu";
 	r = jsmn_parse(&p, js, tok, 10);
 	check(r == JSMN_ERROR_PART && tok[0].type == JSMN_STRING);
 	check(TOKEN_STRING(js, tok[0], "x"));
-	check(TOKEN_EQ(tok[1], -1, -1, 0));
+	check(p.toknext == 1);
 
 	js = "\"x\": \"value\"";
 	r = jsmn_parse(&p, js, tok, 10);
