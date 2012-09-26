@@ -45,8 +45,9 @@ static jsmnerr_t jsmn_parse_primitive(jsmn_parser *parser, const char *js,
 		switch (js[parser->pos]) {
 #ifndef JSMN_STRICT
 			/* In strict mode primitive must be followed by "," or "}" or "]" */
-			case '\t' : case '\r' : case '\n' : case ' ' : case ':': 
+			case ':':
 #endif
+			case '\t' : case '\r' : case '\n' : case ' ' :
 			case ','  : case ']'  : case '}' :
 				goto found;
 		}

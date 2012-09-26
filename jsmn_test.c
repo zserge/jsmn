@@ -60,6 +60,14 @@ int test_simple() {
 	check(TOKEN_STRING(js, tokens[1], "a"));
 	check(TOKEN_STRING(js, tokens[2], "0"));
 
+	js = "[\"a\":{},\"b\":{}]";
+	r = jsmn_parse(&p, js, tokens, 10);
+	check(r == JSMN_SUCCESS);
+
+	js = "{\n \"Day\": 26,\n \"Month\": 9,\n \"Year\": 12\n }";
+	r = jsmn_parse(&p, js, tokens, 10);
+	check(r == JSMN_SUCCESS);
+
 	return 0;
 }
 
@@ -68,7 +76,7 @@ int test_primitive() {
 	jsmn_parser p;
 	jsmntok_t tok[10];
 	const char *js;
-
+#ifndef JSMN_STRICT
 	js = "\"boolVar\" : true";
 	jsmn_init(&p);
 	r = jsmn_parse(&p, js, tok, 10);
@@ -108,7 +116,7 @@ int test_primitive() {
 			&& tok[1].type == JSMN_PRIMITIVE);
 	check(TOKEN_STRING(js, tok[0], "nullVar"));
 	check(TOKEN_STRING(js, tok[1], "null"));
-
+#endif
 	return 0;
 }
 
