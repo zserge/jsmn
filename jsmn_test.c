@@ -37,9 +37,46 @@ static void test(int (*func)(void), const char *name) {
 	 && strlen(s) == (t).end - (t).start)
 
 #define TOKEN_PRINT(t) \
-	printf("start: %d, end: %d, type: %d\n", (t).start, (t).end, (t).type)
+	printf("start: %d, end: %d, type: %d, size: %d\n", \
+			(t).start, (t).end, (t).type, (t).size)
 
+int test_empty() {
+	const char *js;
+	int r;
+	jsmn_parser p;
+	jsmntok_t t[10];
 
+	js = "{}";
+	jsmn_init(&p);
+	r = jsmn_parse(&p, js, t, 10);
+	check(r == JSMN_SUCCESS);
+	check(t[0].type == JSMN_OBJECT);
+	check(t[0].start == 0 && t[0].end == 2);
+
+	js = "[]";
+	jsmn_init(&p);
+	r = jsmn_parse(&p, js, t, 10);
+	check(r == JSMN_SUCCESS);
+	check(t[0].type == JSMN_ARRAY);
+	check(t[0].start == 0 && t[0].end == 2);
+
+	js = "{\"a\":[]}";
+	jsmn_init(&p);
+	r = jsmn_parse(&p, js, t, 10);
+	check(r == JSMN_SUCCESS);
+	check(t[0].type == JSMN_OBJECT && t[0].start == 0 && t[0].end == 8);
+	check(t[1].type == JSMN_STRING && t[1].start == 2 && t[1].end == 3);
+	check(t[2].type == JSMN_ARRAY && t[2].start == 5 && t[2].end == 7);
+
+	js = "[{},{}]";
+	jsmn_init(&p);
+	r = jsmn_parse(&p, js, t, 10);
+	check(r == JSMN_SUCCESS);
+	check(t[0].type == JSMN_ARRAY && t[0].start == 0 && t[0].end == 7);
+	check(t[1].type == JSMN_OBJECT && t[1].start == 1 && t[1].end == 3);
+	check(t[2].type == JSMN_OBJECT && t[2].start == 4 && t[2].end == 6);
+	return 0;
+}
 
 int test_simple() {
 	const char *js;
@@ -60,10 +97,12 @@ int test_simple() {
 	check(TOKEN_STRING(js, tokens[1], "a"));
 	check(TOKEN_STRING(js, tokens[2], "0"));
 
+	jsmn_init(&p);
 	js = "[\"a\":{},\"b\":{}]";
 	r = jsmn_parse(&p, js, tokens, 10);
 	check(r == JSMN_SUCCESS);
 
+	jsmn_init(&p);
 	js = "{\n \"Day\": 26,\n \"Month\": 9,\n \"Year\": 12\n }";
 	r = jsmn_parse(&p, js, tokens, 10);
 	check(r == JSMN_SUCCESS);
@@ -280,6 +319,7 @@ int test_array_nomem() {
 }
 
 int main() {
+	test(test_empty, "general test for a empty JSON objects/arrays");
 	test(test_simple, "general test for a simple JSON string");
 	test(test_primitive, "test primitive JSON data types");
 	test(test_string, "test string JSON data types");
