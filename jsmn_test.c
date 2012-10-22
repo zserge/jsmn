@@ -318,6 +318,36 @@ int test_array_nomem() {
 	return 0;
 }
 
+int test_objects_arrays() {
+	int i;
+	int r;
+	jsmn_parser p;
+	jsmntok_t tokens[10];
+	const char *js;
+
+	js = "[10}";
+	jsmn_init(&p);
+	r = jsmn_parse(&p, js, tokens, 10);
+	check(r == JSMN_ERROR_INVAL);
+
+	js = "[10]";
+	jsmn_init(&p);
+	r = jsmn_parse(&p, js, tokens, 10);
+	check(r == JSMN_SUCCESS);
+
+	js = "{\"a\": 1]";
+	jsmn_init(&p);
+	r = jsmn_parse(&p, js, tokens, 10);
+	check(r == JSMN_ERROR_INVAL);
+
+	js = "{\"a\": 1}";
+	jsmn_init(&p);
+	r = jsmn_parse(&p, js, tokens, 10);
+	check(r == JSMN_SUCCESS);
+
+	return 0;
+}
+
 int main() {
 	test(test_empty, "general test for a empty JSON objects/arrays");
 	test(test_simple, "general test for a simple JSON string");
@@ -327,6 +357,7 @@ int main() {
 	test(test_partial_array, "test partial array reading");
 	test(test_array_nomem, "test array reading with a smaller number of tokens");
 	test(test_unquoted_keys, "test unquoted keys (like in JavaScript)");
+	test(test_objects_arrays, "test objects and arrays");
 	printf("\nPASSED: %d\nFAILED: %d\n", test_passed, test_failed);
 	return 0;
 }

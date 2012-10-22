@@ -166,6 +166,9 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, jsmntok_t *tokens,
 				token = &tokens[parser->toknext - 1];
 				for (;;) {
 					if (token->start != -1 && token->end == -1) {
+						if (token->type != type) {
+							return JSMN_ERROR_INVAL;
+						}
 						token->end = parser->pos + 1;
 						parser->toksuper = token->parent;
 						break;
