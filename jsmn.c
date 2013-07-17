@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "jsmn.h"
 
@@ -29,6 +30,27 @@ static void jsmn_fill_token(jsmntok_t *token, jsmntype_t type,
 	token->start = start;
 	token->end = end;
 	token->size = 0;
+}
+
+/**
+ * Estimate the number of JSON tokens in the string given.
+ * It should return a number greater than or equal to the actual amount of items.
+ * If the JSON string is malformed an incorrect number will be returned.
+ * Of course if the malformed string is going to be parsed, then parsing
+ * will fail anyway.
+ */
+int jsmn_count_tokens(const char *json) {
+    int c = 1;
+    int i;
+    for(i=0;i<strlen(json);i++) {
+        if(json[i] == ':' ||
+                json[i] == ',' ||
+                json[i] == '[' ||
+                json[i] == '{') {
+            c++;
+        }
+    }
+    return c;
 }
 
 /**

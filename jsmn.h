@@ -58,6 +58,15 @@ typedef struct {
 void jsmn_init(jsmn_parser *parser);
 
 /**
+ * Estimate the number of JSON tokens in the string given.
+ * It should return a number greater than or equal to the actual amount of items.
+ * If the JSON string is malformed an incorrect number will be returned.
+ * Of course if the malformed string is going to be parsed, then parsing
+ * will fail anyway.
+ */
+int jsmn_estimate_tokens(const char *json);
+
+/**
  * Run JSON parser. It parses a JSON data string into and array of tokens, each describing
  * a single JSON object.
  */
