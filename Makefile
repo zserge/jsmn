@@ -20,6 +20,7 @@ jsmn_test.o: jsmn_test.c libjsmn.a
 clean:
 	rm -f jsmn.o jsmn_test.o
 	rm -f jsmn_test
+	rm -f jsmn_test.exe
 	rm -f libjsmn.a
 
 .PHONY: all clean test
