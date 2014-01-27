@@ -116,19 +116,19 @@ static jsmnerr_t jsmn_parse_string(jsmn_parser *parser, const char *js,
 					break;
 				/* Allows escaped symbol \uXXXX */
 				case 'u':
-                    parser->pos++;
-                    int i=0;
-                    for(;i<4&&js[parser->pos] != '\0';i++) {
-                        // If it isn't a hex character we have an error
-                        if(!((js[parser->pos] >= 48 && js[parser->pos] <= 57) || // 0-9
-                                (js[parser->pos] >= 65 && js[parser->pos] <= 70) || // A-F
-                                (js[parser->pos] >= 97 && js[parser->pos] <= 102))) { // a-f
-                            parser->pos = start;
-                            return JSMN_ERROR_INVAL;
-                        }
-                        parser->pos++;
-                    }
-                    parser->pos--;
+					parser->pos++;
+					int i = 0;
+					for(; i < 4 && js[parser->pos] != '\0'; i++) {
+						/* If it isn't a hex character we have an error */
+						if(!((js[parser->pos] >= 48 && js[parser->pos] <= 57) || /* 0-9 */
+									(js[parser->pos] >= 65 && js[parser->pos] <= 70) || /* A-F */
+									(js[parser->pos] >= 97 && js[parser->pos] <= 102))) { /* a-f */
+							parser->pos = start;
+							return JSMN_ERROR_INVAL;
+						}
+						parser->pos++;
+					}
+					parser->pos--;
 					break;
 				/* Unexpected symbol */
 				default:
