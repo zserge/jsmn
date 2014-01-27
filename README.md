@@ -9,6 +9,9 @@ You can find more information about JSON format at [json.org][1]
 
 Library sources are available at [bitbucket.org/zserge/jsmn][2]
 
+The web page with some information about jsmn can be found at
+[http://zserge.com/jsmn.html][3]
+
 Philosophy
 ----------
 
@@ -155,3 +158,4 @@ This software is distributed under [MIT license](http://www.opensource.org/licen
 
 [1]: http://www.json.org/
 [2]: https://bitbucket.org/zserge/jsmn/wiki/Home
+[3]: http://zserge.com/jsmn.html
