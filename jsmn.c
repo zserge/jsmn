@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <string.h>
 
 #include "jsmn.h"
 
@@ -9,7 +8,7 @@
 static jsmntok_t *jsmn_alloc_token(jsmn_parser *parser, 
 		jsmntok_t *tokens, size_t num_tokens) {
 	jsmntok_t *tok;
-	if (parser->toknext >= num_tokens) {
+	if (parser->toknext >= (int) num_tokens) {
 		return NULL;
 	}
 	tok = &tokens[parser->toknext++];
