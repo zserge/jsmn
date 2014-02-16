@@ -1,6 +1,6 @@
 #include <stdlib.h>
-#include <stdint.h>		//	for SIZE_MAX
 //#include <limits.h>	//	for UINT_MAX
+#include <stdint.h>		//	for SIZE_MAX
 
 #include "jsmn.h"
 
