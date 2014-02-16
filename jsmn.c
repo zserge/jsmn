@@ -1,5 +1,6 @@
 #include <stdlib.h>
-#include <limits.h>
+#include <stdint.h>		//	for SIZE_MAX
+//#include <limits.h>	//	for UINT_MAX
 
 #include "jsmn.h"
 
@@ -141,19 +142,24 @@ static jsmnerr_t jsmn_parse_string(jsmn_parser *parser, const char *js,
 	return JSMN_ERROR_PART;
 }
 
+static inline jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, jsmntok_t *tokens, unsigned int num_tokens)
+{
+	return jsmn_parseV2(parser, js, SIZE_MAX /*UINT_MAX*/, tokens, num_tokens);
+}
+
 /**
  * Parse JSON string and fill tokens.
  */
-jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, int js_length, jsmntok_t *tokens, 
+jsmnerr_t jsmn_parseV2(jsmn_parser *parser, const char *js, size_t js_length, jsmntok_t *tokens, 
 		unsigned int num_tokens) {
+	if (js==NULL || js_length==0)
+	{
+		return JSMN_ERROR_PART;
+	}
+	
 	jsmnerr_t r;
 	int i;
 	jsmntok_t *token;
-	
-	if (js_length <= 0)
-	{
-		js_length = INT_MAX;
-	}
 
 	for (; parser->pos < js_length && js[parser->pos] != '\0'; parser->pos++) {
 		char c;
