@@ -1,6 +1,10 @@
 #include <stdlib.h>
-//#include <limits.h>	//	for UINT_MAX
+//#include <limits.h>
 #include <stdint.h>		//	for SIZE_MAX
+
+#ifndef SIZE_MAX		// SIZE_MAX came in C99
+	#define SIZE_MAX ((size_t)-1)
+#endif
 
 #include "jsmn.h"
 
@@ -144,7 +148,7 @@ static jsmnerr_t jsmn_parse_string(jsmn_parser *parser, const char *js,
 
 static inline jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, jsmntok_t *tokens, unsigned int num_tokens)
 {
-	return jsmn_parseV2(parser, js, SIZE_MAX /*UINT_MAX*/, tokens, num_tokens);
+	return jsmn_parseV2(parser, js, SIZE_MAX, tokens, num_tokens);
 }
 
 /**
