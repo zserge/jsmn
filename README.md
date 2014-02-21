@@ -137,9 +137,14 @@ All job is done by `jsmn_parser` object. You can initialize a new parser using:
 This will create a parser, that can parse up to 10 JSON tokens from `js` string.
 
 Later, you can use `jsmn_parse(&parser)` function to process JSON string with the parser.
+
+A non-negative value is the number of tokens actually used by the parser.
+Passing NULL instead of the tokens array would not store parsing results, but
+instead the function will return the value of tokens needed to parse the given
+string. This can be useful if you don't know yet how many tokens to allocate.
+
 If something goes wrong, you will get an error. Error will be one of these:
 
-* `JSMN_SUCCESS` - everything went fine. String was parsed
 * `JSMN_ERROR_INVAL` - bad token, JSON string is corrupted
 * `JSMN_ERROR_NOMEM` - not enough tokens, JSON string is too large
 * `JSMN_ERROR_PART` - JSON string is too short, expecting more JSON data
