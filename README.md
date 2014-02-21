@@ -82,9 +82,8 @@ To clone the repository you should have mercurial installed. Just run:
 
 	$ hg clone http://bitbucket.org/zserge/jsmn jsmn
 
-Repository layout is simple: jsmn.c and jsmn.h are library files; demo.c is an
-example of how to use jsmn (it is also used in unit tests); test.sh is a test
-script. You will also find README, LICENSE and Makefile files inside.
+Repository layout is simple: jsmn.c and jsmn.h are library files, tests are in
+the jsmn\_test.c, you will also find README, LICENSE and Makefile files inside.
 
 To build the library, run `make`. It is also recommended to run `make test`.
 Let me know, if some tests fail.
