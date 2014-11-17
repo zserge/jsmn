@@ -490,6 +490,49 @@ int test_count() {
 	return 0;
 }
 
+int test_keyvalue() {
+	const char *js;
+	int r;
+	jsmn_parser p;
+	jsmntok_t tokens[10];
+
+	js = "{\"a\": 0, \"b\": \"c\"}";
+
+	jsmn_init(&p);
+	r = jsmn_parse(&p, js, strlen(js), tokens, 10);
+	check(r == 5);
+	check(tokens[0].size == 2); /* two keys */
+	check(tokens[1].size == 1 && tokens[3].size == 1); /* one value per key */
+	check(tokens[2].size == 0 && tokens[4].size == 0); /* values have zero size */
+
+	js = "{\"a\"\n0}";
+	jsmn_init(&p);
+	r = jsmn_parse(&p, js, strlen(js), tokens, 10);
+	check(r == JSMN_ERROR_INVAL);
+
+	js = "{\"a\", 0}";
+	jsmn_init(&p);
+	r = jsmn_parse(&p, js, strlen(js), tokens, 10);
+	check(r == JSMN_ERROR_INVAL);
+
+	js = "{\"a\": {2}}";
+	jsmn_init(&p);
+	r = jsmn_parse(&p, js, strlen(js), tokens, 10);
+	check(r == JSMN_ERROR_INVAL);
+
+	js = "{\"a\": {2: 3}}";
+	jsmn_init(&p);
+	r = jsmn_parse(&p, js, strlen(js), tokens, 10);
+	check(r == JSMN_ERROR_INVAL);
+
+
+	js = "{\"a\": {\"a\": 2 3}}";
+	jsmn_init(&p);
+	r = jsmn_parse(&p, js, strlen(js), tokens, 10);
+	check(r == JSMN_ERROR_INVAL);
+	return 0;
+}
+
 /** A huge redefinition of everything to include jsmn in non-script mode */
 #define jsmn_init jsmn_init_nonstrict
 #define jsmn_parse jsmn_parse_nonstrict
@@ -548,6 +591,7 @@ int main() {
 	test(test_issue_22, "test issue #22");
 	test(test_count, "test tokens count estimation");
 	test(test_nonstrict, "test for non-strict mode");
+	test(test_keyvalue, "test for keys/values");
 	printf("\nPASSED: %d\nFAILED: %d\n", test_passed, test_failed);
 	return 0;
 }

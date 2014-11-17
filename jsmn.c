@@ -262,6 +262,14 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 			case '-': case '0': case '1' : case '2': case '3' : case '4':
 			case '5': case '6': case '7' : case '8': case '9':
 			case 't': case 'f': case 'n' :
+				/* And they must not be keys of the object */
+				if (tokens != NULL) {
+					jsmntok_t *t = &tokens[parser->toksuper];
+					if (t->type == JSMN_OBJECT ||
+							(t->type == JSMN_STRING && t->size != 0)) {
+						return JSMN_ERROR_INVAL;
+					}
+				}
 #else
 			/* In non-strict mode every unquoted value is a primitive */
 			default:
