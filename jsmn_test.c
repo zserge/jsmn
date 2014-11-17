@@ -206,6 +206,16 @@ int test_partial_string() {
 	check(TOKEN_STRING(js, tok[0], "x"));
 	check(p.toknext == 1);
 
+	jsmn_init(&p);
+	char js_slash[9] = "\"x\": \"va\\";
+	r = jsmn_parse(&p, js_slash, sizeof(js_slash), tok, 10);
+	check(r == JSMN_ERROR_PART);
+
+	jsmn_init(&p);
+	char js_unicode[10] = "\"x\": \"va\\u";
+	r = jsmn_parse(&p, js_unicode, sizeof(js_unicode), tok, 10);
+	check(r == JSMN_ERROR_PART);
+
 	js = "\"x\": \"valu";
 	r = jsmn_parse(&p, js, strlen(js), tok, 10);
 	check(r == JSMN_ERROR_PART && tok[0].type == JSMN_STRING);
