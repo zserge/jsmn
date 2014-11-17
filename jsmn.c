@@ -234,7 +234,28 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 				if (parser->toksuper != -1 && tokens != NULL)
 					tokens[parser->toksuper].size++;
 				break;
-			case '\t' : case '\r' : case '\n' : case ':' : case ',': case ' ': 
+			case '\t' : case '\r' : case '\n' : case ' ': 
+				break;
+			case ':':
+				parser->toksuper = parser->toknext - 1;
+				break;
+			case ',':
+				if (tokens != NULL &&
+						tokens[parser->toksuper].type != JSMN_ARRAY &&
+						tokens[parser->toksuper].type != JSMN_OBJECT) {
+#ifdef JSMN_PARENT_LINKS
+					parser->toksuper = tokens[parser->toksuper].parent;
+#else
+					for (i = parser->toknext - 1; i >= 0; i--) {
+						if (tokens[i].type == JSMN_ARRAY || tokens[i].type == JSMN_OBJECT) {
+							if (tokens[i].start != -1 && tokens[i].end == -1) {
+								parser->toksuper = i;
+								break;
+							}
+						}
+					}
+#endif
+				}
 				break;
 #ifdef JSMN_STRICT
 			/* In strict mode primitives are: numbers and booleans */

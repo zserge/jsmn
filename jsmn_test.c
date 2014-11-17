@@ -112,11 +112,11 @@ int test_simple() {
 }
 
 int test_primitive() {
+#ifndef JSMN_STRICT
 	int r;
 	jsmn_parser p;
 	jsmntok_t tok[10];
 	const char *js;
-#ifndef JSMN_STRICT
 	js = "\"boolVar\" : true";
 	jsmn_init(&p);
 	r = jsmn_parse(&p, js, strlen(js), tok, 10);
@@ -320,7 +320,6 @@ int test_array_nomem() {
 }
 
 int test_objects_arrays() {
-	int i;
 	int r;
 	jsmn_parser p;
 	jsmntok_t tokens[10];
@@ -350,7 +349,6 @@ int test_objects_arrays() {
 }
 
 int test_issue_22() {
-	int i;
 	int r;
 	jsmn_parser p;
 	jsmntok_t tokens[128];
