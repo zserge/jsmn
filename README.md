@@ -126,19 +126,21 @@ to simplify string extraction from JSON data.
 
 All job is done by `jsmn_parser` object. You can initialize a new parser using:
 
-	struct jsmn_parser parser;
+	jsmn_parser parser;
 	jsmntok_t tokens[10];
+
+	jsmn_init(&parser);
 
 	// js - pointer to JSON string
 	// tokens - an array of tokens available
 	// 10 - number of tokens available
-	jsmn_init_parser(&parser, js, tokens, 10);
+	jsmn_parse(&parser, js, tokens, 10);
 
-This will create a parser, that can parse up to 10 JSON tokens from `js` string.
+This will create a parser, and then it tries to parse up to 10 JSON tokens from
+the `js` string.
 
-Later, you can use `jsmn_parse(&parser)` function to process JSON string with the parser.
-
-A non-negative value is the number of tokens actually used by the parser.
+A non-negative reutrn value of `jsmn_parse` is the number of tokens actually
+used by the parser.
 Passing NULL instead of the tokens array would not store parsing results, but
 instead the function will return the value of tokens needed to parse the given
 string. This can be useful if you don't know yet how many tokens to allocate.
