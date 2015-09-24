@@ -7,10 +7,10 @@ easily integrated into resource-limited or embedded projects.
 
 You can find more information about JSON format at [json.org][1]
 
-Library sources are available at [bitbucket.org/zserge/jsmn][2]
+Library sources are available at https://github.com/zserge/jsmn
 
 The web page with some information about jsmn can be found at
-[http://zserge.com/jsmn.html][3]
+[http://zserge.com/jsmn.html][2]
 
 Philosophy
 ----------
@@ -78,9 +78,9 @@ it possible to use zero-copy techniques.
 Install
 -------
 
-To clone the repository you should have mercurial installed. Just run:
+To clone the repository you should have Git installed. Just run:
 
-	$ hg clone http://bitbucket.org/zserge/jsmn jsmn
+	$ git clone https://github.com/zserge/jsmn
 
 Repository layout is simple: jsmn.c and jsmn.h are library files, tests are in
 the jsmn\_test.c, you will also find README, LICENSE and Makefile files inside.
@@ -163,5 +163,4 @@ This software is distributed under [MIT license](http://www.opensource.org/licen
  so feel free to integrate it in your commercial products.
 
 [1]: http://www.json.org/
-[2]: https://bitbucket.org/zserge/jsmn/wiki/Home
-[3]: http://zserge.com/jsmn.html
+[2]: http://zserge.com/jsmn.html
