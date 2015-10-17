@@ -41,7 +41,7 @@ static void test(int (*func)(void), const char *name) {
 #define JSMN_STRICT
 #include "jsmn.c"
 
-int test_empty() {
+int test_empty(void) {
 	const char *js;
 	int r;
 	jsmn_parser p;
@@ -79,7 +79,7 @@ int test_empty() {
 	return 0;
 }
 
-int test_simple() {
+int test_simple(void) {
 	const char *js;
 	int r;
 	jsmn_parser p;
@@ -111,7 +111,7 @@ int test_simple() {
 	return 0;
 }
 
-int test_primitive() {
+int test_primitive(void) {
 #ifndef JSMN_STRICT
 	int r;
 	jsmn_parser p;
@@ -160,7 +160,7 @@ int test_primitive() {
 	return 0;
 }
 
-int test_string() {
+int test_string(void) {
 	int r;
 	jsmn_parser p;
 	jsmntok_t tok[10];
@@ -193,7 +193,7 @@ int test_string() {
 	return 0;
 }
 
-int test_partial_string() {
+int test_partial_string(void) {
 	int r;
 	jsmn_parser p;
 	jsmntok_t tok[10];
@@ -242,7 +242,7 @@ int test_partial_string() {
 	return 0;
 }
 
-int test_unquoted_keys() {
+int test_unquoted_keys(void) {
 #ifndef JSMN_STRICT
 	int r;
 	jsmn_parser p;
@@ -264,7 +264,7 @@ int test_unquoted_keys() {
 	return 0;
 }
 
-int test_partial_array() {
+int test_partial_array(void) {
 	int r;
 	jsmn_parser p;
 	jsmntok_t tok[10];
@@ -302,7 +302,7 @@ int test_partial_array() {
 	return 0;
 }
 
-int test_array_nomem() {
+int test_array_nomem(void) {
 	int i;
 	int r;
 	jsmn_parser p;
@@ -329,7 +329,7 @@ int test_array_nomem() {
 	return 0;
 }
 
-int test_objects_arrays() {
+int test_objects_arrays(void) {
 	int r;
 	jsmn_parser p;
 	jsmntok_t tokens[10];
@@ -358,7 +358,7 @@ int test_objects_arrays() {
 	return 0;
 }
 
-int test_issue_22() {
+int test_issue_22(void) {
 	int r;
 	jsmn_parser p;
 	jsmntok_t tokens[128];
@@ -391,7 +391,7 @@ int test_issue_22() {
 	return 0;
 }
 
-int test_unicode_characters() {
+int test_unicode_characters(void) {
 	jsmn_parser p;
 	jsmntok_t tokens[10];
 	const char *js;
@@ -435,7 +435,7 @@ int test_unicode_characters() {
 	return 0;
 }
 
-int test_input_length() {
+int test_input_length(void) {
 	const char *js;
 	int r;
 	jsmn_parser p;
@@ -453,7 +453,7 @@ int test_input_length() {
 	return 0;
 }
 
-int test_count() {
+int test_count(void) {
 	jsmn_parser p;
 	const char *js;
 
@@ -500,7 +500,7 @@ int test_count() {
 	return 0;
 }
 
-int test_keyvalue() {
+int test_keyvalue(void) {
 	const char *js;
 	int r;
 	jsmn_parser p;
@@ -565,7 +565,7 @@ int test_keyvalue() {
 #undef JSMN_STRICT
 #include "jsmn.c"
 
-int test_nonstrict() {
+int test_nonstrict(void) {
 	const char *js;
 	int r;
 	jsmn_parser p;
@@ -586,7 +586,7 @@ int test_nonstrict() {
 	return 0;
 }
 
-int main() {
+int main(void) {
 	test(test_empty, "general test for a empty JSON objects/arrays");
 	test(test_simple, "general test for a simple JSON string");
 	test(test_primitive, "test primitive JSON data types");
