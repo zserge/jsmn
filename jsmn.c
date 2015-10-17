@@ -155,7 +155,7 @@ jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 	jsmnerr_t r;
 	int i;
 	jsmntok_t *token;
-	int count = 0;
+	int count = parser->toknext;
 
 	for (; parser->pos < len && js[parser->pos] != '\0'; parser->pos++) {
 		char c;
