@@ -603,6 +603,6 @@ int main() {
 	test(test_nonstrict, "test for non-strict mode");
 	test(test_keyvalue, "test for keys/values");
 	printf("\nPASSED: %d\nFAILED: %d\n", test_passed, test_failed);
-	return 0;
+	return (test_failed > 0);
 }
 
