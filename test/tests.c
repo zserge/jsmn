@@ -256,6 +256,13 @@ int test_issue_22(void) {
 	return 0;
 }
 
+int test_issue_27(void) {
+	const char *js =
+		"{ \"name\" : \"Jack\", \"age\" : 27 } { \"name\" : \"Anna\", ";
+	check(parse(js, JSMN_ERROR_PART, 8));
+	return 0;
+}
+
 int test_input_length(void) {
 	const char *js;
 	int r;
@@ -355,6 +362,7 @@ int main(void) {
 	test(test_unquoted_keys, "test unquoted keys (like in JavaScript)");
 	test(test_input_length, "test strings that are not null-terminated");
 	test(test_issue_22, "test issue #22");
+	test(test_issue_27, "test issue #22");
 	test(test_count, "test tokens count estimation");
 	test(test_nonstrict, "test for non-strict mode");
 	printf("\nPASSED: %d\nFAILED: %d\n", test_passed, test_failed);
