@@ -61,6 +61,7 @@ int test_object(void) {
 int test_array(void) {
 	/* FIXME */
 	/*check(parse("[10}", JSMN_ERROR_INVAL, 3));*/
+	/*check(parse("[1,,3]", JSMN_ERROR_INVAL, 3)*/
 	check(parse("[10]", 2, 2,
 				JSMN_ARRAY, -1, -1, 1,
 				JSMN_PRIMITIVE, "10"));
