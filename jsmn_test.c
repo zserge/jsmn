@@ -207,13 +207,13 @@ int test_partial_string(void) {
 	check(p.toknext == 1);
 
 	jsmn_init(&p);
-	char js_slash[9] = "\"x\": \"va\\";
-	r = jsmn_parse(&p, js_slash, sizeof(js_slash), tok, 10);
+	js = "\"x\": \"va\\";
+	r = jsmn_parse(&p, js, 9, tok, 10);
 	check(r == JSMN_ERROR_PART);
 
 	jsmn_init(&p);
-	char js_unicode[10] = "\"x\": \"va\\u";
-	r = jsmn_parse(&p, js_unicode, sizeof(js_unicode), tok, 10);
+	js = "\"x\": \"va\\u";
+	r = jsmn_parse(&p, js, 10, tok, 10);
 	check(r == JSMN_ERROR_PART);
 
 	js = "\"x\": \"valu";
