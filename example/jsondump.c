@@ -48,7 +48,7 @@ static int dump(const char *js, jsmntok_t *t, size_t count, int indent) {
 int main() {
 	int r;
 	int eof_expected = 0;
-	char *js = NULL;
+	char *tmp, *js = NULL;
 	size_t jslen = 0;
 	char buf[BUFSIZ];
 
@@ -82,11 +82,13 @@ int main() {
 			}
 		}
 
-		js = realloc(js, jslen + r + 1);
-		if (js == NULL) {
+		tmp = realloc(js, jslen + r + 1);
+		if (tmp == NULL) {
+			free (js);
 			fprintf(stderr, "realloc(): errno=%d\n", errno);
 			return 3;
 		}
+		js = tmp;
 		strncpy(js + jslen, buf, r);
 		jslen = jslen + r;
 
@@ -94,12 +96,16 @@ again:
 		r = jsmn_parse(&p, js, jslen, tok, tokcount);
 		if (r < 0) {
 			if (r == JSMN_ERROR_NOMEM) {
+				jsmntok_t *tmptok;
+
 				tokcount = tokcount * 2;
-				tok = realloc(tok, sizeof(*tok) * tokcount);
-				if (tok == NULL) {
+				tmptok = realloc(tok, sizeof(*tok) * tokcount);
+				if (tmptok == NULL) {
+					free (tok);
 					fprintf(stderr, "realloc(): errno=%d\n", errno);
 					return 3;
 				}
+				tok = tmptok;
 				goto again;
 			}
 		} else {
