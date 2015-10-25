@@ -4,6 +4,21 @@
 #include <errno.h>
 #include "../jsmn.h"
 
+/* Function realloc_it() is a wrapper function for standart realloc()
+ * with one difference - it frees old memory pointer in case of realloc
+ * failure. Thus, DO NOT use old data pointer in anyway after call to
+ * realloc_it(). If your code has some kind of fallback algorithm if
+ * memory can't be re-allocated - use standart realloc() instead.
+ */
+static inline void *realloc_it(void *ptrmem, size_t size) {
+	void *p = realloc(ptrmem, size);
+	if (!p)  {
+		free (ptrmem);
+		fprintf(stderr, "realloc(): errno=%d\n", errno);
+	}
+	return p;
+}
+
 /*
  * An example of reading JSON from stdin and printing its content to stdout.
  * The output looks like YAML, but I'm not sure if it's really compatible.
@@ -48,7 +63,7 @@ static int dump(const char *js, jsmntok_t *t, size_t count, int indent) {
 int main() {
 	int r;
 	int eof_expected = 0;
-	char *tmp, *js = NULL;
+	char *js = NULL;
 	size_t jslen = 0;
 	char buf[BUFSIZ];
 
@@ -82,13 +97,10 @@ int main() {
 			}
 		}
 
-		tmp = realloc(js, jslen + r + 1);
-		if (tmp == NULL) {
-			free (js);
-			fprintf(stderr, "realloc(): errno=%d\n", errno);
+		js = realloc_it(js, jslen + r + 1);
+		if (js == NULL) {
 			return 3;
 		}
-		js = tmp;
 		strncpy(js + jslen, buf, r);
 		jslen = jslen + r;
 
@@ -96,16 +108,11 @@ again:
 		r = jsmn_parse(&p, js, jslen, tok, tokcount);
 		if (r < 0) {
 			if (r == JSMN_ERROR_NOMEM) {
-				jsmntok_t *tmptok;
-
 				tokcount = tokcount * 2;
-				tmptok = realloc(tok, sizeof(*tok) * tokcount);
-				if (tmptok == NULL) {
-					free (tok);
-					fprintf(stderr, "realloc(): errno=%d\n", errno);
+				tok = realloc_it(tok, sizeof(*tok) * tokcount);
+				if (tok == NULL) {
 					return 3;
 				}
-				tok = tmptok;
 				goto again;
 			}
 		} else {
