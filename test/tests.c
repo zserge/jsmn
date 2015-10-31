@@ -285,7 +285,7 @@ int test_input_length(void) {
 	check(tokeq(js, tokens, 3,
 				JSMN_OBJECT, -1, -1, 1,
 				JSMN_STRING, "a", 1,
-				JSMN_PRIMITIVE, 0));
+				JSMN_PRIMITIVE, "0"));
 	return 0;
 }
 
