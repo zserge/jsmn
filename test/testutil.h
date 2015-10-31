@@ -70,7 +70,7 @@ static int tokeq(const char *s, jsmntok_t *tokens, int numtok, ...) {
 
 static int parse(const char *s, int status, int numtok, ...) {
 	int r;
-	int ok;
+	int ok = 1;
 	va_list args;
 	jsmn_parser p;
 	jsmntok_t *t = malloc(numtok * sizeof(jsmntok_t));
