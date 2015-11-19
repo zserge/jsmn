@@ -139,7 +139,7 @@ All job is done by `jsmn_parser` object. You can initialize a new parser using:
 This will create a parser, and then it tries to parse up to 10 JSON tokens from
 the `js` string.
 
-A non-negative reutrn value of `jsmn_parse` is the number of tokens actually
+A non-negative return value of `jsmn_parse` is the number of tokens actually
 used by the parser.
 Passing NULL instead of the tokens array would not store parsing results, but
 instead the function will return the value of tokens needed to parse the given
