@@ -97,10 +97,11 @@ API
 Token types are described by `jsmntype_t`:
 
 	typedef enum {
-		JSMN_PRIMITIVE = 0,
+		JSMN_UNDEFINED = 0,
 		JSMN_OBJECT = 1,
 		JSMN_ARRAY = 2,
-		JSMN_STRING = 3
+		JSMN_STRING = 3,
+		JSMN_PRIMITIVE = 4
 	} jsmntype_t;
 
 **Note:** Unlike JSON data types, primitive tokens are not divided into
