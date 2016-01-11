@@ -1,9 +1,11 @@
 # You can put your build options here
 -include config.mk
 
-all: libjsmn.a 
 
-libjsmn.a: jsmn.o
+
+all: libjsmn.a example
+
+libjsmn.a: jsmn.o jsmn_iterator.o
 	$(AR) rc $@ $^
 
 %.o: %.c jsmn.h
@@ -31,11 +33,16 @@ simple_example: example/simple.o libjsmn.a
 jsondump: example/jsondump.o libjsmn.a
 	$(CC) $(LDFLAGS) $^ -o $@
 
+jsonprint: example/jsonprint.o libjsmn.a
+	$(CC) $(LDFLAGS) $^ -o $@
+
+example: simple_example jsondump jsonprint
+
 clean:
 	rm -f jsmn.o jsmn_test.o example/simple.o
 	rm -f libjsmn.a
 	rm -f simple_example
 	rm -f jsondump
 
-.PHONY: all clean test
+.PHONY: all clean test example
 
