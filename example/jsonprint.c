@@ -29,8 +29,8 @@ const char *type_to_text(jsmntype_t type) {
 
 /** Generate the indentation for an JSON depth */
 const char *indent_text(unsigned int indent_level) {
-  /* Allow indentation up to level 22 */
-  static const char indent_buf[] = "                                            ";
+  /* Allow indentation up to level 35 */
+  static const char indent_buf[] = "                                                                      ";
 
   if (indent_level * 2 > sizeof(indent_buf))
     return indent_buf;
@@ -155,7 +155,7 @@ int print_tree(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len, u
     jsmn_iterator_t iterator;
     unsigned int index;
     unsigned int is_object;
-  } stack[32];
+  } stack[128];
 
   unsigned int stack_index = 0;
 
