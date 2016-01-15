@@ -25,26 +25,27 @@ enum {
 /**
  * Struct with state information for jsmn iterator
  * - When the no more items for iterator the parser_pos value will point to 
- *   index of first item after Array/Object
+ *   JSMN index for next object after current Array/Object
  */
 typedef struct {
   jsmntok_t *jsmn_tokens;
   unsigned int jsmn_len;
   unsigned int parent_pos;
   unsigned int parser_pos;
+  unsigned int index;
 } jsmn_iterator_t;
 
 
 /**
- * @brief Locates last index for current Array/Group
- * @details Iterates over JSMN tokens to determine last token index for the Array/Object
+ * @brief Locates last JSMN index for current Array/Group
+ * @details Iterates over JSMN Array/Object until last item is found
  * 
  * @param jsmn_tokens   JSMN tokens
  * @param jsmn_len      JSMN token count
  * @param parser_pos    Current JSMN token
  *
  * @return  Negative value indicates error
- *          Last JSMN token index for the Array/Object 
+ *          Last JSMN index for Array/Object
  */
 int jsmn_find_end( jsmntok_t *jsmn_tokens, unsigned int jsmn_len, unsigned int parser_pos );
 

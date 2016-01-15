@@ -86,7 +86,12 @@ int print_iterator(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_le
       case JSMN_OBJECT:
       case JSMN_ARRAY:
         
-        if (indent_level < max_render_level) {
+        /* Empty Array/Object */
+        if (jsmn_value->size == 0) {
+          printf("%s", jsmn_value->type == JSMN_OBJECT ? "{ }" : "[ ]");
+        }
+
+        else if (indent_level < max_render_level) {
           if ((return_value = print_iterator(psz, jsmn_tokens, jsmn_len, iterator.parser_pos, indent_level + 1)) < 0)
             return return_value;
 
@@ -223,9 +228,14 @@ int print_tree(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len, u
       case JSMN_ARRAY:
         /* Need to iterate over child items before we can render next item so put current 
            iterator on the stack and start rendering child items */
+
+        /* Empty Array/Object */
+        if (jsmn_value->size == 0) {
+          printf("%s", jsmn_value->type == JSMN_OBJECT ? "{ }" : "[ ]");
+        }
             
         /* Check if we want to and can render this depth */
-        if (stack_index + 1 < max_render_level && stack_index + 1 < countof(stack)) {
+        else if (stack_index + 1 < max_render_level && stack_index + 1 < countof(stack)) {
           printf("%c ", jsmn_value->type == JSMN_OBJECT ? '{' : '[');
 
           /* Initialize new item on the stack */
