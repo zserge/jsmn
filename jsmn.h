@@ -45,6 +45,10 @@ typedef struct {
 #ifdef JSMN_PARENT_LINKS
 	int parent;
 #endif
+#ifdef JSMN_FIRST_CHILD_NEXT_SIBLING
+    int first_child;
+    int next_sibling;
+#endif
 } jsmntok_t;
 
 /**

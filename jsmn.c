@@ -1,4 +1,35 @@
 #include "jsmn.h"
+  #include "stdio.h"
+
+#ifdef JSMN_FIRST_CHILD_NEXT_SIBLING
+/**
+ * Connects a (non-root) node either as a child or a sibling, given its parent.
+ * Helper function that is called from the parse routine,
+ */
+static void
+jsmn_fill_first_child_next_sibling(jsmntok_t* const tokens, int parent, int me)
+{
+	//If there is no parent, there's nothing we can do.
+	//This will result in several trees, that are unconnected to each other.
+	//Happens when there's no outer object.
+	if (parent < 0) {
+		return;
+	}
+
+	//if parent has no other children, then we're the first
+	if (tokens[parent].first_child == -1) {
+		tokens[parent].first_child = me;
+	}
+	//if we're not the first child, we must be a sibling
+	else {
+		int my_sibling = tokens[parent].first_child;
+		while (tokens[my_sibling].next_sibling != -1) {
+			my_sibling = tokens[my_sibling].next_sibling;
+		}
+		tokens[my_sibling].next_sibling = me;
+	}
+}
+#endif
 
 /**
  * Allocates a fresh unused token from the token pull.
@@ -14,6 +45,10 @@ static jsmntok_t *jsmn_alloc_token(jsmn_parser *parser,
 	tok->size = 0;
 #ifdef JSMN_PARENT_LINKS
 	tok->parent = -1;
+#endif
+#ifdef JSMN_FIRST_CHILD_NEXT_SIBLING
+    tok->first_child = -1;
+    tok->next_sibling = -1;
 #endif
 	return tok;
 }
@@ -74,6 +109,9 @@ found:
 #ifdef JSMN_PARENT_LINKS
 	token->parent = parser->toksuper;
 #endif
+#ifdef JSMN_FIRST_CHILD_NEXT_SIBLING
+	jsmn_fill_first_child_next_sibling(tokens, parser->toksuper, parser->toknext - 1);
+#endif
 	parser->pos--;
 	return 0;
 }
@@ -106,6 +144,9 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
 			jsmn_fill_token(token, JSMN_STRING, start+1, parser->pos);
 #ifdef JSMN_PARENT_LINKS
 			token->parent = parser->toksuper;
+#endif
+#ifdef JSMN_FIRST_CHILD_NEXT_SIBLING
+			jsmn_fill_first_child_next_sibling(tokens, parser->toksuper, parser->toknext - 1);
 #endif
 			return 0;
 		}
@@ -173,6 +214,9 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 					tokens[parser->toksuper].size++;
 #ifdef JSMN_PARENT_LINKS
 					token->parent = parser->toksuper;
+#endif
+#ifdef JSMN_FIRST_CHILD_NEXT_SIBLING
+					jsmn_fill_first_child_next_sibling(tokens, parser->toksuper, parser->toknext - 1);
 #endif
 				}
 				token->type = (c == '{' ? JSMN_OBJECT : JSMN_ARRAY);
