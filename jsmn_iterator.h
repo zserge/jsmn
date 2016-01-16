@@ -44,8 +44,8 @@ typedef struct {
  * @param jsmn_len      JSMN token count
  * @param parser_pos    Current JSMN token
  *
- * @return  Negative value indicates error
- *          Last JSMN index for Array/Object
+ * @return  < 0 - Error has occured, corresponds to one of JSMNITER_ERR_*
+ *          >=0 - Last JSMN index for Array/Object
  */
 int jsmn_find_end( jsmntok_t *jsmn_tokens, unsigned int jsmn_len, unsigned int parser_pos );
 
@@ -59,8 +59,8 @@ int jsmn_find_end( jsmntok_t *jsmn_tokens, unsigned int jsmn_len, unsigned int p
  * @param jsmn_len      JSMN token count
  * @param parser_pos    Current JSMN token
  * 
- * @return  Negative value indicates error
- *          Zero for OK
+ * @return  < 0 - Error has occured, corresponds to one of JSMNITER_ERR_*
+ *          >=0 - Ok
  */
 int jsmn_iterator_init( jsmn_iterator_t *iterator, jsmntok_t *jsmn_tokens, unsigned int jsmn_len, 
                         unsigned int parser_pos );
@@ -76,9 +76,9 @@ int jsmn_iterator_init( jsmn_iterator_t *iterator, jsmntok_t *jsmn_tokens, unsig
  * @param next_value_index    Possible to indicate where next value begins, allows determine end of sub
  *                            Array/Object withouth manually searching for it
  * 
- * @return  Negative value indicates error
- *          Zero that no more object in current Array/Object
- *          One means that one value (and identifier) has been returned
+ * @return  < 0 - Error has occured, corresponds to one of JSMNITER_ERR_*
+ *            0 - No more values
+ *          > 0 - Value (and identifier) has been returned
  */
 int jsmn_iterator_next( jsmn_iterator_t *iterator, jsmntok_t **jsmn_identifier, jsmntok_t **jsmn_value, 
                         unsigned int next_value_index );

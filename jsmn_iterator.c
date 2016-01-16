@@ -1,5 +1,5 @@
 #include "jsmn_iterator.h"
-#include <stdio.h>
+
 
 /**
  * @brief Locates last JSMN index for current Array/Group
@@ -9,8 +9,8 @@
  * @param jsmn_len      JSMN token count
  * @param parser_pos    Current JSMN token
  *
- * @return  Negative value indicates error
- *          Last JSMN index for Array/Object
+ * @return  < 0 - Error has occured, corresponds to one of JSMNITER_ERR_*
+ *          >=0 - Last JSMN index for Array/Object
  */
 int jsmn_iterator_find_end( jsmntok_t *jsmn_tokens, unsigned int jsmn_len, unsigned int parser_pos ) {
   unsigned int child_count;
@@ -68,8 +68,8 @@ int jsmn_iterator_find_end( jsmntok_t *jsmn_tokens, unsigned int jsmn_len, unsig
  * @param jsmn_len      JSMN token count
  * @param parser_pos    Current JSMN token
  * 
- * @return  Negative value indicates error
- *          Zero for OK
+ * @return  < 0 - Error has occured, corresponds to one of JSMNITER_ERR_*
+ *          >=0 - Ok
  */
 int jsmn_iterator_init(jsmn_iterator_t *iterator, jsmntok_t *jsmn_tokens, unsigned int jsmn_len, unsigned int parser_pos) {
   /* No tokens */
@@ -96,8 +96,8 @@ int jsmn_iterator_init(jsmn_iterator_t *iterator, jsmntok_t *jsmn_tokens, unsign
 
 
 /**
- * @brief Next JSMN identifier and value token
- * @details Calculate next item (identifier and value JSMN token pointer) in the Array/Object 
+ * @brief Get next item in JSMN Array/Object
+ * @details Gets JSMN position for next identifier and value in Array/Object
  * 
  * @param iterator            Iterator struct
  * @param jsmn_identifier     Return pointer for identifier, NULL for Array
@@ -105,9 +105,9 @@ int jsmn_iterator_init(jsmn_iterator_t *iterator, jsmntok_t *jsmn_tokens, unsign
  * @param next_value_index    Possible to indicate where next value begins, allows determine end of sub
  *                            Array/Object withouth manually searching for it
  * 
- * @return  Negative value indicates error
- *          Zero that no more object in current Array/Object
- *          One means that one value (and identifier) has been returned
+ * @return  < 0 - Error has occured, corresponds to one of JSMNITER_ERR_*
+ *            0 - No more values
+ *          > 0 - Value (and identifier) has been returned
  */
  int jsmn_iterator_next(jsmn_iterator_t *iterator, jsmntok_t **jsmn_identifier, jsmntok_t **jsmn_value, 
                         unsigned int next_value_index) {
@@ -215,10 +215,8 @@ int jsmn_iterator_init(jsmn_iterator_t *iterator, jsmntok_t *jsmn_tokens, unsign
   /* Set value */
   *jsmn_value = current_item;
 
-  /* Increase the index */
+  /* Increase the index and return it as the positive value */
   iterator->index++;
-
-  /* Return parser position (positive value) */
-  return (int)iterator->parser_pos;
+  return (int)iterator->index;
 }
 

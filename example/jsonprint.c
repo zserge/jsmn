@@ -12,8 +12,17 @@
 const unsigned int max_indent_level = 6;
 const unsigned int max_render_level = 6;
 
-void print_string(const char *psz, int start, int end) {
-  printf("%.*s", (end - start), (psz + start));
+typedef enum {
+  PRINTMODE_DEFAULT   = 0,
+  PRINTMODE_JSMNINFO  = 1
+} PRINTMODE;
+
+
+void print_string(const char *psz, int start, int end, unsigned int quote_string) {
+  if (quote_string)
+    printf("\"%.*s\"", (end - start), (psz + start));
+  else
+    printf("%.*s", (end - start), (psz + start));
 }
 
 const char *type_to_text(jsmntype_t type) {
@@ -40,7 +49,7 @@ const char *indent_text(unsigned int indent_level) {
 
 
 /**
- * @brief Recursive printing of json tree
+ * @brief Simple example of recursive printing json
  * 
  * @param psz           Original JSON string
  * @param jsmn_tokens   JSMN tokens
@@ -50,95 +59,62 @@ const char *indent_text(unsigned int indent_level) {
  * 
  * @return Negative value corresponding to value in JSMNITER_ERR_* if error during printing
  */
-int print_iterator(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len, unsigned int parser_pos, unsigned int indent_level) {
+int print_simple(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len, unsigned int parser_pos, unsigned int indent_level) {
   jsmntok_t *jsmn_identifier = NULL;
   jsmntok_t *jsmn_value = NULL;
-  unsigned int index = 0;
   int return_value;
+  jsmn_iterator_t iterator;
+  unsigned int item_count = jsmn_tokens[parser_pos].size;
 
   /* iterator_hint makes it possible to indicate where Array/Object ends so the
      jsmn_iterator_next function doesn't need to loop until it finds the end */
   unsigned int iterator_hint = 0;
 
-  jsmn_iterator_t iterator;
+  /* Abort rendering */
+  if (indent_level >= max_render_level) {
+    printf("%s", jsmn_tokens[parser_pos].type== JSMN_OBJECT ? "{ Object }" : "[ Array ]");
+    return 0;
+  }
 
   if ((return_value = jsmn_iterator_init(&iterator, jsmn_tokens, jsmn_len, parser_pos)) < 0)
     return return_value;
 
-  printf("%c ", jsmn_tokens[parser_pos].type == JSMN_OBJECT ? '{' : '[');
+  printf("%c\r\n", jsmn_tokens[parser_pos].type == JSMN_OBJECT ? '{' : '[');
 
   while((return_value = jsmn_iterator_next(&iterator, &jsmn_identifier, &jsmn_value, iterator_hint)) > 0) {
-    index++;
-    if (index > 1)
-      printf(", ");
-
-    if (!(indent_level >= max_indent_level)) {
-      printf("\r\n%5u.%-3u%s", iterator.parser_pos, index - 1, indent_text(indent_level));
-    }
-
+    printf("%s", indent_text(indent_level + 1));
     if (jsmn_identifier) {
-      printf("\"");
-      print_string(psz, jsmn_identifier->start, jsmn_identifier->end);
-      printf("\": ");
+      print_string(psz, jsmn_identifier->start, jsmn_identifier->end, 1);
+      printf(": ");
     }
 
-    switch(jsmn_value->type) {
-      case JSMN_OBJECT:
-      case JSMN_ARRAY:
-        
-        /* Empty Array/Object */
-        if (jsmn_value->size == 0) {
-          printf("%s", jsmn_value->type == JSMN_OBJECT ? "{ }" : "[ ]");
-        }
+    if ( jsmn_value->type== JSMN_OBJECT || 
+         jsmn_value->type == JSMN_ARRAY) {
+      if ((return_value = print_simple(psz, jsmn_tokens, jsmn_len, iterator.parser_pos, indent_level + 1)) < 0)
+        return return_value;
 
-        else if (indent_level < max_render_level) {
-          if ((return_value = print_iterator(psz, jsmn_tokens, jsmn_len, iterator.parser_pos, indent_level + 1)) < 0)
-            return return_value;
-
-          /* print_iterator returns index for next item so use it as hint for this iterator to skip the Array/Object */
-          iterator_hint = (unsigned int)return_value;
-        }
-        else {
-          printf("%s", jsmn_value->type == JSMN_OBJECT ? "{ Object }" : "[ Array ]");
-          
-          /* Don't know where Array/Object ends */
-          iterator_hint = 0;
-        }
-
-        break;
-      case JSMN_STRING:
-        printf("\"");
-        print_string(psz, jsmn_value->start, jsmn_value->end);
-        printf("\"");
-        break;
-
-      case JSMN_PRIMITIVE:
-        print_string(psz, jsmn_value->start, jsmn_value->end);
-        break;
-
-      case JSMN_UNDEFINED:
-        printf("undefined");
-        break;
-
-      default:
-        printf("UNKNOWN");
-        break;
+      /* print_iterator returns index for next item, pass it to the iterator so it doesn't need to search for it manualLy */
+      iterator_hint = (unsigned int)return_value;
     }
+    else {
+      print_string(psz, jsmn_value->start, jsmn_value->end, jsmn_value->type == JSMN_STRING ? 1 : 0);
+    }
+
+    if (iterator.index < item_count)
+      printf(",");
+    printf("\r\n");
   }
+
+  /* We got error */
   if (return_value < 0)
     return return_value;
 
-  /*printf("after %d (return_value: %d)\r\n", indent_level, return_value);*/
+  printf("%s%c", indent_text(indent_level), jsmn_tokens[parser_pos].type == JSMN_OBJECT ? '}' : ']');
 
-  if (!(indent_level >= max_indent_level)) {
-    printf("\r\n%9s%s%c", "", (indent_level > 0 ? indent_text(indent_level - 1) : ""), jsmn_tokens[parser_pos].type == JSMN_OBJECT ? '}' : ']');
-  } else {
-    printf(" %c", jsmn_tokens[parser_pos].type == JSMN_OBJECT ? '}' : ']');
-  }
-
-  /* Return parser_pos so outer function knows where this Array/Object ends */
+  /* Return parser_pos so outer function knows where next item begins after this Array/Object */
   return (int)(iterator.parser_pos);
 }
+
 
 
 /**
@@ -149,11 +125,12 @@ int print_iterator(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_le
  * @param jsmn_tokens   JSMN tokens
  * @param jsmn_len      JSMN token count
  * @param parser_pos    JSMN index where to start
+ * @param print_mode    Control JSON output
  * 
  * @return Negative value corresponding to value in JSMNITER_ERR_* if error during printing
  */
 
-int print_tree(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len, unsigned int start_index) {
+int print_tree(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len, unsigned int start_index, PRINTMODE print_mode) {
 
   /* Stack used to keep information for each level during rendering, dictates absolute max render depth*/
   static struct {
@@ -177,11 +154,20 @@ int print_tree(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len, u
   stack_index = 0;
   stack[0].index = 0;
   stack[0].is_object = jsmn_tokens[0].type == JSMN_OBJECT ? 1: 0;
-  if ((ret_value = jsmn_iterator_init(&stack[stack_index].iterator, jsmn_tokens, jsmn_len, start_index)) < 0)
+  if ((ret_value = jsmn_iterator_init(&stack[0].iterator, jsmn_tokens, jsmn_len, start_index)) < 0)
     return ret_value;
 
+  if (print_mode == PRINTMODE_JSMNINFO) {
+    printf("JSMN  Index JSON\r\n");
+    printf("----- ----- --------------------\r\n");
+  }
+
+
   /* Print start item */
-  printf("%5u.%-3u%s", stack[0].iterator.parser_pos, stack[0].index, indent_text(0));
+  if (print_mode == PRINTMODE_JSMNINFO)
+    printf("%5u.%-5u %s", stack[0].iterator.parser_pos, stack[0].index, indent_text(0));
+  else
+    printf("%s", indent_text(0));
   printf("%c", stack[0].is_object ? '{' : '[');
 
   /* Iterate over all items, only abort on error */
@@ -193,9 +179,13 @@ int print_tree(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len, u
         break;
 
       /* Output the end character */
-      if (stack_index + 1 < max_indent_level)
-        printf( "\r\n%8s%s", "", indent_text(stack_index));
-      printf(" %c", stack[stack_index].is_object ? '}' : ']');
+      if (stack_index + 1 >= max_indent_level)
+        printf(" ");
+      else if (print_mode == PRINTMODE_JSMNINFO)
+        printf("\r\n%11s %s", "", indent_text(stack_index));
+      else
+        printf("\r\n%s ", indent_text(stack_index));
+      printf("%c", stack[stack_index].is_object ? '}' : ']');
 
       /* parser_pos should point at the index after the current Array/Object,
          we use it to hint to hint for the outer Array/Object where next item is */
@@ -212,78 +202,73 @@ int print_tree(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len, u
       printf(", ");
     }
 
-    if (stack_index + 1 < max_indent_level) {
-      printf("\r\n%5u.%-3u%s", stack[stack_index].iterator.parser_pos, stack[stack_index].index - 1, indent_text(stack_index + 1));
-    }
+    if (stack_index + 1 >= max_indent_level)
+      printf(" ");
+    else if (print_mode == PRINTMODE_JSMNINFO)
+      printf("\r\n%5u.%-5u %s", stack[stack_index].iterator.parser_pos, stack[stack_index].index - 1, indent_text(stack_index + 1));
+    else
+      printf("\r\n%s", indent_text(stack_index + 1));
 
     if (jsmn_identifier) {
-      printf("\"");
-      print_string(psz, jsmn_identifier->start, jsmn_identifier->end);
-      printf("\": ");
+      print_string(psz, jsmn_identifier->start, jsmn_identifier->end, 1);
     }
 
-    switch(jsmn_value->type) {
+    if ( jsmn_value->type== JSMN_OBJECT || 
+         jsmn_value->type == JSMN_ARRAY) {
+      /* Need to iterate over child items before we can render next item so put current 
+         iterator on the stack and start rendering child items */
 
-      case JSMN_OBJECT:
-      case JSMN_ARRAY:
-        /* Need to iterate over child items before we can render next item so put current 
-           iterator on the stack and start rendering child items */
-
-        /* Empty Array/Object */
-        if (jsmn_value->size == 0) {
-          printf("%s", jsmn_value->type == JSMN_OBJECT ? "{ }" : "[ ]");
-        }
-            
-        /* Check if we want to and can render this depth */
-        else if (stack_index + 1 < max_render_level && stack_index + 1 < countof(stack)) {
-          printf("%c ", jsmn_value->type == JSMN_OBJECT ? '{' : '[');
-
-          /* Initialize new item on the stack */
-          stack[stack_index + 1].index = 0;
-          stack[stack_index + 1].is_object = jsmn_value->type == JSMN_OBJECT ? 1 : 0;
-          if ((ret_value = jsmn_iterator_init(&stack[stack_index + 1].iterator, jsmn_tokens, jsmn_len, stack[stack_index].iterator.parser_pos)) < 0)
-            return ret_value;
-
-          /* Update stack pointer */
-          stack_index++;
-        }
-        /* Output placeholder for this depth */
-        else {
-          printf("%s", jsmn_value->type == JSMN_OBJECT ? "{ Object }" : "[ Array ]");
+      /* Empty Array/Object */
+      if (jsmn_value->size == 0) {
+        printf("%s", jsmn_value->type == JSMN_OBJECT ? "{ }" : "[ ]");
+      }
           
-          /* Don't know where Array/Object ends */
-          iterator_hint = 0;
-        }
-        break;
-      case JSMN_STRING: 
-        printf("\"");
-        print_string(psz, jsmn_value->start, jsmn_value->end);
-        printf("\"");
-        break;
-      case JSMN_PRIMITIVE:
-        print_string(psz, jsmn_value->start, jsmn_value->end);
-        break;
-      case JSMN_UNDEFINED:
-        printf("undefined");
-        break;
-      default:
-        printf("UNKNOWN");
-        break;
+      /* Check if we want to and can render this depth */
+      else if (stack_index + 1 < max_render_level && stack_index + 1 < countof(stack)) {
+        printf("%c", jsmn_value->type == JSMN_OBJECT ? '{' : '[');
+
+        /* Initialize new item on the stack */
+        stack[stack_index + 1].index = 0;
+        stack[stack_index + 1].is_object = jsmn_value->type == JSMN_OBJECT ? 1 : 0;
+        if ((ret_value = jsmn_iterator_init(&stack[stack_index + 1].iterator, jsmn_tokens, jsmn_len, stack[stack_index].iterator.parser_pos)) < 0)
+          return ret_value;
+
+        /* Update stack pointer */
+        stack_index++;
+      }
+      /* Output placeholder for this depth */
+      else {
+        printf("%s", jsmn_value->type == JSMN_OBJECT ? "{ Object }" : "[ Array ]");
+        
+        /* Don't know where Array/Object ends */
+        iterator_hint = 0;
+      }
     }
+    else {
+      print_string(psz, jsmn_value->start, jsmn_value->end, jsmn_value->type == JSMN_STRING ? 1 : 0);
+    }
+
   }
 
   if (ret_value < 0)
     return ret_value;
 
   /* Render end tag */
-  printf( "\r\n%8s%s %c", "", indent_text(0), stack[0].is_object ? '}' : ']');
+  if (print_mode == PRINTMODE_JSMNINFO)
+    printf( "\r\n%11s %s%c", "", indent_text(0), stack[0].is_object ? '}' : ']');
+  else
+    printf("\r\n%s%c", indent_text(0), stack[0].is_object ? '}' : ']');
 
   return 0;
 }
 
 
 void print_usage() {
-  fprintf(stdout, "%s [<filename>] [recursive|stack|raw]\r\n", "jsonprint");
+  fprintf(stdout, "%s [<filename>] [json|json_jsmn|raw_jsmn|simple]\r\n", "jsonprint");
+  fprintf(stdout, " json:      Indented JSON\r\n");
+  fprintf(stdout, " json_jsmn: Indented JSON with JSMN info\r\n");
+  fprintf(stdout, " raw_jsmn:  Raw JSMN info\r\n");
+  fprintf(stdout, " simple:    Output from simple example JSON printer\r\n");
 }
 
 
@@ -300,7 +285,7 @@ int main(int argc, char *argv[])
   unsigned int file_data_len = 0;
   char *file_data = NULL;
   char *file_name = NULL;
-  char *print_type = "stack";
+  char *print_type = "json";
 
   if (argc < 2) {
     print_usage();
@@ -353,28 +338,37 @@ int main(int argc, char *argv[])
 
 
   /* Different print methods */
-  if (!strcmp(print_type, "recursive")) {
+  if (!strcmp(print_type, "json")) {
     int return_code;
     fprintf(stderr, "Rendering Mode: %s\r\n", print_type);
-    printf("\r\n%5d.%-3u%s", 0, 0, indent_text(0));
-    if ((return_code = print_iterator(file_data, jsmn_tokens, (unsigned int)nJSParse, 0, 1)) < 0) {
+    if ((return_code = print_tree(file_data, jsmn_tokens, (unsigned int)nJSParse, 0, PRINTMODE_DEFAULT)) < 0) {
       fprintf(stderr, "Error Return Code: %d\r\n", return_code);
       goto error_out;
     }
     printf("\r\n");
   }
 
-  else if (!strcmp(print_type, "stack")) {
+  else if (!strcmp(print_type, "simple")) {
     int return_code;
     fprintf(stderr, "Rendering Mode: %s\r\n", print_type);
-    if ((return_code = print_tree(file_data, jsmn_tokens, (unsigned int)nJSParse, 0)) < 0) {
+    if ((return_code = print_simple(file_data, jsmn_tokens, (unsigned int)nJSParse, 0, 0)) < 0) {
+      fprintf(stderr, "Error Return Code: %d\r\n", return_code);
+      goto error_out;
+    }
+    printf("\r\n");
+  }
+
+  else if (!strcmp(print_type, "json_jsmn")) {
+    int return_code;
+    fprintf(stderr, "Rendering Mode: %s\r\n", print_type);
+    if ((return_code = print_tree(file_data, jsmn_tokens, (unsigned int)nJSParse, 0, PRINTMODE_JSMNINFO)) < 0) {
       fprintf(stderr, "Error Return Code: %d\r\n", return_code);
       goto error_out;
     }
     printf("\r\n");
   }
   
-  else if (!strcmp(print_type, "raw")) {
+  else if (!strcmp(print_type, "raw_jsmn")) {
     int i;
     fprintf(stderr, "Rendering Mode: %s\r\n", print_type);
     for (i = 0; i < nJSParse; i++) {
@@ -382,12 +376,11 @@ int main(int argc, char *argv[])
       printf("%5d %10.10s  start: %5d  end: %5d  size: %5d", i, type_to_text(t->type), t->start, t->end, t->size);
       if (t->type == JSMN_PRIMITIVE) {
         printf("  ");
-        print_string(file_data, t->start, t->end);
+        print_string(file_data, t->start, t->end, 0);
       }
       else if (t->type == JSMN_STRING) {
-        printf("  \"");
-        print_string(file_data, t->start, min(t->end, t->start + 15));
-        printf("\"");
+        printf("  ");
+        print_string(file_data, t->start, min(t->end, t->start + 15), 1);
       }
       printf("\r\n");
     }
