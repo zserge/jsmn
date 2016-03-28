@@ -24,7 +24,7 @@ JSON format itself is extremely simple, so why should we complicate it?
 
 jsmn is designed to be	**robust** (it should work fine even with erroneous
 data), **fast** (it should parse data on the fly), **portable** (no superfluous
-dependencies or non-standard C extensions). An of course, **simplicity** is a
+dependencies or non-standard C extensions). And of course, **simplicity** is a
 key feature - simple code style, simple algorithm, simple integration into
 other projects.
 
