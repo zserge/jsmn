@@ -44,7 +44,7 @@ int test_object(void) {
 	check(parse("{\"a\": 0, \"b\": \"c\"}", 5, 5,
 				JSMN_OBJECT, -1, -1, 2,
 				JSMN_STRING, "a", 1,
-				JSMN_PRIMITIVE, 0,
+				JSMN_PRIMITIVE, "0",
 				JSMN_STRING, "b", 1,
 				JSMN_STRING, "c", 0));
 
