@@ -7,7 +7,7 @@ static int test_failed = 0;
 /* Terminate current test with error */
 #define fail()	return __LINE__
 
-/* Successfull end of the test case */
+/* Successful end of the test case */
 #define done() return 0
 
 /* Check single condition */
