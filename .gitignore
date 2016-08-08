@@ -1,0 +1,114 @@
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided this notice is
+# preserved.  This file is offered as-is, without any warranty.
+# Names of contributors must not be used to endorse or promote products
+# derived from this file without specific prior written permission.
+
+
+# Temp files
+*~
+*.bak
+*.backup
+\#*
+.\#*
+*\#
+*.swp
+*.swap
+*.sav
+*.save
+*.autosav
+*.autosave
+
+# Generated binaries
+*.o
+*.a
+*.so
+*.dll
+*.ko
+*.out
+*.output
+jsondump
+simple_example
+test/test_default
+test/test_links
+test/test_strict
+test/test_strict_link
+test/test_strict_links
+
+# Intermediate files of the compilation
+*.asm
+*.ihx
+*.lk
+*.lst
+*.map
+*.mem
+*.rel
+*.rst
+*.s
+*.sym
+
+# Generated folders
+## Generated binary folders
+bin/
+binaries/
+obj/
+objects/
+build*/
+Build*/
+release*/
+Release*/
+dbg*/
+debug*/
+Debug*/
+## Generated documentation
+/doc/
+docs/
+documentation/
+Documentation/
+doc-html/
+
+# Archives
+*.zip
+*.tar.*
+*.tgz
+*.gz
+*.bz2
+*.xz
+*.lz
+*.lzma
+*.7z
+
+# OS specific useless files
+thumbs.db
+Thumbs.db
+__MACOSX/
+__MAC_OS_X/
+__OSX/
+__OS_X/
+__WINDOWS/
+__MS_WINDOWS/
+.DS_Store
+.directory
+
+# CMake
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+
+# Integrated Development Environment
+## Qt Creator
+*.pro.user
+## Eclipse
+.project
+.cproject
+.settings/language.settings.xml
+.settings/org.eclipse.cdt.codan.core.prefs
+.settings/org.eclipse.cdt.core.prefs
+## CodeBlocks
+*.cbp
+
+# Profiling
+callgrind.out.*
