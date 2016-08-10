@@ -8,7 +8,7 @@
  * tokens is predictable.
  */
 
-const char *JSON_STRING =
+static const char *JSON_STRING =
 	"{\"user\": \"johndoe\", \"admin\": false, \"uid\": 1000,\n  "
 	"\"groups\": [\"users\", \"wheel\", \"audio\", \"video\"]}";
 
@@ -72,5 +72,5 @@ int main() {
 					JSON_STRING + t[i].start);
 		}
 	}
-	return 0;
+	return EXIT_SUCCESS;
 }
