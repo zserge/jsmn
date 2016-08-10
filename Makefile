@@ -32,8 +32,8 @@ jsondump: example/jsondump.o libjsmn.a
 	$(CC) $(LDFLAGS) $^ -o $@
 
 clean:
-	rm -f jsmn.o jsmn_test.o example/simple.o
-	rm -f libjsmn.a
+	rm -f *.o example/*.o
+	rm -f *.a *.so
 	rm -f simple_example
 	rm -f jsondump
 
