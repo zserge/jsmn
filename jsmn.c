@@ -198,7 +198,7 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 						break;
 					}
 					if (token->parent == -1) {
-						if(token->type != type) {
+						if(token->type != type || parser->toksuper == -1) {
 							return JSMN_ERROR_INVAL;
 						}
 						break;
