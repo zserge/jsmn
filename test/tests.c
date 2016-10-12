@@ -357,6 +357,25 @@ int test_nonstrict(void) {
 	return 0;
 }
 
+int test_unmatched_brackets(void) {
+	const char *js;
+	js = "\"key 1\": 1234}";
+	check(parse(js, JSMN_ERROR_INVAL, 2));
+	js = "{\"key 1\": 1234";
+	check(parse(js, JSMN_ERROR_PART, 3));
+	js = "{\"key 1\": 1234}}";
+	check(parse(js, JSMN_ERROR_INVAL, 3));
+	js = "\"key 1\"}: 1234";
+	check(parse(js, JSMN_ERROR_INVAL, 3));
+	js = "\"key {1\": 1234";
+	check(parse(js, 2, 2,
+				JSMN_STRING, "key {1", 1,
+				JSMN_PRIMITIVE, "1234"));
+	js = "{{\"key 1\": 1234}";
+	check(parse(js, JSMN_ERROR_PART, 4));
+	return 0;
+}
+
 int main(void) {
 	test(test_empty, "test for a empty JSON objects/arrays");
 	test(test_object, "test for a JSON objects");
@@ -373,6 +392,7 @@ int main(void) {
 	test(test_issue_27, "test issue #27");
 	test(test_count, "test tokens count estimation");
 	test(test_nonstrict, "test for non-strict mode");
+	test(test_unmatched_brackets, "test for unmatched brackets");
 	printf("\nPASSED: %d\nFAILED: %d\n", test_passed, test_failed);
 	return (test_failed > 0);
 }
