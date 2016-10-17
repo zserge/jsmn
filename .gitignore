@@ -34,3 +34,9 @@ config.mk
 # Debug files
 *.dSYM/
 *.stackdump
+
+# Coverage files
+*.gcda
+*.gcno
+test/coverage.info
+test_coverage

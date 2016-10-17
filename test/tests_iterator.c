@@ -297,8 +297,165 @@ int test_deep(void) {
   return validate_json(js);
 }
 
+int coverage_jsmn_iterator_find_end(void) {
+  int exit_line = 0;
+
+  jsmntok_t jsmn_tokens[128];
+  jsmn_parser p;
+  int jsmn_token_count;
+
+  const char *js;
+
+  // Setup some jsmn tokens
+  jsmn_init(&p);
+  js = MULTILINE(
+    {
+      "A": "B",
+      "C": "D",
+      "E": {
+        "F": "G"
+      },
+      "H": [
+        "I",
+        "J"
+      ]
+    }
+  );
+  if ((jsmn_token_count = jsmn_parse(&p, js, strlen(js), jsmn_tokens, 128)) < 0)
+    BAIL_OUT();
+
+  // Null arguments
+  if (jsmn_iterator_find_end(NULL, 0, 0) != JSMNITER_ERR_PARAMETER)
+    BAIL_OUT();
+  if (jsmn_iterator_find_end(jsmn_tokens, 0, 2) != JSMNITER_ERR_PARAMETER)
+    BAIL_OUT();
+  if (jsmn_iterator_find_end(jsmn_tokens, jsmn_token_count, jsmn_token_count+2) != JSMNITER_ERR_PARAMETER)
+    BAIL_OUT();
+  if (jsmn_iterator_find_end(jsmn_tokens, jsmn_token_count, 1) != JSMNITER_ERR_TYPE)
+    BAIL_OUT();
+
+  return 0;
+error_out:
+  printf("exit_line: %d\r\n", exit_line);
+  return exit_line;
+}
+
+
+int coverage_jsmn_iterator_init(void) {
+  int exit_line = 0;
+  
+  jsmntok_t jsmn_tokens[128];
+  jsmn_parser p;
+  jsmn_iterator_t iter;
+  int jsmn_token_count;
+
+  const char *js;
+
+  // Setup some jsmn tokens
+  jsmn_init(&p);
+  js = MULTILINE(
+    {
+      "A": "B",
+      "C": "D",
+      "E": {
+        "F": "G"
+      },
+      "H": [
+        "I",
+        "J"
+      ]
+    }
+  );
+  if ((jsmn_token_count = jsmn_parse(&p, js, strlen(js), jsmn_tokens, 128)) < 0)
+    BAIL_OUT();
+
+  // Null arguments
+  if (jsmn_iterator_init(NULL, NULL, 0, 0) != JSMNITER_ERR_PARAMETER)
+    BAIL_OUT();
+  if (jsmn_iterator_init(&iter, NULL, 0, 0) != JSMNITER_ERR_PARAMETER)
+    BAIL_OUT();
+  if (jsmn_iterator_init(&iter, jsmn_tokens, 0, 2) != JSMNITER_ERR_PARAMETER)
+    BAIL_OUT();
+  if (jsmn_iterator_init(&iter, jsmn_tokens, jsmn_token_count, jsmn_token_count + 2) != JSMNITER_ERR_PARAMETER)
+    BAIL_OUT();
+  if (jsmn_iterator_init(&iter, jsmn_tokens, jsmn_token_count, 1) != JSMNITER_ERR_TYPE)
+    BAIL_OUT();
+
+  return 0;
+error_out:
+  printf("exit_line: %d\r\n", exit_line);
+  return exit_line;
+}
+
+
+int coverage_jsmn_iterator_next(void) {
+  int exit_line = 0;
+
+  jsmntok_t jsmn_tokens[128];
+  jsmn_parser p;
+  jsmn_iterator_t iter;
+  jsmntok_t *ident;
+  jsmntok_t *value;
+  int jsmn_token_count;
+
+  const char *js;
+
+  // Setup some jsmn tokens
+  jsmn_init(&p);
+  js = MULTILINE(
+    {
+      "A": [ "B" ],
+      "B": [ "B" ],
+      "C": [ "C" ],
+      "D": [ "D" ],
+      "E": [ "E" ]
+    }
+  );
+
+
+  // Setup parser
+  if ((jsmn_token_count = jsmn_parse(&p, js, strlen(js), jsmn_tokens, 128)) < 0)
+    BAIL_OUT();
+  if (jsmn_iterator_init(&iter, jsmn_tokens, jsmn_token_count, 0) < 0)
+    BAIL_OUT();
+
+  // Null arguments
+  if (jsmn_iterator_next(NULL, NULL, NULL, 0) != JSMNITER_ERR_PARAMETER)
+    BAIL_OUT();
+  if (jsmn_iterator_next(&iter, NULL, NULL, 0) != JSMNITER_ERR_PARAMETER)
+    BAIL_OUT();
+  if (jsmn_iterator_next(&iter, NULL, &value, 0) != JSMNITER_ERR_PARAMETER)
+    BAIL_OUT();
+
+  // "A" iterator->parser_pos == iterator->parent_pos
+  if (jsmn_iterator_next(&iter, &ident, &value, 1) <= 0) 
+    BAIL_OUT();
+  // "B" next_value_index == 0 
+  if (jsmn_iterator_next(&iter, &ident, &value, 0) <= 0) 
+    BAIL_OUT();
+  // "C" next_value_index > jsmn_len
+  if (jsmn_iterator_next(&iter, &ident, &value, jsmn_token_count + 2) <= 0)
+    BAIL_OUT();
+  // "D" next_value_index <= iterator->parser_pos
+  if (jsmn_iterator_next(&iter, &ident, &value, 1) <= 0)
+    BAIL_OUT();
+  printf("D: %u\r\n", iter.index);
+  // "E" current_item->end < jsmn_tokens[next_value_index - 1].end
+  if (jsmn_iterator_next(&iter, &ident, &value, 6) <= 0)
+    BAIL_OUT();
+
+  return 0;
+error_out:
+  printf("exit_line: %d\r\n", exit_line);
+  return exit_line;
+}
+
+
 
 int main(void) {
+  test(coverage_jsmn_iterator_find_end, "Coverage: jsmn_iterator_find_end");
+  test(coverage_jsmn_iterator_init,     "Coverage: jsmn_iterator_init");
+  test(coverage_jsmn_iterator_next,     "Coverage: jsmn_iterator_next");
   test(test_issue_22, "test issue #22");
   test(test_json_schema_org_example1, "test http://json-schema.org/example1.html");
   test(test_json_schema_org_example2, "test http://json-schema.org/example2.html");

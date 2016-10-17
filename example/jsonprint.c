@@ -64,7 +64,7 @@ int print_simple(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len,
   jsmntok_t *jsmn_value = NULL;
   int return_value;
   jsmn_iterator_t iterator;
-  unsigned int item_count = jsmn_tokens[parser_pos].size;
+  unsigned int item_count = (unsigned int)jsmn_tokens[parser_pos].size;
 
   /* iterator_hint makes it possible to indicate where Array/Object ends so the
      jsmn_iterator_next function doesn't need to loop until it finds the end */
@@ -90,7 +90,7 @@ int print_simple(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len,
 
     if ( jsmn_value->type== JSMN_OBJECT || 
          jsmn_value->type == JSMN_ARRAY) {
-      if ((return_value = print_simple(psz, jsmn_tokens, jsmn_len, iterator.parser_pos, indent_level + 1)) < 0)
+      if ((return_value = print_simple(psz, jsmn_tokens, jsmn_len, jsmn_iterator_position(&iterator), indent_level + 1)) < 0)
         return return_value;
 
       /* print_iterator returns index for next item, pass it to the iterator so it doesn't need to search for it manualLy */
@@ -112,7 +112,7 @@ int print_simple(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len,
   printf("%s%c", indent_text(indent_level), jsmn_tokens[parser_pos].type == JSMN_OBJECT ? '}' : ']');
 
   /* Return parser_pos so outer function knows where next item begins after this Array/Object */
-  return (int)(iterator.parser_pos);
+  return (int)(jsmn_iterator_position(&iterator));
 }
 
 
@@ -165,7 +165,7 @@ int print_tree(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len, u
 
   /* Print start item */
   if (print_mode == PRINTMODE_JSMNINFO)
-    printf("%5u.%-5u %s", stack[0].iterator.parser_pos, stack[0].index, indent_text(0));
+    printf("%5u.%-5u %s", jsmn_iterator_position(&stack[0].iterator), stack[0].index, indent_text(0));
   else
     printf("%s", indent_text(0));
   printf("%c", stack[0].is_object ? '{' : '[');
@@ -189,7 +189,7 @@ int print_tree(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len, u
 
       /* parser_pos should point at the index after the current Array/Object,
          we use it to hint to hint for the outer Array/Object where next item is */
-      iterator_hint = stack[stack_index].iterator.parser_pos;
+      iterator_hint = jsmn_iterator_position(&stack[stack_index].iterator);
 
       /* Pop the stack */
       stack_index--;
@@ -205,7 +205,7 @@ int print_tree(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len, u
     if (stack_index + 1 >= max_indent_level)
       printf(" ");
     else if (print_mode == PRINTMODE_JSMNINFO)
-      printf("\r\n%5u.%-5u %s", stack[stack_index].iterator.parser_pos, stack[stack_index].index - 1, indent_text(stack_index + 1));
+      printf("\r\n%5u.%-5u %s", jsmn_iterator_position(&stack[stack_index].iterator), stack[stack_index].index - 1, indent_text(stack_index + 1));
     else
       printf("\r\n%s", indent_text(stack_index + 1));
 
@@ -230,7 +230,7 @@ int print_tree(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len, u
         /* Initialize new item on the stack */
         stack[stack_index + 1].index = 0;
         stack[stack_index + 1].is_object = jsmn_value->type == JSMN_OBJECT ? 1 : 0;
-        if ((ret_value = jsmn_iterator_init(&stack[stack_index + 1].iterator, jsmn_tokens, jsmn_len, stack[stack_index].iterator.parser_pos)) < 0)
+        if ((ret_value = jsmn_iterator_init(&stack[stack_index + 1].iterator, jsmn_tokens, jsmn_len, jsmn_iterator_position(&stack[stack_index].iterator))) < 0)
           return ret_value;
 
         /* Update stack pointer */
@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
 {
   jsmn_parser p;
 
-  uint jsmn_tokens_size = 100000;
+  unsigned int jsmn_tokens_size = 100000;
   jsmntok_t *jsmn_tokens = NULL;
 
   int nJSParse;
@@ -292,10 +292,10 @@ int main(int argc, char *argv[])
     return 0;
   }
 
-  if ((jsmn_tokens = malloc(sizeof(jsmntok_t) * jsmn_tokens_size)) == NULL)
+  if ((jsmn_tokens = (jsmntok_t*)malloc(sizeof(jsmntok_t) * jsmn_tokens_size)) == NULL)
     goto error_out;
 
-  if ((file_data = malloc(sizeof(char) * file_data_size)) == NULL)
+  if ((file_data = (char*)malloc(sizeof(char) * file_data_size)) == NULL)
     goto error_out;
 
   file_name = argv[1];
@@ -334,7 +334,7 @@ int main(int argc, char *argv[])
     goto error_out;
   }
   fprintf(stderr, "Success parsing %d tokens\r\n", nJSParse);
-  fprintf(stderr, "Memusage: %dkb (%d%%)\r\n", (sizeof(jsmntok_t) * (uint)nJSParse / 1024), ((100 * (uint)nJSParse) / jsmn_tokens_size));
+  fprintf(stderr, "Memusage: %dkb (%d%%)\r\n", (sizeof(jsmntok_t) * (unsigned int)nJSParse / 1024), ((100 * (unsigned int)nJSParse) / jsmn_tokens_size));
 
 
   /* Different print methods */
@@ -403,7 +403,6 @@ error_out:
   return -1;
 
 }
-
 
 
 

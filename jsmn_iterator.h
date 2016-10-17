@@ -84,6 +84,18 @@ int jsmn_iterator_next( jsmn_iterator_t *iterator, jsmntok_t **jsmn_identifier, 
                         unsigned int next_value_index );
 
 
+
+/**
+ * @brief Return current parser position
+ * @details For Array the parser point to current value index
+ *          For Object the parser points to the identifier
+ * 
+ * @param iterator [description]
+ * @return [description]
+ */
+#define jsmn_iterator_position(_iterator_) ((_iterator_)->parser_pos)
+
+
 #ifdef __cplusplus
 }
 #endif
