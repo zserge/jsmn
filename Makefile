@@ -36,22 +36,22 @@ test_coverage: test_default_lcov test_strict_lcov test_links_lcov test_strict_li
 
 test_default_lcov: test/tests.c
 	$(CC) $(CFLAGS) $(LDFLAGS) $< -o test/$@ -coverage
-	./test/$@
+	-./test/$@
 	mv tests.gcda $@.gcda
 	mv tests.gcno $@.gcno
 test_strict_lcov: test/tests.c
 	$(CC) -DJSMN_STRICT=1 $(CFLAGS) $(LDFLAGS) $< -o test/$@ -coverage
-	./test/$@
+	-./test/$@
 	mv tests.gcda $@.gcda
 	mv tests.gcno $@.gcno
 test_links_lcov: test/tests.c
 	$(CC) -DJSMN_PARENT_LINKS=1 $(CFLAGS) $(LDFLAGS) $< -o test/$@ -coverage
-	./test/$@
+	-./test/$@
 	mv tests.gcda $@.gcda
 	mv tests.gcno $@.gcno
 test_strict_links_lcov: test/tests.c
 	$(CC) -DJSMN_STRICT=1 -DJSMN_PARENT_LINKS=1 $(CFLAGS) $(LDFLAGS) $< -o test/$@ -coverage
-	./test/$@
+	-./test/$@
 	mv tests.gcda $@.gcda
 	mv tests.gcno $@.gcno
 test_iterator_lcov: test/tests_iterator.c
