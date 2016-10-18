@@ -79,7 +79,7 @@ found:
 }
 
 /**
- * Filsl next token with JSON string.
+ * Fills next token with JSON string.
  */
 static int jsmn_parse_string(jsmn_parser *parser, const char *js,
 		size_t len, jsmntok_t *tokens, size_t num_tokens) {
@@ -198,6 +198,9 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 						break;
 					}
 					if (token->parent == -1) {
+						if(token->type != type || parser->toksuper == -1) {
+							return JSMN_ERROR_INVAL;
+						}
 						break;
 					}
 					token = &tokens[token->parent];

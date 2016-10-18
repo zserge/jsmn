@@ -53,7 +53,7 @@ JSON format itself is extremely simple, so why should we complicate it?
 
 jsmn is designed to be	**robust** (it should work fine even with erroneous
 data), **fast** (it should parse data on the fly), **portable** (no superfluous
-dependencies or non-standard C extensions). An of course, **simplicity** is a
+dependencies or non-standard C extensions). And of course, **simplicity** is a
 key feature - simple code style, simple algorithm, simple integration into
 other projects.
 
@@ -164,7 +164,7 @@ All job is done by `jsmn_parser` object. You can initialize a new parser using:
 	// js - pointer to JSON string
 	// tokens - an array of tokens available
 	// 10 - number of tokens available
-	jsmn_parse(&parser, js, tokens, 10);
+	jsmn_parse(&parser, js, strlen(js), tokens, 10);
 
 This will create a parser, and then it tries to parse up to 10 JSON tokens from
 the `js` string.
