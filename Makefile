@@ -73,11 +73,10 @@ jsonprint: example/jsonprint.o libjsmn.a
 example: simple_example jsondump jsonprint
 
 clean:
-	rm -f jsmn.o jsmn_test.o example/simple.o
-	rm -f jsmn_iterator.o example/jsondump.o example/jsonprint.o
-	rm -f libjsmn.a
+	rm -f *.o example/*.o
+	rm -f *.a *.so
 	rm -f simple_example
-	rm -f jsondump
+	rm -f jsondump jsondump jsonprint
 	rm -f test/coverage.info
 	rm -f *.gcno *.gcda
 	rm -rf test_coverage

@@ -408,7 +408,12 @@ int coverage_jsmn_iterator_next(void) {
       "B": [ "B" ],
       "C": [ "C" ],
       "D": [ "D" ],
-      "E": [ "E" ]
+      "E": [   // 14
+        "E", // 15
+        "E", // 16
+        "E"  // 17
+      ],
+      "F": "F"
     }
   );
 
@@ -439,9 +444,16 @@ int coverage_jsmn_iterator_next(void) {
   // "D" next_value_index <= iterator->parser_pos
   if (jsmn_iterator_next(&iter, &ident, &value, 1) <= 0)
     BAIL_OUT();
-  printf("D: %u\r\n", iter.index);
   // "E" current_item->end < jsmn_tokens[next_value_index - 1].end
-  if (jsmn_iterator_next(&iter, &ident, &value, 6) <= 0)
+  if (jsmn_iterator_next(&iter, &ident, &value, 15) <= 0)
+    BAIL_OUT();
+  // "F" current_item->end < jsmn_tokens[next_value_index - 1].end
+  if (jsmn_iterator_next(&iter, &ident, &value, 17) <= 0)
+    BAIL_OUT();
+  // END
+  if (jsmn_iterator_next(&iter, &ident, &value, 0) != 0)
+    BAIL_OUT();
+  if (jsmn_iterator_next(&iter, &ident, &value, 0) != 0)
     BAIL_OUT();
 
   return 0;

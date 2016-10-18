@@ -211,6 +211,7 @@ int print_tree(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len, u
 
     if (jsmn_identifier) {
       print_string(psz, jsmn_identifier->start, jsmn_identifier->end, 1);
+      printf(": ");
     }
 
     if ( jsmn_value->type== JSMN_OBJECT || 
