@@ -2,7 +2,7 @@
 
 
 /**
- * @brief Locates last JSMN index for current Array/Group
+ * @brief Takes an JSMN Array/Object and locates index for last item in collection
  * @details Iterates over JSMN Array/Object until last item is found
  * 
  * @param jsmn_tokens   JSMN tokens
@@ -10,13 +10,12 @@
  * @param parser_pos    Current JSMN token
  *
  * @return  < 0 - Error has occured, corresponds to one of JSMNITER_ERR_*
- *          >=0 - Last JSMN index for Array/Object
+ *          >=0 - JSMN index for last item in Array/Object
  */
-int jsmn_iterator_find_end( jsmntok_t *jsmn_tokens, unsigned int jsmn_len, unsigned int parser_pos ) {
+int jsmn_iterator_find_last( jsmntok_t *jsmn_tokens, unsigned int jsmn_len, unsigned int parser_pos ) {
   int child_count;
   unsigned int child_index;
   int parent_end;
-
 
   /* No tokens */
   if (!jsmn_tokens)
@@ -135,34 +134,34 @@ int jsmn_iterator_init(jsmn_iterator_t *iterator, jsmntok_t *jsmn_tokens, unsign
   parent_item  = &jsmn_tokens[iterator->parent_pos];
 
   /* parser_position is at the end of JSMN token array or points outside parent Array/Object */
-  if (iterator->parser_pos == iterator->jsmn_len || jsmn_tokens[iterator->parser_pos].start > parent_item->end) {
+  if (jsmn_iterator_position(iterator) == iterator->jsmn_len || jsmn_tokens[jsmn_iterator_position(iterator)].start > parent_item->end) {
     if (iterator->index != (unsigned int)parent_item->size)
       return JSMNITER_ERR_BROKEN;
     return 0;
   }
 
-  current_item = &jsmn_tokens[iterator->parser_pos];
+  current_item = &jsmn_tokens[jsmn_iterator_position(iterator)];
 
   /* Are we in an Object */
   is_object = (parent_item->type == JSMN_OBJECT ? 1 : 0);
 
   /* Is it item we only need jump one to the next index */
-  if (iterator->parser_pos == iterator->parent_pos) {
-    next_value_index = iterator->parser_pos + 1;
+  if (jsmn_iterator_position(iterator) == iterator->parent_pos) {
+    next_value_index = jsmn_iterator_position(iterator) + 1;
   }
   /* For items that isn't Array/Object we only need to take the next value */
   else if (current_item->type != JSMN_ARRAY &&
            current_item->type != JSMN_OBJECT) {
-    next_value_index = iterator->parser_pos + 1;
+    next_value_index = jsmn_iterator_position(iterator) + 1;
   }
   /* Check if next_value_index is correct, else we need to calculate it ourself */
   else if (next_value_index == 0 ||
            next_value_index > jsmn_len || 
-           next_value_index <= iterator->parser_pos ||
+           next_value_index <= jsmn_iterator_position(iterator) ||
            current_item->end < jsmn_tokens[next_value_index - 1].end ||
            (next_value_index < jsmn_len && current_item->end >= jsmn_tokens[next_value_index].start)) {
-    /* Find end index for the Array/Object manually */
-    int return_pos = jsmn_iterator_find_end(jsmn_tokens, jsmn_len, iterator->parser_pos);
+    /* Find index for last item in the Array/Object manually */
+    int return_pos = jsmn_iterator_find_last(jsmn_tokens, jsmn_len, jsmn_iterator_position(iterator));
 
     /* Error, bail out */
     if (return_pos < 0)
@@ -172,10 +171,10 @@ int jsmn_iterator_init(jsmn_iterator_t *iterator, jsmntok_t *jsmn_tokens, unsign
     next_value_index = (unsigned int)(return_pos) + 1;
 
     /* Outside valid array */
-    if (next_value_index> jsmn_len)
+    if (next_value_index > jsmn_len)
       return JSMNITER_ERR_BROKEN;
     /* Earlier than current value (not valid jsmn tree) */
-    if (next_value_index <= iterator->parser_pos)
+    if (next_value_index <= jsmn_iterator_position(iterator))
       return JSMNITER_ERR_BROKEN;
     /* Previus item is NOT inside current Array/Object */
     if (jsmn_tokens[next_value_index - 1].end > current_item->end)

@@ -168,6 +168,8 @@ int print_tree(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len, u
     printf("%5u.%-5u %s", jsmn_iterator_position(&stack[0].iterator), stack[0].index, indent_text(0));
   else
     printf("%s", indent_text(0));
+
+  /* Print type symbol */
   printf("%c", stack[0].is_object ? '{' : '[');
 
   /* Iterate over all items, only abort on error */
@@ -184,7 +186,7 @@ int print_tree(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len, u
       else if (print_mode == PRINTMODE_JSMNINFO)
         printf("\r\n%11s %s", "", indent_text(stack_index));
       else
-        printf("\r\n%s ", indent_text(stack_index));
+        printf("\r\n%s", indent_text(stack_index));
       printf("%c", stack[stack_index].is_object ? '}' : ']');
 
       /* parser_pos should point at the index after the current Array/Object,

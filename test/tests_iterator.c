@@ -297,7 +297,7 @@ int test_deep(void) {
   return validate_json(js);
 }
 
-int coverage_jsmn_iterator_find_end(void) {
+int coverage_jsmn_iterator_find_last(void) {
   int exit_line = 0;
 
   jsmntok_t jsmn_tokens[128];
@@ -325,13 +325,13 @@ int coverage_jsmn_iterator_find_end(void) {
     BAIL_OUT();
 
   // Null arguments
-  if (jsmn_iterator_find_end(NULL, 0, 0) != JSMNITER_ERR_PARAMETER)
+  if (jsmn_iterator_find_last(NULL, 0, 0) != JSMNITER_ERR_PARAMETER)
     BAIL_OUT();
-  if (jsmn_iterator_find_end(jsmn_tokens, 0, 2) != JSMNITER_ERR_PARAMETER)
+  if (jsmn_iterator_find_last(jsmn_tokens, 0, 2) != JSMNITER_ERR_PARAMETER)
     BAIL_OUT();
-  if (jsmn_iterator_find_end(jsmn_tokens, jsmn_token_count, jsmn_token_count+2) != JSMNITER_ERR_PARAMETER)
+  if (jsmn_iterator_find_last(jsmn_tokens, jsmn_token_count, jsmn_token_count+2) != JSMNITER_ERR_PARAMETER)
     BAIL_OUT();
-  if (jsmn_iterator_find_end(jsmn_tokens, jsmn_token_count, 1) != JSMNITER_ERR_TYPE)
+  if (jsmn_iterator_find_last(jsmn_tokens, jsmn_token_count, 1) != JSMNITER_ERR_TYPE)
     BAIL_OUT();
 
   return 0;
@@ -465,9 +465,9 @@ error_out:
 
 
 int main(void) {
-  test(coverage_jsmn_iterator_find_end, "Coverage: jsmn_iterator_find_end");
-  test(coverage_jsmn_iterator_init,     "Coverage: jsmn_iterator_init");
-  test(coverage_jsmn_iterator_next,     "Coverage: jsmn_iterator_next");
+  test(coverage_jsmn_iterator_find_last,  "Coverage: jsmn_iterator_find_last");
+  test(coverage_jsmn_iterator_init,       "Coverage: jsmn_iterator_init");
+  test(coverage_jsmn_iterator_next,       "Coverage: jsmn_iterator_next");
   test(test_issue_22, "test issue #22");
   test(test_json_schema_org_example1, "test http://json-schema.org/example1.html");
   test(test_json_schema_org_example2, "test http://json-schema.org/example2.html");

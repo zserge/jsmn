@@ -37,7 +37,7 @@ typedef struct {
 
 
 /**
- * @brief Locates last JSMN index for current Array/Group
+ * @brief Takes an JSMN Array/Object and locates index for last item in collection
  * @details Iterates over JSMN Array/Object until last item is found
  * 
  * @param jsmn_tokens   JSMN tokens
@@ -45,9 +45,9 @@ typedef struct {
  * @param parser_pos    Current JSMN token
  *
  * @return  < 0 - Error has occured, corresponds to one of JSMNITER_ERR_*
- *          >=0 - Last JSMN index for Array/Object
+ *          >=0 - JSMN index for last item in Array/Object
  */
-int jsmn_find_end( jsmntok_t *jsmn_tokens, unsigned int jsmn_len, unsigned int parser_pos );
+int jsmn_iterator_find_last( jsmntok_t *jsmn_tokens, unsigned int jsmn_len, unsigned int parser_pos );
 
 
 /**
