@@ -66,9 +66,9 @@ int test_object(void) {
 }
 
 int test_array(void) {
+	check(parse("[10}", JSMN_ERROR_INVAL, 3));
 	/* FIXME */
-	/*check(parse("[10}", JSMN_ERROR_INVAL, 3));*/
-	/*check(parse("[1,,3]", JSMN_ERROR_INVAL, 3)*/
+	/*check(parse("[1,,3]", JSMN_ERROR_INVAL, 3));*/
 	check(parse("[10]", 2, 2,
 				JSMN_ARRAY, -1, -1, 1,
 				JSMN_PRIMITIVE, "10"));
@@ -359,20 +359,31 @@ int test_nonstrict(void) {
 
 int test_unmatched_brackets(void) {
 	const char *js;
+
 	js = "\"key 1\": 1234}";
 	check(parse(js, JSMN_ERROR_INVAL, 2));
+
 	js = "{\"key 1\": 1234";
 	check(parse(js, JSMN_ERROR_PART, 3));
+
 	js = "{\"key 1\": 1234}}";
 	check(parse(js, JSMN_ERROR_INVAL, 3));
+
 	js = "\"key 1\"}: 1234";
 	check(parse(js, JSMN_ERROR_INVAL, 3));
+
 	js = "\"key {1\": 1234";
+#ifndef JSMN_STRICT
 	check(parse(js, 2, 2,
 				JSMN_STRING, "key {1", 1,
 				JSMN_PRIMITIVE, "1234"));
+#else
+	check(parse(js, JSMN_ERROR_PART, 2));
+#endif
+
 	js = "{{\"key 1\": 1234}";
 	check(parse(js, JSMN_ERROR_PART, 4));
+
 	return 0;
 }
 
