@@ -1,4 +1,15 @@
 #include "jsmn.h"
+#ifdef JSMN_STRICT
+/**
+ * Parser state
+ */
+enum parser_state {
+   EXPECTING_KEY,
+   EXPECTING_COLON,
+   EXPECTING_VALUE,
+   EXPECTING_COMMA,
+};
+#endif
 
 /**
  * Allocates a fresh unused token from the token pull.
@@ -178,11 +189,20 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 				token->type = (c == '{' ? JSMN_OBJECT : JSMN_ARRAY);
 				token->start = parser->pos;
 				parser->toksuper = parser->toknext - 1;
+#ifdef JSMN_STRICT
+                                parser->is_in_array = c == '[';
+				parser->state = (c == '{' ? EXPECTING_KEY : EXPECTING_VALUE);
+#endif
 				break;
 			case '}': case ']':
 				if (tokens == NULL)
 					break;
 				type = (c == '}' ? JSMN_OBJECT : JSMN_ARRAY);
+#ifdef JSMN_STRICT
+				if (parser->state != EXPECTING_COMMA)
+					return JSMN_ERROR_INVAL;
+				/* We will still be expecting a comma */
+#endif
 #ifdef JSMN_PARENT_LINKS
 				if (parser->toknext < 1) {
 					return JSMN_ERROR_INVAL;
@@ -229,15 +249,26 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 #endif
 				break;
 			case '\"':
+#ifdef JSMN_STRICT
+				if (!(parser->state & 1)) /* key/value allowed */
+					return JSMN_ERROR_INVAL;
+                                parser->state++;
+#endif
 				r = jsmn_parse_string(parser, js, len, tokens, num_tokens);
 				if (r < 0) return r;
 				count++;
 				if (parser->toksuper != -1 && tokens != NULL)
 					tokens[parser->toksuper].size++;
+
 				break;
 			case '\t' : case '\r' : case '\n' : case ' ':
 				break;
 			case ':':
+#ifdef JSMN_STRICT
+				if (parser->state != EXPECTING_COLON)
+					return JSMN_ERROR_INVAL;
+				parser->state = EXPECTING_VALUE;
+#endif
 				parser->toksuper = parser->toknext - 1;
 				break;
 			case ',':
@@ -257,12 +288,16 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 					}
 #endif
 				}
+#ifdef JSMN_STRICT
+				parser->state = parser->is_in_array ? EXPECTING_KEY : EXPECTING_VALUE;
+#endif
 				break;
 #ifdef JSMN_STRICT
 			/* In strict mode primitives are: numbers and booleans */
 			case '-': case '0': case '1' : case '2': case '3' : case '4':
 			case '5': case '6': case '7' : case '8': case '9':
 			case 't': case 'f': case 'n' :
+#if 0
 				/* And they must not be keys of the object */
 				if (tokens != NULL && parser->toksuper != -1) {
 					jsmntok_t *t = &tokens[parser->toksuper];
@@ -271,6 +306,10 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 						return JSMN_ERROR_INVAL;
 					}
 				}
+#else
+				if (parser->state != EXPECTING_VALUE)
+					return JSMN_ERROR_INVAL;
+#endif
 #else
 			/* In non-strict mode every unquoted value is a primitive */
 			default:

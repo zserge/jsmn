@@ -338,8 +338,8 @@ int test_count(void) {
 
 
 int test_nonstrict(void) {
-#ifndef JSMN_STRICT
 	const char *js;
+#ifndef JSMN_STRICT
 	js = "a: 0garbage";
 	check(parse(js, 2, 2,
 				JSMN_PRIMITIVE, "a",
@@ -353,6 +353,11 @@ int test_nonstrict(void) {
 				JSMN_PRIMITIVE, "Sep",
 				JSMN_PRIMITIVE, "Year",
 				JSMN_PRIMITIVE, "12"));
+#else
+        js = "{:}";
+	check(parse(js, JSMN_ERROR_INVAL, 1));
+	js = "{,}";
+	check(parse(js, JSMN_ERROR_INVAL, 1));
 #endif
 	return 0;
 }
