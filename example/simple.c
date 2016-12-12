@@ -21,10 +21,10 @@ static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
 }
 
 int main() {
-	int i;
 	int r;
 	jsmn_parser p;
 	jsmntok_t t[128]; /* We expect no more than 128 tokens */
+        jsmntok_t *key;
 
 	jsmn_init(&p);
 	r = jsmn_parse(&p, JSON_STRING, strlen(JSON_STRING), t, sizeof(t)/sizeof(t[0]));
@@ -40,36 +40,25 @@ int main() {
 	}
 
 	/* Loop over all keys of the root object */
-	for (i = 1; i < r; i++) {
-		if (jsoneq(JSON_STRING, &t[i], "user") == 0) {
-			/* We may use strndup() to fetch string value */
-			printf("- User: %.*s\n", t[i+1].end-t[i+1].start,
-					JSON_STRING + t[i+1].start);
-			i++;
-		} else if (jsoneq(JSON_STRING, &t[i], "admin") == 0) {
-			/* We may additionally check if the value is either "true" or "false" */
-			printf("- Admin: %.*s\n", t[i+1].end-t[i+1].start,
-					JSON_STRING + t[i+1].start);
-			i++;
-		} else if (jsoneq(JSON_STRING, &t[i], "uid") == 0) {
-			/* We may want to do strtol() here to get numeric value */
-			printf("- UID: %.*s\n", t[i+1].end-t[i+1].start,
-					JSON_STRING + t[i+1].start);
-			i++;
-		} else if (jsoneq(JSON_STRING, &t[i], "groups") == 0) {
-			int j;
-			printf("- Groups:\n");
-			if (t[i+1].type != JSMN_ARRAY) {
-				continue; /* We expect groups to be an array of strings */
+	for (key=t+1; key < t+r; key += key->skip) {
+                jsmntok_t *val = key+1;
+                if (val == NULL) {
+                        printf("Missing value for %.*s\n", FMT_STR(JSON_STRING, key));
+                }
+                if(val->type == JSMN_STRING || val->type == JSMN_PRIMITIVE) {
+			printf("- %.*s: %.*s\n", FMT_STR(JSON_STRING, key), FMT_STR(JSON_STRING, val));
+		} else if (val->type == JSMN_ARRAY) {
+                        jsmntok_t *g;
+			printf("- %.*s:\n", FMT_STR(JSON_STRING, key));
+                        for(g = val+1; g < val+val->skip; g += g->skip) {
+                            if(g->type != JSMN_STRING) {
+                                    printf("  * <non-string?>\n");
+                            } else {
+                                    printf("  * %.*s\n", FMT_STR(JSON_STRING, g));
+                            }
 			}
-			for (j = 0; j < t[i+1].size; j++) {
-				jsmntok_t *g = &t[i+j+2];
-				printf("  * %.*s\n", g->end - g->start, JSON_STRING + g->start);
-			}
-			i += t[i+1].size + 1;
 		} else {
-			printf("Unexpected key: %.*s\n", t[i].end-t[i].start,
-					JSON_STRING + t[i].start);
+			printf("Unexpected key: %.*s\n", FMT_STR(JSON_STRING, key));
 		}
 	}
 	return EXIT_SUCCESS;

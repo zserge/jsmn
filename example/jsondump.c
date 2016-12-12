@@ -25,40 +25,55 @@ static inline void *realloc_it(void *ptrmem, size_t size) {
  * The output looks like YAML, but I'm not sure if it's really compatible.
  */
 
-static int dump(const char *js, jsmntok_t *t, size_t count, int indent) {
-	int i, j, k;
-	if (count == 0) {
-		return 0;
-	}
+#define INDENT(n) { int k; for (k = 0; k < n; k++) printf("  "); }
+
+static void dump(const char *js, jsmntok_t *t, int indent) {
+        jsmntok_t *c;
+
+        if(t->skip < 1) {
+            printf("Error: skip = %d: %.*s\n", t->skip, FMT_STR(js, t));
+            exit(1);
+        }
 	if (t->type == JSMN_PRIMITIVE) {
-		printf("%.*s", t->end - t->start, js+t->start);
-		return 1;
+		printf("%.*s", FMT_STR(js, t));
+		return;
 	} else if (t->type == JSMN_STRING) {
-		printf("'%.*s'", t->end - t->start, js+t->start);
-		return 1;
+		printf("'%.*s'", FMT_STR(js, t));
+		return;
 	} else if (t->type == JSMN_OBJECT) {
-		printf("\n");
-		j = 0;
-		for (i = 0; i < t->size; i++) {
-			for (k = 0; k < indent; k++) printf("  ");
-			j += dump(js, t+1+j, count-j, indent+1);
+                if(t->skip == 1) {
+                    printf("{}");
+                    return;
+                }
+		printf("{\n");
+		for (c = t+1; c < t+t->skip; c += c->skip) {
+                        INDENT(indent+1);
+			dump(js, c, indent+1);
 			printf(": ");
-			j += dump(js, t+1+j, count-j, indent+1);
-			printf("\n");
+                        if(c->skip > 1) {
+                            dump(js, c+1, indent+1);
+                        }
+			printf(",\n");
 		}
-		return j+1;
+                INDENT(indent);
+                printf("}");
+		return;
 	} else if (t->type == JSMN_ARRAY) {
-		j = 0;
-		printf("\n");
-		for (i = 0; i < t->size; i++) {
-			for (k = 0; k < indent-1; k++) printf("  ");
-			printf("   - ");
-			j += dump(js, t+1+j, count-j, indent+1);
-			printf("\n");
+                if(t->skip == 1) {
+                    printf("[]");
+                    return;
+                }
+		printf("[\n");
+		for (c = t+1; c < t+t->skip; c += c->skip) {
+			INDENT(indent+1);
+			dump(js, c, indent+1);
+			printf(",\n");
 		}
-		return j+1;
+                INDENT(indent);
+                printf("]");
+		return;
 	}
-	return 0;
+	return;
 }
 
 int main() {
@@ -117,7 +132,8 @@ again:
 				goto again;
 			}
 		} else {
-			dump(js, tok, p.toknext, 0);
+			dump(js, tok, 0);
+                        printf("\n");
 			eof_expected = 1;
 		}
 	}

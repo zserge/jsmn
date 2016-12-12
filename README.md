@@ -54,9 +54,12 @@ It holds the following tokens:
 * Strings: `"name"`, `"Jack"`, `"age"` (keys and some values)
 * Number: `27`
 
-In jsmn, tokens do not hold any data, but point to token boundaries in JSON
-string instead. In the example above jsmn will create tokens like: Object
-[0..31], String [3..7], String [12..16], String [20..23], Number [27..29].
+JSMN builds meta-tokens that point to token boundaries in the JSON
+string and list their types and relationships.
+In the example above jsmn will create tokens like:
+Object [0..31] (skip 5), String [3..7] (skip 2),
+String [12..16] (skip 1), String [20..23] (skip 2),
+Number [27..29] (skip 1).
 
 Every jsmn token has a type, which indicates the type of corresponding JSON
 token. jsmn supports the following token types:
@@ -68,12 +71,26 @@ token. jsmn supports the following token types:
 * String - a quoted sequence of chars, e.g.: `"foo"`
 * Primitive - a number, a boolean (`true`, `false`) or `null`
 
-Besides start/end positions, jsmn tokens for complex types (like arrays
-or objects) also contain a number of child items, so you can easily follow
-object hierarchy.
+Besides textual start/end positions, all jsmn tokens
+also have a skip count, so you can easily jump to the object's
+next sibling.  There's no trouble finding children of objects,
+since the first child always follows the parent immediately.
 
-This approach provides enough information for parsing any JSON data and makes
-it possible to use zero-copy techniques.
+```C
+jsmntok_t *c, *p = tokens;
+for (c = p+1; c < p+p->skip; c += c->skip) {
+    printf("%.*s", FMT_STR(str_buffer, c));
+}
+```
+
+WARNING: Before parsing is complete, the skip count
+of all incomplete tokens is less than or equal to zero.
+This will cause real trouble if you naively iterate on partial
+parses.  After a successful parse, skip
+counts are all >= 1, obviously.
+
+This approach provides full access to the JSON hierarchy
+and makes it possible to use zero-copy techniques.
 
 Install
 -------
@@ -152,10 +169,34 @@ If something goes wrong, you will get an error. Error will be one of these:
 * `JSMN_ERROR_NOMEM` - not enough tokens, JSON string is too large
 * `JSMN_ERROR_PART` - JSON string is too short, expecting more JSON data
 
-If you get `JSON_ERROR_NOMEM`, you can re-allocate more tokens and call
-`jsmn_parse` once more.  If you read json data from the stream, you can
-periodically call `jsmn_parse` and check if return value is `JSON_ERROR_PART`.
-You will get this error until you reach the end of JSON data.
+Partial Parsing
+----------
+
+The complete parser state (including current position) is held inside
+`jsmn_parser parser`, and only numerical offsets to your
+tokens are ever stored.  Each time it's called, the parser consumes
+all new characters and never back-tracks.
+
+This means that if you get `JSON_ERROR_NOMEM`, you can re-allocate
+more tokens (copying over your existing ones) and call
+`jsmn_parse` once more so the parser can resume its work.
+
+If you read json data from a stream, you can
+periodically call `jsmn_parse` and try again with more data
+if the return value is `JSON_ERROR_PART`.
+You will most likely alternate between `JSON_ERROR_PART` and  `JSMN_ERROR_NOMEM`
+until you reach the end of JSON data or encounter `JSMN_ERROR_INVAL`.
+Note that since the parser outputs locations in the input buffer,
+it always indexes from the very beginning of the stream.  If you re-use
+your buffer you will need code like,
+```C
+        n1 = fill(buf, five_words);
+	if(jsmn_parse(&parser, buf, n, tokens, 128) == JSMN_ERROR_PART) {
+                n2 = fill(buf, five_more_words);
+                jsmn_parse(&parser, buf-n1, n1+n2, tokens, 128);
+        }
+```
+
 
 Other info
 ----------
