@@ -1,11 +1,28 @@
 #ifndef __JSMN_H_
 #define __JSMN_H_
 
+// During parsing, the current token's 'skip' field is used to store
+// the location of the parent.
+// After parsing, it holds the total number of tokens
+// in the node's sub-tree (including itself).
+//
+// Listing siblings is then as simple as (next = t + t->skip).
+//
+// { or [ -> push node and DESCEND
+// :      -> check lhs was a key and DESCEND
+// }(parent={) or ](parent=[) or ,(parent!=[or{) -> ASCEND
+
 #include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* explicitly */
+#define JSMN_CHILD(t) (t->skip == 1 ? NULL : t+1)
+#define JSMN_NEXT(t)  (t+t->skip)
+
+#define FMT_STR(str, v) (v)->end-(v)->start, str+(v)->start
 
 /**
  * JSON type identifier. Basic types are:
@@ -41,7 +58,7 @@ typedef struct {
 	jsmntype_t type;
 	int start;
 	int end;
-	int size;
+	int skip;
 #ifdef JSMN_PARENT_LINKS
 	int parent;
 #endif

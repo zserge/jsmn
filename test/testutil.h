@@ -5,25 +5,25 @@
 
 static int vtokeq(const char *s, jsmntok_t *t, int numtok, va_list ap) {
 	if (numtok > 0) {
-		int i, start, end, size;
+		int i, start, end, skip;
 		int type;
 		char *value;
 
-		size = -1;
+		skip = -1;
 		value = NULL;
 		for (i = 0; i < numtok; i++) {
 			type = va_arg(ap, int);
 			if (type == JSMN_STRING) {
 				value = va_arg(ap, char *);
-				size = va_arg(ap, int);
+				skip = va_arg(ap, int);
 				start = end = -1;
 			} else if (type == JSMN_PRIMITIVE) {
 				value = va_arg(ap, char *);
-				start = end = size = -1;
+				start = end = skip = -1;
 			} else {
 				start = va_arg(ap, int);
 				end = va_arg(ap, int);
-				size = va_arg(ap, int);
+				skip = va_arg(ap, int);
 				value = NULL;
 			}
 			if (t[i].type != type) {
@@ -40,8 +40,8 @@ static int vtokeq(const char *s, jsmntok_t *t, int numtok, va_list ap) {
 					return 0;
 				}
 			}
-			if (size != -1 && t[i].size != size) {
-				printf("token %d size is %d, not %d\n", i, t[i].size, size);
+			if (skip != -1 && t[i].skip != skip) {
+				printf("token %d skip is %d, not %d\n", i, t[i].skip, skip);
 				return 0;
 			}
 
