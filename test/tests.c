@@ -54,21 +54,22 @@ int test_object(void) {
 	check(parse("{\"a\": {2}}", JSMN_ERROR_INVAL, 3));
 	check(parse("{\"a\": {2: 3}}", JSMN_ERROR_INVAL, 3));
 	check(parse("{\"a\": {\"a\": 2 3}}", JSMN_ERROR_INVAL, 5));
-	/* FIXME */
-	/*check(parse("{\"a\"}", JSMN_ERROR_INVAL, 2));*/
-	/*check(parse("{\"a\": 1, \"b\"}", JSMN_ERROR_INVAL, 4));*/
-	/*check(parse("{\"a\",\"b\":1}", JSMN_ERROR_INVAL, 4));*/
-	/*check(parse("{\"a\":1,}", JSMN_ERROR_INVAL, 4));*/
-	/*check(parse("{\"a\":\"b\":\"c\"}", JSMN_ERROR_INVAL, 4));*/
-	/*check(parse("{,}", JSMN_ERROR_INVAL, 4));*/
+	check(parse("{\"a\"}", JSMN_ERROR_INVAL, 2));
+	check(parse("{\"a\": 1, \"b\"}", JSMN_ERROR_INVAL, 4));
+	check(parse("{\"a\",\"b\":1}", JSMN_ERROR_INVAL, 4));
+	check(parse("{\"a\":1,}", JSMN_ERROR_INVAL, 4));
+	check(parse("{\"a\":\"b\":\"c\"}", JSMN_ERROR_INVAL, 4));
+	check(parse("{,}", JSMN_ERROR_INVAL, 4));
 #endif
 	return 0;
 }
 
 int test_array(void) {
 	/* FIXME */
-	/*check(parse("[10}", JSMN_ERROR_INVAL, 3));*/
-	/*check(parse("[1,,3]", JSMN_ERROR_INVAL, 3)*/
+#ifdef JSMN_STRING
+	check(parse("[10}", JSMN_ERROR_INVAL, 3));
+	check(parse("[1,,3]", JSMN_ERROR_INVAL, 3)
+#endif
 	check(parse("[10]", 2, 2,
 				JSMN_ARRAY, -1, -1, 1,
 				JSMN_PRIMITIVE, "10"));
@@ -146,8 +147,13 @@ int test_partial_string(void) {
 	jsmntok_t tok[5];
 	const char *js = "{\"x\": \"va\\\\ue\", \"y\": \"value y\"}";
 
+#ifndef JSMN_STRICT
 	jsmn_init(&p);
+#endif
 	for (i = 1; i <= strlen(js); i++) {
+#ifdef JSMN_STRICT
+		jsmn_init(&p);
+#endif
 		r = jsmn_parse(&p, js, i, tok, sizeof(tok)/sizeof(tok[0]));
 		if (i == strlen(js)) {
 			check(r == 5);
@@ -172,8 +178,13 @@ int test_partial_array(void) {
 	jsmntok_t tok[10];
 	const char *js = "[ 1, true, [123, \"hello\"]]";
 
+#ifndef JSMN_STRICT
 	jsmn_init(&p);
+#endif
 	for (i = 1; i <= strlen(js); i++) {
+#ifdef JSMN_STRICT
+		jsmn_init(&p);
+#endif
 		r = jsmn_parse(&p, js, i, tok, sizeof(tok)/sizeof(tok[0]));
 		if (i == strlen(js)) {
 			check(r == 6);
@@ -209,7 +220,9 @@ int test_array_nomem(void) {
 		check(r == JSMN_ERROR_NOMEM);
 
 		memcpy(toklarge, toksmall, sizeof(toksmall));
-
+#ifdef JSMN_STRICT
+		jsmn_init(&p);
+#endif
 		r = jsmn_parse(&p, js, strlen(js), toklarge, 10);
 		check(r >= 0);
 		check(tokeq(js, toklarge, 4,
@@ -270,7 +283,14 @@ int test_issue_27(void) {
 	check(parse(js, JSMN_ERROR_PART, 8));
 	return 0;
 }
-
+#if 0
+int test_incremental_parsing(void) {
+	const char *js = "{ \"nam";
+	jsmn_parser p;
+	jsmn_init(&p);
+	jsmntok_t tokens[10];
+	int r = jsmn_parse
+#endif
 int test_input_length(void) {
 	const char *js;
 	int r;

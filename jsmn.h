@@ -54,10 +54,11 @@ typedef struct {
 typedef struct {
 	unsigned int pos; /* offset in the JSON string */
 	unsigned int toknext; /* next token to allocate */
-	int toksuper; /* superior token node, e.g parent object or array */
+	unsigned int toksuper; /* superior token node, e.g parent object or array */
 #ifdef JSMN_STRICT
-        unsigned short state;
-        unsigned short is_in_array;
+	unsigned int depth;
+	unsigned short state;
+	unsigned short is_in_array;
 #endif
 } jsmn_parser;
 
@@ -72,6 +73,7 @@ void jsmn_init(jsmn_parser *parser);
  */
 int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 		jsmntok_t *tokens, unsigned int num_tokens);
+
 
 #ifdef __cplusplus
 }
