@@ -180,6 +180,8 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 #ifdef JSMN_STRICT
 				if ((parser->state & 3) != EXPECTING_VALUE && parser->depth != 0)
 					return JSMN_ERROR_INVAL;
+                                if (parser->depth = UINT_MAX - 1)
+					return JSMN_ERROR_INVAL; /* Overflow! */
 				parser->depth++;
 				parser->is_in_array = c == '[';
 				parser->state = 4 |
