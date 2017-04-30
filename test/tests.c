@@ -353,6 +353,14 @@ int test_nonstrict(void) {
 				JSMN_PRIMITIVE, "Sep",
 				JSMN_PRIMITIVE, "Year",
 				JSMN_PRIMITIVE, "12"));
+
+	//nested {s don't cause a parse error.
+	js = "\"key {1\": 1234";
+	check(parse(js, 2, 2,
+		              JSMN_STRING, "key {1", 1,
+		              JSMN_PRIMITIVE, "1234"));
+
+
 #endif
 	return 0;
 }
@@ -367,8 +375,9 @@ int test_unmatched_brackets(void) {
 	check(parse(js, JSMN_ERROR_INVAL, 3));
 	js = "\"key 1\"}: 1234";
 	check(parse(js, JSMN_ERROR_INVAL, 3));
-	js = "\"key {1\": 1234";
-	check(parse(js, 2, 2,
+	js = "{\"key {1\": 1234}";
+	check(parse(js, 3, 3,
+				JSMN_OBJECT, 0, 16, 1,
 				JSMN_STRING, "key {1", 1,
 				JSMN_PRIMITIVE, "1234"));
 	js = "{{\"key 1\": 1234}";
