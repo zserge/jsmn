@@ -1,3 +1,32 @@
+JSMN Iterator
+====
+This provides helper functions to iterate over an JSMN Array/Object
+
+
+#### Example
+The following code iterates over all items inte the root container
+
+```c
+void test(const char *psz, jsmntok_t *jsmn_tokens, unsigned int jsmn_len) {
+  jsmn_iterator_t   iterator;
+  jsmntok_t        *jsmn_identifier;
+  jsmntok_t        *jsmn_value;
+  unsigned int      iterator_hint = 0;
+
+  if (jsmn_iterator_init(&iterator, jsmn_tokens, jsmn_len, 0) < 0)
+    return;
+
+  while(jsmn_iterator_next(&iterator, &jsmn_identifier, &jsmn_value, iterator_hint) > 0) {
+    /* Get values from jsmn_identifier (if Object) and jsmn_value */
+  }
+}
+```
+
+* The *jsmn_identifier* variable is optional if we are iteratating over and array and will be set to **NULL** if specified.
+* The *iterator_hint* variable can be used to tell the *jsmn_iterator_next* function where next item begins if the current item is an Array/Object, this means that no search for where the Array/Object ends is necessary.
+
+
+----
 
 JSMN
 ====
