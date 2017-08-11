@@ -1,4 +1,6 @@
 language: c
 sudo: false
 script:
-  - make test
+  - ./autogen.sh
+  - ./configure
+  - make all simple_example check
