@@ -54,27 +54,26 @@ int test_object(void) {
 	check(parse("{\"a\": {2}}", JSMN_ERROR_INVAL, 3));
 	check(parse("{\"a\": {2: 3}}", JSMN_ERROR_INVAL, 3));
 	check(parse("{\"a\": {\"a\": 2 3}}", JSMN_ERROR_INVAL, 5));
-	/* FIXME */
-	/*check(parse("{\"a\"}", JSMN_ERROR_INVAL, 2));*/
-	/*check(parse("{\"a\": 1, \"b\"}", JSMN_ERROR_INVAL, 4));*/
-	/*check(parse("{\"a\",\"b\":1}", JSMN_ERROR_INVAL, 4));*/
-	/*check(parse("{\"a\":1,}", JSMN_ERROR_INVAL, 4));*/
-	/*check(parse("{\"a\":\"b\":\"c\"}", JSMN_ERROR_INVAL, 4));*/
-	/*check(parse("{,}", JSMN_ERROR_INVAL, 4));*/
+	check(parse("{\"a\"}", JSMN_ERROR_INVAL, 2));
+	check(parse("{\"a\": 1, \"b\"}", JSMN_ERROR_INVAL, 4));
+	check(parse("{\"a\",\"b\":1}", JSMN_ERROR_INVAL, 4));
+	check(parse("{\"a\":1,}", JSMN_ERROR_INVAL, 4));
+	check(parse("{\"a\":\"b\":\"c\"}", JSMN_ERROR_INVAL, 4));
+	check(parse("{,}", JSMN_ERROR_INVAL, 4));
 #endif
 	return 0;
 }
 
 int test_array(void) {
-	/* FIXME */
-	/*check(parse("[10}", JSMN_ERROR_INVAL, 3));*/
-	/*check(parse("[1,,3]", JSMN_ERROR_INVAL, 3)*/
+#ifdef JSMN_STRICT
+	check(parse("[10}", JSMN_ERROR_INVAL, 3));
+	check(parse("[1,,3]", JSMN_ERROR_INVAL, 3));
+	check(parse("[\"a\": 1]", JSMN_ERROR_INVAL, 3));
+#endif
 	check(parse("[10]", 2, 2,
 				JSMN_ARRAY, -1, -1, 1,
 				JSMN_PRIMITIVE, "10"));
 	check(parse("{\"a\": 1]", JSMN_ERROR_INVAL, 3));
-	/* FIXME */
-	/*check(parse("[\"a\": 1]", JSMN_ERROR_INVAL, 3));*/
 	return 0;
 }
 
@@ -357,8 +356,8 @@ int test_nonstrict(void) {
 	//nested {s don't cause a parse error.
 	js = "\"key {1\": 1234";
 	check(parse(js, 2, 2,
-		              JSMN_STRING, "key {1", 1,
-		              JSMN_PRIMITIVE, "1234"));
+			      JSMN_STRING, "key {1", 1,
+			      JSMN_PRIMITIVE, "1234"));
 
 
 #endif
