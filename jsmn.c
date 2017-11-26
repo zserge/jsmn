@@ -260,8 +260,9 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 				break;
 #ifdef JSMN_STRICT
 			/* In strict mode primitives are: numbers and booleans */
-			case '-': case '0': case '1' : case '2': case '3' : case '4':
-			case '5': case '6': case '7' : case '8': case '9':
+			case '-': case '+': case '.':
+                        case '0': case '1': case '2': case '3' : case '4':
+			case '5': case '6': case '7': case '8': case '9' :
 			case 't': case 'f': case 'n' :
 				/* And they must not be keys of the object */
 				if (tokens != NULL && parser->toksuper != -1) {

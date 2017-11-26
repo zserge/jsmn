@@ -111,7 +111,7 @@ first character:
 
 * <code>'t', 'f'</code> - boolean 
 * <code>'n'</code> - null
-* <code>'-', '0'..'9'</code> - number
+* <code>'-', '+', '.', '0'..'9'</code> - number
 
 Token is an object of `jsmntok_t` type:
 

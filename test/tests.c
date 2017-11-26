@@ -99,6 +99,14 @@ int test_primitive(void) {
 				JSMN_OBJECT, -1, -1, 1,
 				JSMN_STRING, "floatVar", 1,
 				JSMN_PRIMITIVE, "12.345"));
+	check(parse("{\"floatVarDot\" : .345}", 3, 3,
+				JSMN_OBJECT, -1, -1, 1,
+				JSMN_STRING, "floatVarDot", 1,
+				JSMN_PRIMITIVE, ".345"));
+	check(parse("{\"floatVarPlus\" : +12.345}", 3, 3,
+				JSMN_OBJECT, -1, -1, 1,
+				JSMN_STRING, "floatVarPlus", 1,
+				JSMN_PRIMITIVE, "+12.345"));
 	return 0;
 }
 
