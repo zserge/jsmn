@@ -1,15 +1,23 @@
 # You can put your build options here
 -include config.mk
 
-all: libjsmn.a 
+BASEEXAMPLES=simple jsondump jsmndump
+EXAMPLES=$(BASEEXAMPLES:%=%_example)
+STRICT_EXAMPLES=$(EXAMPLES:%_example=%_strict_example)
+TESTS=test_default test_strict test_links test_strict_links
 
-libjsmn.a: jsmn.o
+all: libjsmn.a libjsmn_strict.a
+
+lib%.a: %.o
 	$(AR) rc $@ $^
 
 %.o: %.c jsmn.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
-test: test_default test_strict test_links test_strict_links
+%_strict.o: %.c jsmn.h
+	$(CC) -DJSMN_STRICT=1 -c $(CFLAGS) $< -o $@
+
+test: $(TESTS)
 test_default: test/tests.c
 	$(CC) $(CFLAGS) $(LDFLAGS) $< -o test/$@
 	./test/$@
@@ -25,17 +33,21 @@ test_strict_links: test/tests.c
 
 jsmn_test.o: jsmn_test.c libjsmn.a
 
-simple_example: example/simple.o libjsmn.a
-	$(CC) $(LDFLAGS) $^ -o $@
+examples: $(EXAMPLES)
+strict_examples: $(STRICT_EXAMPLES)
 
-jsondump: example/jsondump.o libjsmn.a
+%_strict_example: example/%.o libjsmn_strict.a
+	$(CC) -DJSMN_STRICT=1 $(LDFLAGS) $^ -o $@
+
+%_example: example/%.o libjsmn.a
 	$(CC) $(LDFLAGS) $^ -o $@
 
 clean:
 	rm -f *.o example/*.o
 	rm -f *.a *.so
-	rm -f simple_example
-	rm -f jsondump
+	rm -f $(EXAMPLES)
+	rm -f $(STRICT_EXAMPLES)
+	rm -f $(TESTS:%=test/%)
 
 .PHONY: all clean test
 
