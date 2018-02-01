@@ -8,6 +8,8 @@ TESTS=test_default test_strict test_links test_strict_links
 
 all: libjsmn.a libjsmn_strict.a
 
+allall: clean all test examples strict_examples
+
 lib%.a: %.o
 	$(AR) rc $@ $^
 

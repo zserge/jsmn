@@ -1,30 +1,29 @@
+/***********************************************************************
+ * An example of reading JSON from stdin or filename, storing contents in
+ * a buffer, parsing the buffer, and thenprinting its content * to stdout.
+ * The output contains only primitives and the lengths of any arrays,
+ * preceded by their Javascript-ish name; the name starts with "json"
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
 #include "../jsmn.h"
+#include "buffer_file.c"
 
-/* Function realloc_it() is a wrapper function for standard realloc()
- * with one difference - it frees old memory pointer in case of realloc
- * failure. Thus, DO NOT use old data pointer in anyway after call to
- * realloc_it(). If your code has some kind of fallback algorithm if
- * memory can't be re-allocated - use standard realloc() instead.
- */
-static inline void *realloc_it(void *ptrmem, size_t size) {
-  void *p = realloc(ptrmem, size);
-  if (!p)  {
-    if (ptrmem) { free (ptrmem); }
-    fprintf(stderr, "realloc(): errno=%d\n", errno);
-  }
-  return p;
-}
 
-/* An example of reading JSON from stdin or file and printing its content
- * to stdout.  The output contains only primitives and the lengths of any
- * arrays, preceded by their name; the name starts with "json"
+/***********************************************************************
+ * dump(...) - recursive printer of JSON primitives that walks though
+ *             JSMN tokens
+ * Arguments:
+ *   js - pointer to memory buffer with JSON
+ *   t - pointer JSMN tokens; t[I].start and t[I].end are indices into js
+ *   count - number of tokens remaining
+ *   indent - indentation level
+ *   idpfx - name of the object or array container
  */
-static int dump(const char *js, jsmntok_t *t, size_t count, int indent, char* idpfx) {
+static int dump(const uint8_t* js, jsmntok_t *t, size_t count, int indent, char idpfx[BUFSIZ]) {
 int idpfxpos = idpfx ? strlen(idpfx) : 0;
 char* idpfxend = idpfx + idpfxpos;
 int i, j, k;
@@ -42,14 +41,12 @@ int idOk;
 
   } else if (t->type == JSMN_OBJECT) {
     for (j = i = 0; i < t->size; i++) {
+      /* Append object Javascript-ish name to idpfx buffer,
+       * IFF it will not overflow idbpx
+       */
       idOk = idpfx && ((idpfxpos + 1 + (t[1+j].end - t[1+j].start)) < BUFSIZ);
-#     if 0
-      if (t[1+j].type != JSMN_STRING) {
-        fprintf(stderr,"ERROR(name is not string)\n");
-        return 0;
-      }
-#     endif
       if (idOk) { sprintf(idpfxend, ".%.*s", t[1+j].end - t[1+j].start, js+t[1+j].start); }
+      /* Process member name */
       j += dump(js, t+1+j, count-j, indent+1, (char*) 0);
       j += dump(js, t+1+j, count-j, indent+1, idOk ? idpfx : (char*) 0);
     }
@@ -73,59 +70,47 @@ int idOk;
   return 0;
 }
 
+
+/***********************************************************************
+ * Main program:  read JSON file into memory; parse JSON; dump primitives
+ */
 int main(int argc, char** argv) {
 int r;
-int eof_expected = 0;
-char *js = NULL;
 size_t jslen = 0;
-char buf[BUFSIZ];
+char* filename = argc > 1 ? argv[1] : "-";
+uint8_t* js = (uint8_t*) buffile_file_to_puint8(filename, &jslen, 0);
 char idpfx[BUFSIZ] = { "json" };
-FILE *fIn = argc>1 ? fopen(argv[1],"rb") : stdin;
 jsmn_parser p;
-jsmntok_t *tok;
 size_t tokcount = 64;
+jsmntok_t* tok = realloc(0, sizeof(jsmntok_t) * tokcount);
 int rtn = 3;
 
-# define BRK(FPARGS, RTN) fprintf FPARGS; rtn = RTN; break
+# define BRK(FPARGS, RTN) fprintf FPARGS; rtn = RTN
 
   /* Initialize parser; allocate some tokens as a start */
   jsmn_init(&p);
-  tok = realloc_it(0, sizeof(jsmntok_t) * tokcount);
 
-  while (tok && fIn) {
-
-    /* Read next chunk; check for error; check for EOF */
-    r = fread(buf, 1, sizeof(buf), fIn);
-    if (ferror(fIn)) { BRK((stderr, "fread(): %d, errno=%d\n", r, errno), 1); }
-    if (r==0 && feof(fIn)) {
-      if (eof_expected) { BRK( , EXIT_SUCCESS); }
-      BRK((stderr, "fread(): unexpected EOF\n"), 2);
-    }
-
-    /* Append chunk to json string <js>, allocating js string as needed */
-    if (r > 0) {
-      if ( !(js = realloc_it(js, jslen + r + 1)) ) { BRK( , 3); }
-      strncpy(js + jslen, buf, r);
-      jslen += r;
-      js[jslen] = '\0';
-    }
-
-    /* Parse JSON, re-allocating double the # of token structs as needed */
-    while (tok && JSMN_ERROR_NOMEM == (r=jsmn_parse(&p, js, jslen, tok, tokcount))) {
-      tok = realloc_it(tok, sizeof(jsmntok_t) * (tokcount <<= 1));
-    }
-    if (!tok) { BRK( , 3); }
-    if (r == JSMN_ERROR_INVAL) { BRK((stderr, "jsmn_parse() error\n"), 4); }
-    if (r == JSMN_ERROR_PART) { continue; }  /* Expect more JSON data */
-    if (r > -1) { eof_expected = 1; }         /* Completed JSON parse */
+  /* Parse JSON, re-allocating double the # of token structs as needed */
+  while (js && tok && JSMN_ERROR_NOMEM == (r=jsmn_parse(&p, js, jslen, tok, tokcount))) {
+  jsmntok_t *old_tok;
+    old_tok = tok;
+    tok = realloc(old_tok, sizeof(jsmntok_t) * (tokcount <<= 1));
+    if (!tok) { free(old_tok); break; }
   }
 
-  /* Dump token contents if  parse was successful*/
+  if (!js) { BRK((stderr, "buffile_file_to_puint8(...) failed to read file into memory buffer\n"), 1); }
+  else if (!tok) { BRK((stderr, "realloc() failed to allocation tokens\n"), 2); }
+  else if (r == JSMN_ERROR_INVAL) { BRK((stderr, "jsmn_parse() error e.g. invalid character\n"), 3); }
+  else if (r == JSMN_ERROR_PART) { BRK((stderr, "jsmn_parse() error; incomplete JSON\n"), 4); }
+  else if (r == 0) { BRK((stderr, "jsmn_parse() error; possible empty JSON file\n"), 4); }
+  else if (r > 0) { BRK( , EXIT_SUCCESS); }
+  else { BRK((stderr, "jsmn_parse() unknown error\n"), 5); }
+
+  /* Dump token contents IFF parse was successful*/
   if (rtn == EXIT_SUCCESS) { dump(js, tok, p.toknext, 0, idpfx); }
 
   /* Clean up and return */
   if (tok) free(tok);
   if (js) free(js);
-  if (fIn && fIn != stdin) { fclose(fIn); }
   return rtn;
 }
