@@ -5,11 +5,11 @@
 #include <errno.h>
 #include "../jsmn.h"
 
-/* Function realloc_it() is a wrapper function for standart realloc()
+/* Function realloc_it() is a wrapper function for standard realloc()
  * with one difference - it frees old memory pointer in case of realloc
  * failure. Thus, DO NOT use old data pointer in anyway after call to
  * realloc_it(). If your code has some kind of fallback algorithm if
- * memory can't be re-allocated - use standart realloc() instead.
+ * memory can't be re-allocated - use standard realloc() instead.
  */
 static inline void *realloc_it(void *ptrmem, size_t size) {
 	void *p = realloc(ptrmem, size);
