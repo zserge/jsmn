@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../jsmn.h"
+#include "../src/jsmn.h"
 
 /*
  * A small example of jsmn parsing when JSON structure is known and number of
