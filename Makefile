@@ -25,7 +25,7 @@ test_strict_links: test/tests.c
 
 jsmn_test.o: jsmn_test.c libjsmn.a
 
-simple_example: example/simple.o libjsmn.a
+myexample: example/myjson.o libjsmn.a
 	$(CC) $(LDFLAGS) $^ -o $@
 
 jsondump: example/jsondump.o libjsmn.a
@@ -34,7 +34,7 @@ jsondump: example/jsondump.o libjsmn.a
 clean:
 	rm -f *.o example/*.o
 	rm -f *.a *.so
-	rm -f simple_example
+	rm -f myexample
 	rm -f jsondump
 
 .PHONY: all clean test

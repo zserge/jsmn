@@ -1,0 +1,5 @@
+mple/myjson.o
+jsmn.o
+libjsmn.a
+myexample
+*.o
