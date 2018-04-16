@@ -117,9 +117,9 @@ Token is an object of `jsmntok_t` type:
 
 	typedef struct {
 		jsmntype_t type; // Token type
-		int start;       // Token start position
-		int end;         // Token end position
-		int size;        // Number of child (nested) tokens
+		jsmnint_t start;       // Token start position
+		jsmnint_t end;         // Token end position
+		jsmnint_t size;        // Number of child (nested) tokens
 	} jsmntok_t;
 
 **Note:** string tokens point to the first character after
@@ -152,11 +152,23 @@ If something goes wrong, you will get an error. Error will be one of these:
 * `JSMN_ERROR_INVAL` - bad token, JSON string is corrupted
 * `JSMN_ERROR_NOMEM` - not enough tokens, JSON string is too large
 * `JSMN_ERROR_PART` - JSON string is too short, expecting more JSON data
+* `JSMN_ERROR_LEN` - JSON string is too long (see note)
 
 If you get `JSMN_ERROR_NOMEM`, you can re-allocate more tokens and call
 `jsmn_parse` once more.  If you read json data from the stream, you can
 periodically call `jsmn_parse` and check if return value is `JSMN_ERROR_PART`.
 You will get this error until you reach the end of JSON data.
+
+**Note:** The amount of input data jsmn can parse is limited by the size of 
+jsmnint_t. Currently typedefed as an unsigned int.
+
+Thus follows max len = 2^(sizeof(jsmnint_t)*8) -1 for various int sizes:
+
+* 16bit ints - 65535
+* 32bit ints - 4294967295
+* 64bit ints - ~1.8e19
+
+feed more data into `jsmn_parse` and you will get `JSMN_ERROR_LEN`.
 
 Other info
 ----------
