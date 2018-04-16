@@ -84,7 +84,7 @@ found:
 static int jsmn_parse_string(jsmn_parser *parser, const char *js,
 		size_t len, jsmntok_t *tokens, size_t num_tokens) {
 
-	if (len > (jsmnint_t)-1)
+	if (len >= (jsmnint_t)-1)
 		return JSMN_ERROR_LEN;
 
 	jsmntok_t *token;
@@ -155,7 +155,7 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
 int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 		jsmntok_t *tokens, unsigned int num_tokens) {
 
-	if (len > (jsmnint_t)-1)
+	if (len >= (jsmnint_t)-1)
 		return JSMN_ERROR_LEN;
 
 	int r;
