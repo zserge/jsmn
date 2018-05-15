@@ -31,6 +31,10 @@ myexample: example/myjson.o libjsmn.a
 jsondump: example/jsondump.o libjsmn.a
 	$(CC) $(LDFLAGS) $^ -o $@
 
+filesimple: mysource/filesimple.o libjsmn.a
+	 $(CC) $(LDFLAGS) $^ -o $@
+
+
 clean:
 	rm -f *.o example/*.o
 	rm -f *.a *.so
