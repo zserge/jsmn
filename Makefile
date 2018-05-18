@@ -1,7 +1,7 @@
 # You can put your build options here
 -include config.mk
 
-all: libjsmn.a 
+all: libjsmn.a
 
 libjsmn.a: jsmn.o
 	$(AR) rc $@ $^
@@ -39,7 +39,7 @@ clean:
 	rm -f *.o example/*.o
 	rm -f *.a *.so
 	rm -f myexample
+	rm -f filesimple
 	rm -f jsondump
 
 .PHONY: all clean test
-
