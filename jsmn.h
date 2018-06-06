@@ -14,7 +14,7 @@ extern "C" {
  * 	o String
  * 	o Other primitive: number, boolean (true/false) or null
  */
-typedef enum {
+typedef enum {				// 토큰의 타입 지정
 	JSMN_UNDEFINED = 0,
 	JSMN_OBJECT = 1,
 	JSMN_ARRAY = 2,
@@ -39,23 +39,23 @@ enum jsmnerr {
  */
 typedef struct {
 	jsmntype_t type;
-	int start;
-	int end;
-	int size;
+	int start;	// token 의 시작위치
+	int end;		// token 의 끝 위치
+	int size;			// child token 들의 개수
 #ifdef JSMN_PARENT_LINKS
 	int parent;
 #endif
-} jsmntok_t;
+} jsmntok_t;		// token data 의 위치와 정보
 
 /**
  * JSON parser. Contains an array of token blocks available. Also stores
  * the string being parsed now and current position in that string
  */
 typedef struct {
-	unsigned int pos; /* offset in the JSON string */
-	unsigned int toknext; /* next token to allocate */
-	int toksuper; /* superior token node, e.g parent object or array */
-} jsmn_parser;
+	unsigned int pos; /* offset in the JSON string */ // 현재 토큰 위치
+	unsigned int toknext; /* next token to allocate */	// 다음 토큰 위치
+	int toksuper; /* superior token node, e.g parent object or array */ // 상위 토큰 위치
+} jsmn_parser;	// 각 토큰마다 하나씩 있음
 
 /**
  * Create JSON parser over an array of tokens

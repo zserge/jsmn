@@ -4,17 +4,17 @@
  * Allocates a fresh unused token from the token pull.1
  */
 static jsmntok_t *jsmn_alloc_token(jsmn_parser *parser,
-		jsmntok_t *tokens, size_t num_tokens) {
+		jsmntok_t *tokens, size_t num_tokens) {		// 새로운 토큰 하나 생성
 	jsmntok_t *tok;
-	if (parser->toknext >= num_tokens) {
+	if (parser->toknext >= num_tokens) {	// toknext 는 tokens 배열(128개)에서의 위치를 나타냄
 		return NULL;
 	}
 	tok = &tokens[parser->toknext++];
-	tok->start = tok->end = -1;
-	tok->size = 0;
-#ifdef JSMN_PARENT_LINKS
+	tok->start = tok->end = -1;		// start,end 는 json 형태에서의 위치
+	tok->size = 0;		// child token 개수 0으로 초기화
+#ifdef JSMN_PARENT_LINKS		// 이 변수가 선언되어 있다면
 	tok->parent = -1;
-#endif
+#endif											// if 문 닫기
 	return tok;
 }
 
@@ -22,7 +22,7 @@ static jsmntok_t *jsmn_alloc_token(jsmn_parser *parser,
  * Fills token type and boundaries.
  */
 static void jsmn_fill_token(jsmntok_t *token, jsmntype_t type,
-                            int start, int end) {
+                            int start, int end) {		// 토큰의 타입,시작 위치,끝위치 결정
 	token->type = type;
 	token->start = start;
 	token->end = end;
@@ -47,17 +47,17 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
 #endif
 			case '\t' : case '\r' : case '\n' : case ' ' :
 			case ','  : case ']'  : case '}' :
-				goto found;
+				goto found;				// found 로 이동
 		}
-		if (js[parser->pos] < 32 || js[parser->pos] >= 127) {
-			parser->pos = start;
-			return JSMN_ERROR_INVAL;
+		if (js[parser->pos] < 32 || js[parser->pos] >= 127) { // 숫자,문자,부호가 아니라면
+			parser->pos = start;	// 처음부터 다시 시작
+			return JSMN_ERROR_INVAL;	// json string 안에 invalid character 포함
 		}
 	}
-#ifdef JSMN_STRICT
+#ifdef JSMN_STRICT	// JSMN_STRICT 가 뭐임?
 	/* In strict mode primitive must be followed by a comma/object/array */
 	parser->pos = start;
-	return JSMN_ERROR_PART;
+	return JSMN_ERROR_PART;	// packet 의 형식이 잘못됨
 #endif
 
 found:
@@ -65,10 +65,10 @@ found:
 		parser->pos--;
 		return 0;
 	}
-	token = jsmn_alloc_token(parser, tokens, num_tokens);
+	token = jsmn_alloc_token(parser, tokens, num_tokens);		// 새로운 토큰 생성
 	if (token == NULL) {
 		parser->pos = start;
-		return JSMN_ERROR_NOMEM;
+		return JSMN_ERROR_NOMEM;	// 토큰이 충분치 않음
 	}
 	jsmn_fill_token(token, JSMN_PRIMITIVE, start, parser->pos);
 #ifdef JSMN_PARENT_LINKS
@@ -94,16 +94,16 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
 		char c = js[parser->pos];
 
 		/* Quote: end of string */
-		if (c == '\"') {
+		if (c == '\"') {		// string 의 끝을 나타내는 " 일 때
 			if (tokens == NULL) {
 				return 0;
 			}
-			token = jsmn_alloc_token(parser, tokens, num_tokens);
-			if (token == NULL) {
+			token = jsmn_alloc_token(parser, tokens, num_tokens);	// 토큰 새로 생성
+			if (token == NULL) {	// 토큰 생성된게 없으면 처음부터 다시 실행되게 함
 				parser->pos = start;
 				return JSMN_ERROR_NOMEM;
 			}
-			jsmn_fill_token(token, JSMN_STRING, start+1, parser->pos);
+			jsmn_fill_token(token, JSMN_STRING, start+1, parser->pos); // string 토큰에 정보 담음
 #ifdef JSMN_PARENT_LINKS
 			token->parent = parser->toksuper;
 #endif
@@ -111,7 +111,7 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
 		}
 
 		/* Backslash: Quoted symbol expected */
-		if (c == '\\' && parser->pos + 1 < len) {
+		if (c == '\\' && parser->pos + 1 < len) {		//  \가 포함된 경우
 			int i;
 			parser->pos++;
 			switch (js[parser->pos]) {
@@ -126,7 +126,7 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
 						/* If it isn't a hex character we have an error */
 						if(!((js[parser->pos] >= 48 && js[parser->pos] <= 57) || /* 0-9 */
 									(js[parser->pos] >= 65 && js[parser->pos] <= 70) || /* A-F */
-									(js[parser->pos] >= 97 && js[parser->pos] <= 102))) { /* a-f */
+									(js[parser->pos] >= 97 && js[parser->pos] <= 102))) { /* a-f */ // 이 범위 안이 아니라면
 							parser->pos = start;
 							return JSMN_ERROR_INVAL;
 						}
@@ -148,8 +148,12 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
 /**
  * Parse JSON string and fill tokens.
  */
-int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
-		jsmntok_t *tokens, unsigned int num_tokens) {
+int jsmn_parse // string 안의 char 하나씩 다 조사함
+							(jsmn_parser *parser, // 현재 토큰의 pos + 다음 토큰의 pos + 상위 토큰의 pos
+							 const char *js,		// 조사할 대상 string
+							 size_t len,				// 조사할 대상 string 의 전체 길이
+							 jsmntok_t *tokens,	// string 을 나눌 토큰 배열
+		 				 	 unsigned int num_tokens) {		// 토큰의 전체 개수
 	int r;
 	int i;
 	jsmntok_t *token;
@@ -161,25 +165,25 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 
 		c = js[parser->pos];
 		switch (c) {
-			case '{': case '[':
-				count++;
-				if (tokens == NULL) {
+			case '{': case '[':		// object 나 array 시작할 때
+				count++;			// case 통과할 때 마다 +1
+				if (tokens == NULL) {	// 토큰 담을 배열 존재하는지 점검
 					break;
 				}
-				token = jsmn_alloc_token(parser, tokens, num_tokens);
+				token = jsmn_alloc_token(parser, tokens, num_tokens);		// object 나 array 토큰 생성
 				if (token == NULL)
 					return JSMN_ERROR_NOMEM;
-				if (parser->toksuper != -1) {
+				if (parser->toksuper != -1) {	// ??
 					tokens[parser->toksuper].size++;
 #ifdef JSMN_PARENT_LINKS
 					token->parent = parser->toksuper;
 #endif
 				}
 				token->type = (c == '{' ? JSMN_OBJECT : JSMN_ARRAY);
-				token->start = parser->pos;
-				parser->toksuper = parser->toknext - 1;
+				token->start = parser->pos;			// 토큰의 시작 위치 설정
+				parser->toksuper = parser->toknext - 1;	// 현재 토큰의 상위 토큰을 '이전 토큰'으로 설정
 				break;
-			case '}': case ']':
+			case '}': case ']':			// object 나 array 끝날 때
 				if (tokens == NULL)
 					break;
 				type = (c == '}' ? JSMN_OBJECT : JSMN_ARRAY);
@@ -193,7 +197,7 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 						if (token->type != type) {
 							return JSMN_ERROR_INVAL;
 						}
-						token->end = parser->pos + 1;
+						token->end = parser->pos + 1;		// 토큰의 끝 위치 설정
 						parser->toksuper = token->parent;
 						break;
 					}
@@ -230,8 +234,8 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 				break;
 			case '\"':
 				r = jsmn_parse_string(parser, js, len, tokens, num_tokens);
-				if (r < 0) return r;
-				count++;
+				if (r < 0) return r;	// r<0 일 때, 오류 나타냄
+				count++;	// case 통과할 때마다 +1
 				if (parser->toksuper != -1 && tokens != NULL)
 					tokens[parser->toksuper].size++;
 				break;
