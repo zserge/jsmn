@@ -22,17 +22,39 @@
   return c;
  }
 
-void jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount){
+void jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount, int *nameTokIndex ){
     printf("**** Name List ****\n");
     int i,count=1;
-
-    for(i=0;i<tokcount;i++){
+//    nameTokIndex = (int *)malloc(sizeof(int)*100);
+    for(i=0;i<tokcount;i++){ // 100 개까지만
       if(t[i].size == 1 && t[i].type == JSMN_STRING){
-        printf("[NAME %d]  %.*s\n",count,t[i].end-t[i].start,jsonstr+t[i].start );
+        nameTokIndex[count] = i;
         count++;
       }
     }
+    nameTokIndex[0] = count - 1;
 }
+
+void printNameList(char *jsonstr, jsmntok_t *t, int *nameTokIndex){
+    int i;
+    for(i=0;i<nameTokIndex[0];i++){
+      printf("[NAME %d]  %.*s\n", i+1, t[nameTokIndex[i+1]].end-t[nameTokIndex[i+1]].start,
+      jsonstr+t[nameTokIndex[i+1]].start );
+    }
+
+}
+
+// void jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount){
+//     printf("**** Name List ****\n");
+//     int i,count=1;
+//
+//     for(i=0;i<tokcount;i++){
+//       if(t[i].size == 1 ){
+//         printf("[NAME %d]  %.*s\n",count,t[i].end-t[i].start,jsonstr+t[i].start );
+//         count++;
+//       }
+//     }
+// }
 // static const char *JSON_STRING =
 // 	"{\"user\": \"johndoe\", \"admin\": false, \"uid\": 1000,\n  "
 // 	"\"groups\": [\"users\", \"wheel\", \"audio\", \"video\"]}";
@@ -56,7 +78,9 @@ int main() {
 	jsmn_init(&p);
 	r = jsmn_parse(&p, JSON_STRING, strlen(JSON_STRING), t, sizeof(t)/sizeof(t[0]));
 
-  jsonNameList(JSON_STRING,t,128);
+  int arr[100];
+  jsonNameList(JSON_STRING,t,100,arr);
+  printNameList(JSON_STRING,t,arr);
 
 	// if (r < 0) {
 	// 	printf("Failed to parse JSON: %d\n", r);

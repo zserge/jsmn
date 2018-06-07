@@ -1,4 +1,5 @@
 #include "jsmn.h"
+#include <stdio.h>
 
 /**
  * Allocates a fresh unused token from the token pull.1
@@ -9,7 +10,7 @@ static jsmntok_t *jsmn_alloc_token(jsmn_parser *parser,
 	if (parser->toknext >= num_tokens) {	// toknext 는 tokens 배열(128개)에서의 위치를 나타냄
 		return NULL;
 	}
-	tok = &tokens[parser->toknext++];
+	tok = &tokens[parser->toknext++];	// 새로 토큰 할당하면서 다음 토큰 번호 +1 되게 함
 	tok->start = tok->end = -1;		// start,end 는 json 형태에서의 위치
 	tok->size = 0;		// child token 개수 0으로 초기화
 #ifdef JSMN_PARENT_LINKS		// 이 변수가 선언되어 있다면
@@ -173,15 +174,18 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
 				token = jsmn_alloc_token(parser, tokens, num_tokens);		// object 나 array 토큰 생성
 				if (token == NULL)
 					return JSMN_ERROR_NOMEM;
-				if (parser->toksuper != -1) {	// ??
+				if (parser->toksuper != -1) {	// 맨처음 { 제외한다는 뜻, 7,17 상위토큰이 있는 경우 "repository", "examples"
 					tokens[parser->toksuper].size++;
+					printf("sdfsd%d\n",parser->toksuper);
 #ifdef JSMN_PARENT_LINKS
 					token->parent = parser->toksuper;
+					printf("tttttttttttt");
 #endif
 				}
 				token->type = (c == '{' ? JSMN_OBJECT : JSMN_ARRAY);
 				token->start = parser->pos;			// 토큰의 시작 위치 설정
 				parser->toksuper = parser->toknext - 1;	// 현재 토큰의 상위 토큰을 '이전 토큰'으로 설정
+
 				break;
 			case '}': case ']':			// object 나 array 끝날 때
 				if (tokens == NULL)
@@ -212,7 +216,7 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
 #else
 				for (i = parser->toknext - 1; i >= 0; i--) {
 					token = &tokens[i];
-					if (token->start != -1 && token->end == -1) {
+					if (token->start != -1 && token->end == -1) {		// end가 -1 이라는 건 아직 object 나 arrary가 닫히지 않았다는 뜻.
 						if (token->type != type) {
 							return JSMN_ERROR_INVAL;
 						}
@@ -225,8 +229,8 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
 				if (i == -1) return JSMN_ERROR_INVAL;
 				for (; i >= 0; i--) {
 					token = &tokens[i];
-					if (token->start != -1 && token->end == -1) {
-						parser->toksuper = i;
+					if (token->start != -1 && token->end == -1) {		// 아직 닫히지 않은 arr, obj 중 가장 근처의 토큰의
+						parser->toksuper = i;													// 번호를 toksuper에 대입
 						break;
 					}
 				}
@@ -235,16 +239,16 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
 			case '\"':
 				r = jsmn_parse_string(parser, js, len, tokens, num_tokens);
 				if (r < 0) return r;	// r<0 일 때, 오류 나타냄
-				count++;	// case 통과할 때마다 +1
+				count++;	// case 통과할 때마다 토큰개수에 +1 해줌
 				if (parser->toksuper != -1 && tokens != NULL)
-					tokens[parser->toksuper].size++;
+					tokens[parser->toksuper].size++;	// ---(1)
 				break;
 			case '\t' : case '\r' : case '\n' : case ' ':
 				break;
 			case ':':
-				parser->toksuper = parser->toknext - 1;
-				break;
-			case ',':
+				parser->toksuper = parser->toknext - 1;		// : 전의 string 토큰위치를 toksuper에 대입
+				break;																		// : 이후에 뭔가 왔을 때 : 전의 토큰.size가 +1 되도록
+			case ',':			// , 이후에 string 오면 가장 근처의 array 나 object token.size가 +1 되도록 설정한 것임.---(1)
 				if (tokens != NULL && parser->toksuper != -1 &&
 						tokens[parser->toksuper].type != JSMN_ARRAY &&
 						tokens[parser->toksuper].type != JSMN_OBJECT) {
@@ -253,8 +257,8 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
 #else
 					for (i = parser->toknext - 1; i >= 0; i--) {
 						if (tokens[i].type == JSMN_ARRAY || tokens[i].type == JSMN_OBJECT) {
-							if (tokens[i].start != -1 && tokens[i].end == -1) {
-								parser->toksuper = i;
+							if (tokens[i].start != -1 && tokens[i].end == -1) { // 가장 근처에 있는 array 나 object token 번호를
+								parser->toksuper = i;														// toksuper 에 대입
 								break;
 							}
 						}
@@ -264,6 +268,7 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
 				break;
 #ifdef JSMN_STRICT
 			/* In strict mode primitives are: numbers and booleans */
+			printf("여기는 안지나감\n");
 			case '-': case '0': case '1' : case '2': case '3' : case '4':
 			case '5': case '6': case '7' : case '8': case '9':
 			case 't': case 'f': case 'n' :
@@ -284,6 +289,7 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
 				count++;
 				if (parser->toksuper != -1 && tokens != NULL)
 					tokens[parser->toksuper].size++;
+				printf("지나감?\n");
 				break;
 
 #ifdef JSMN_STRICT
@@ -302,7 +308,7 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
 			}
 		}
 	}
-
+	printf("count:%d\n",count );
 	return count;
 }
 
@@ -310,7 +316,7 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
  * Creates a new parser based over a given  buffer with an array of tokens
  * available.
  */
-void jsmn_init(jsmn_parser *parser) {
+void jsmn_init(jsmn_parser *parser) {		// parser 초기화
 	parser->pos = 0;
 	parser->toknext = 0;
 	parser->toksuper = -1;

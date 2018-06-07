@@ -41,7 +41,7 @@ typedef struct {
 	jsmntype_t type;
 	int start;	// token 의 시작위치
 	int end;		// token 의 끝 위치
-	int size;			// child token 들의 개수
+	int size;			//
 #ifdef JSMN_PARENT_LINKS
 	int parent;
 #endif
