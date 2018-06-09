@@ -41,7 +41,8 @@ typedef struct {
 	jsmntype_t type;
 	int start;	// token 의 시작위치
 	int end;		// token 의 끝 위치
-	int size;			//
+	int size;			// child token 개수인줄 알았는데 아니고, 설명하기 애매함
+								// 자신에게 속해있는 요소들의 개수라고나 할까
 #ifdef JSMN_PARENT_LINKS
 	int parent;
 #endif
@@ -52,10 +53,10 @@ typedef struct {
  * the string being parsed now and current position in that string
  */
 typedef struct {
-	unsigned int pos; /* offset in the JSON string */ // 현재 토큰 위치
-	unsigned int toknext; /* next token to allocate */	// 다음 토큰 위치
+	unsigned int pos; /* offset in the JSON string */ // string에서 parser 의 위치
+	unsigned int toknext; /* next token to allocate */	// 다음 토큰 번호(배열에서)
 	int toksuper; /* superior token node, e.g parent object or array */ // 상위 토큰 위치
-} jsmn_parser;	// 각 토큰마다 하나씩 있음
+} jsmn_parser;	// 각 토큰의 정보를 알아내고 저장해주는 역할
 
 /**
  * Create JSON parser over an array of tokens

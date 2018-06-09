@@ -10,7 +10,7 @@
  static char * readJSONFile(){
  //	char *JSON_STRING="{\"u\": \"dd\"}";
  	char oneline[255];
-	char * c = (char *)malloc(600);
+	char * c = (char *)malloc(6000);
 	FILE *fp = fopen("/home/u21000127/jsmn/data.json","r");	// data.json 읽기 모드로 열기
   while(fgets(oneline,255,fp)!= NULL){
     strcat(c,oneline);
@@ -22,30 +22,45 @@
   return c;
  }
 
+ // void jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount){
+ //     printf("**** Name List ****\n");
+ //     int i,count=1;
+ //
+ //     for(i=0;i<tokcount;i++){
+ //       if(t[i].size == 1 ){
+ //         printf("[NAME %d]  %.*s\n",count,t[i].end-t[i].start,jsonstr+t[i].start );
+ //         count++;
+ //       }
+ //     }
+ // }
+ // static const char *JSON_STRING =
+ // 	"{\"user\": \"johndoe\", \"admin\": false, \"uid\": 1000,\n  "
+ // 	"\"groups\": [\"users\", \"wheel\", \"audio\", \"video\"]}";
+
 void jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount, int *nameTokIndex ){
     int i,count=1;
 //    nameTokIndex = (int *)malloc(sizeof(int)*100);
-    for(i=0;i<tokcount;i++){ // 100 개까지만
+    for(i=0;i<tokcount;i++){
       if(t[i].size == 1 && t[i].type == JSMN_STRING){
         nameTokIndex[count] = i;
         count++;
       }
     }
-    nameTokIndex[0] = count - 1;
+    nameTokIndex[0] = count - 1;  // key(Name) 값이 되는 토큰 개수
 }
 
 void printNameList(char *jsonstr, jsmntok_t *t, int *nameTokIndex){
     printf("**** Name List ****\n");
     int i;
-    for(i=0;i<nameTokIndex[0];i++){
+    for(i=0;i<nameTokIndex[0];i++){   // key 값이 되는 토큰 개수만큼 반복
       printf("[NAME %d]  %.*s\n", i+1, t[nameTokIndex[i+1]].end-t[nameTokIndex[i+1]].start,
-      jsonstr+t[nameTokIndex[i+1]].start );
+      jsonstr+t[nameTokIndex[i+1]].start ); // jsonstr = jsonstr[0] 의 주소값 이므로
     }
 
 }
 
 char * noValue(char *jsonstr, jsmntok_t *t, int *nameTokIndex, int num){
-    int size = t[nameTokIndex[num]+1].end-t[nameTokIndex[num]+1].start;
+    int size = t[nameTokIndex[num]+1].end-t[nameTokIndex[num]+1].start; // +1은 토큰 배열에서 name 다음에 value 이므로 한거임.
     char * value = (char *)malloc(size);
     strncpy(value, jsonstr+t[nameTokIndex[num]+1].start, size);
     return value;
@@ -59,27 +74,24 @@ void selectNameList(char *jsonstr, jsmntok_t *t, int *nameTokIndex){
       printf("Select Name's no (exit:0) >>");
       scanf(" %d", &num);
       if(num == 0) break;
-      value = noValue(jsonstr,t,nameTokIndex,num);
+      value = noValue(jsonstr,t,nameTokIndex,num);  // num 에 해당하는 name의 value 값 반환
       printf("[NAME %d]  %.*s\n %s\n\n", num, t[nameTokIndex[num]].end-t[nameTokIndex[num]].start,
       jsonstr+t[nameTokIndex[num]].start, value );
-
     }
-
 }
-// void jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount){
-//     printf("**** Name List ****\n");
-//     int i,count=1;
-//
-//     for(i=0;i<tokcount;i++){
-//       if(t[i].size == 1 ){
-//         printf("[NAME %d]  %.*s\n",count,t[i].end-t[i].start,jsonstr+t[i].start );
-//         count++;
-//       }
-//     }
-// }
-// static const char *JSON_STRING =
-// 	"{\"user\": \"johndoe\", \"admin\": false, \"uid\": 1000,\n  "
-// 	"\"groups\": [\"users\", \"wheel\", \"audio\", \"video\"]}";
+
+void printFirstValue(char *jsonstr, jsmntok_t *t, int tokcount){
+    printf("**** Object List ****\n");
+    int i,count=0;
+    for(i=0;i<tokcount;i++){
+  //    printf("번호%d %.*s\n",i,t[i].end-t[i].start,jsonstr+t[i].start );
+      if( t[i].type == JSMN_OBJECT && t[i].size >=1 && (t[i-1].size == 0 || i == 0) ){
+          count++;
+          printf("[NAME %d] %.*s\n",count,t[i+2].end-t[i+2].start,jsonstr+t[i+2].start );
+  //        printf("%d\n",i);
+      }
+    }
+}
 
 static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {  // 일치하는지 확인
 	if (tok->type == JSMN_STRING && (int) strlen(s) == tok->end - tok->start &&
@@ -102,9 +114,10 @@ int main() {
   // parse해야 t 배열에 토큰들 담김
 
   int arr[100];
-  jsonNameList(JSON_STRING,t,100,arr);
-//  printNameList(JSON_STRING,t,arr);
-  selectNameList(JSON_STRING,t,arr);
+  // jsonNameList(JSON_STRING,t,r,arr);  // r 이 토큰 총 개수
+  // printNameList(JSON_STRING,t,arr);
+  // selectNameList(JSON_STRING,t,arr);
+  printFirstValue(JSON_STRING,t,r);
 	// if (r < 0) {
 	// 	printf("Failed to parse JSON: %d\n", r);
 	// 	return 1;

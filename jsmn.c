@@ -24,9 +24,9 @@ static jsmntok_t *jsmn_alloc_token(jsmn_parser *parser,
  */
 static void jsmn_fill_token(jsmntok_t *token, jsmntype_t type,
                             int start, int end) {		// 토큰의 타입,시작 위치,끝위치 결정
-	token->type = type;
-	token->start = start;
-	token->end = end;
+	token->type = type;			// 토큰의 type에 argument type을 할당
+	token->start = start;		// 토큰의 start에 argument start을 할당
+	token->end = end;		// 토큰의 end에 argument end을 할당
 	token->size = 0;
 }
 
@@ -83,7 +83,7 @@ found:
  * Fills next token with JSON string.
  */
 static int jsmn_parse_string(jsmn_parser *parser, const char *js,
-		size_t len, jsmntok_t *tokens, size_t num_tokens) {
+		size_t len, jsmntok_t *tokens, size_t num_tokens) {		// string 형태 ,즉 " 가 있을 때 수행되는 함수
 	jsmntok_t *token;
 
 	int start = parser->pos;
@@ -174,9 +174,9 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
 				token = jsmn_alloc_token(parser, tokens, num_tokens);		// object 나 array 토큰 생성
 				if (token == NULL)
 					return JSMN_ERROR_NOMEM;
-				if (parser->toksuper != -1) {	// 맨처음 { 제외한다는 뜻, 7,17 상위토큰이 있는 경우 "repository", "examples"
+				if (parser->toksuper != -1) {	// 맨처음 { 제외한다는 뜻,즉 상위토큰이 있는 경우를 말함 "repository"(7), "examples"(17)
 					tokens[parser->toksuper].size++;
-					printf("sdfsd%d\n",parser->toksuper);
+//					printf("sdfsd%d\n",parser->toksuper);
 #ifdef JSMN_PARENT_LINKS
 					token->parent = parser->toksuper;
 					printf("tttttttttttt");
@@ -201,7 +201,7 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
 						if (token->type != type) {
 							return JSMN_ERROR_INVAL;
 						}
-						token->end = parser->pos + 1;		// 토큰의 끝 위치 설정
+						token->end = parser->pos + 1;
 						parser->toksuper = token->parent;
 						break;
 					}
@@ -217,20 +217,20 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
 				for (i = parser->toknext - 1; i >= 0; i--) {
 					token = &tokens[i];
 					if (token->start != -1 && token->end == -1) {		// end가 -1 이라는 건 아직 object 나 arrary가 닫히지 않았다는 뜻.
-						if (token->type != type) {
+						if (token->type != type) {										//(1) 열려 있는 arr,obj 토큰 중 가장 가까운 토큰, 즉 자신(}) 과 한 쌍인 { 의 토큰
 							return JSMN_ERROR_INVAL;
 						}
-						parser->toksuper = -1;
-						token->end = parser->pos + 1;
+						parser->toksuper = -1;	// 이건 왜 있는거??
+						token->end = parser->pos + 1;	// 토큰의 끝 위치 설정, 더 이상 -1 이 아니게 됨(닫힘을 의미)
 						break;
 					}
 				}
 				/* Error if unmatched closing bracket */
 				if (i == -1) return JSMN_ERROR_INVAL;
 				for (; i >= 0; i--) {
-					token = &tokens[i];
-					if (token->start != -1 && token->end == -1) {		// 아직 닫히지 않은 arr, obj 중 가장 근처의 토큰의
-						parser->toksuper = i;													// 번호를 toksuper에 대입
+					token = &tokens[i];													// 아직 닫히지 않은 arr, obj 토큰 중 가장 가까운 토큰,
+					if (token->start != -1 && token->end == -1) {		//  즉 자신(})이 방금 (1)에서 닫은 obj 토큰보다 한 단계 더 큰 obj 토큰의
+						parser->toksuper = i;													// 번호를 toksuper에 대입, but (1)에서 가장 큰 obj까지 모두 닫았으면 i =0 이 됨.
 						break;
 					}
 				}
@@ -289,7 +289,7 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
 				count++;
 				if (parser->toksuper != -1 && tokens != NULL)
 					tokens[parser->toksuper].size++;
-				printf("지나감?\n");
+	//			printf("지나감?\n");
 				break;
 
 #ifdef JSMN_STRICT
@@ -308,7 +308,7 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
 			}
 		}
 	}
-	printf("count:%d\n",count );
+//	printf("count:%d\n",count );
 	return count;
 }
 
