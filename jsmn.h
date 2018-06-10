@@ -1,5 +1,7 @@
 #ifndef __JSMN_H_
 #define __JSMN_H_
+#define JSMN_PARENT_LINKS 1
+
 
 #include <stddef.h>
 
@@ -44,7 +46,7 @@ typedef struct {
 	int size;			// child token 개수인줄 알았는데 아니고, 설명하기 애매함
 								// 자신에게 속해있는 요소들의 개수라고나 할까
 #ifdef JSMN_PARENT_LINKS
-	int parent;
+	int parent;	// 상위 토큰 번호
 #endif
 } jsmntok_t;		// token data 의 위치와 정보
 

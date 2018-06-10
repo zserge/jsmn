@@ -1,16 +1,27 @@
 {
-  "name": "jsmn",
-  "keywords": "json",
-  "description": "Minimalistic JSON parser/tokenizer in C. It can be easily integrated into resource-limited or embedded projects",
-  "repository":
-  {
-    "type": "git",
-    "url": "https://github.com/zserge/jsmn.git"
+  "name": "hello!",
+  "data": {
+    "name" : "jspiner",
+    "age" : 8,
+    "birth" : 1996
   },
-  "frameworks": "*",
-  "platforms": "*",
-  "examples": [
-    "example/*.c"
+  "friends":[
+    "john",
+    "smith",
+    "sam"
   ],
-  "exclude": "test"
+  "books":[
+    {
+      "name": "book1",
+      "price":10000
+    },
+    {
+      "name":"book2",
+      "price":15000
+    },
+    {
+      "name":"book3",
+      "price":7000
+    }
+  ]
 }

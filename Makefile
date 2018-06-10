@@ -3,6 +3,7 @@
 
 all: libjsmn.a
 
+
 libjsmn.a: jsmn.o
 	$(AR) rc $@ $^
 
@@ -32,14 +33,12 @@ jsondump: example/jsondump.o libjsmn.a
 	$(CC) $(LDFLAGS) $^ -o $@
 
 filesimple: mysource/filesimple.o libjsmn.a
-	 $(CC) $(LDFLAGS) $^ -o $@
-
+	$(CC) $(LDFLAGS) $^ -o $@
 
 clean:
 	rm -f *.o example/*.o
 	rm -f *.a *.so
 	rm -f myexample
-	rm -f filesimple
 	rm -f jsondump
 
 .PHONY: all clean test

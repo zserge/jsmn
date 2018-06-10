@@ -1,6 +1,7 @@
 #include "jsmn.h"
 #include <stdio.h>
 
+
 /**
  * Allocates a fresh unused token from the token pull.1
  */
@@ -73,7 +74,7 @@ found:
 	}
 	jsmn_fill_token(token, JSMN_PRIMITIVE, start, parser->pos);
 #ifdef JSMN_PARENT_LINKS
-	token->parent = parser->toksuper;
+	token->parent = parser->toksuper;	// 상위토큰 parent에 저장
 #endif
 	parser->pos--;
 	return 0;
@@ -177,9 +178,9 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
 				if (parser->toksuper != -1) {	// 맨처음 { 제외한다는 뜻,즉 상위토큰이 있는 경우를 말함 "repository"(7), "examples"(17)
 					tokens[parser->toksuper].size++;
 //					printf("sdfsd%d\n",parser->toksuper);
+//					printf("kkkkkkk");
 #ifdef JSMN_PARENT_LINKS
 					token->parent = parser->toksuper;
-					printf("tttttttttttt");
 #endif
 				}
 				token->type = (c == '{' ? JSMN_OBJECT : JSMN_ARRAY);
@@ -197,7 +198,7 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
 				}
 				token = &tokens[parser->toknext - 1];
 				for (;;) {
-					if (token->start != -1 && token->end == -1) {
+					if (token->start != -1 && token->end == -1) {	// obj 나 arr 열려있다면
 						if (token->type != type) {
 							return JSMN_ERROR_INVAL;
 						}
@@ -248,16 +249,16 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
 			case ':':
 				parser->toksuper = parser->toknext - 1;		// : 전의 string 토큰위치를 toksuper에 대입
 				break;																		// : 이후에 뭔가 왔을 때 : 전의 토큰.size가 +1 되도록
-			case ',':			// , 이후에 string 오면 가장 근처의 array 나 object token.size가 +1 되도록 설정한 것임.---(1)
+			case ',':			// , 이후에 string 오면 닫히지 않은 ,가장 근처의 array 나 object token.size가 +1 되도록 설정한 것임.---(1)
 				if (tokens != NULL && parser->toksuper != -1 &&
 						tokens[parser->toksuper].type != JSMN_ARRAY &&
 						tokens[parser->toksuper].type != JSMN_OBJECT) {
 #ifdef JSMN_PARENT_LINKS
-					parser->toksuper = tokens[parser->toksuper].parent;
+					parser->toksuper = tokens[parser->toksuper].parent;	// parent 로 더 간단하게 가능
 #else
 					for (i = parser->toknext - 1; i >= 0; i--) {
 						if (tokens[i].type == JSMN_ARRAY || tokens[i].type == JSMN_OBJECT) {
-							if (tokens[i].start != -1 && tokens[i].end == -1) { // 가장 근처에 있는 array 나 object token 번호를
+							if (tokens[i].start != -1 && tokens[i].end == -1) { // 닫히지 않은, 가장 근처에 있는 array 나 object token 번호를
 								parser->toksuper = i;														// toksuper 에 대입
 								break;
 							}
@@ -266,7 +267,7 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
 #endif
 				}
 				break;
-#ifdef JSMN_STRICT
+#ifdef JSMN_STRICT		// 이 변수가 정의되어 있을 떄
 			/* In strict mode primitives are: numbers and booleans */
 			printf("여기는 안지나감\n");
 			case '-': case '0': case '1' : case '2': case '3' : case '4':
