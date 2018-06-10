@@ -12,7 +12,7 @@
   "examples": [
     "example/*.c"
   ],
-  "exclude": "test",
+  "exclude": "test"
 }
 {
   "name": "jsmn2",
@@ -20,7 +20,7 @@
   "description": "Minimalistic JSON parser/tokenizer in C. It can be easily integrated into resource-limited or embedded projects",
   "repository":
   {
-    "type": "git",
+    "type": "gitsdfsdf",
     "url": "https://github.com/zserge/jsmn.git"
   },
   "frameworks": "*",
@@ -28,5 +28,5 @@
   "examples": [
     "example/*.c"
   ],
-  "exclude": "test",
+  "exclude": "test"
 }

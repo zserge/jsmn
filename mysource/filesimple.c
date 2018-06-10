@@ -41,12 +41,12 @@ void jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount, int *nameTokIndex )
     int i,count=1;
 //    nameTokIndex = (int *)malloc(sizeof(int)*100);
     for(i=0;i<tokcount;i++){
-      if(t[i].size == 1 && t[i].type == JSMN_STRING){
+      if(t[i].size == 1 && t[i].type == JSMN_STRING){ // key(name)값일 때
         nameTokIndex[count] = i;
         count++;
       }
     }
-    nameTokIndex[0] = count - 1;  // key(Name) 값이 되는 토큰 개수
+    nameTokIndex[0] = count - 1;  // key(Name) 값이 되는 토큰 개수 저장
 }
 
 void printNameList(char *jsonstr, jsmntok_t *t, int *nameTokIndex){
@@ -59,14 +59,14 @@ void printNameList(char *jsonstr, jsmntok_t *t, int *nameTokIndex){
 
 }
 
-char * noValue(char *jsonstr, jsmntok_t *t, int *nameTokIndex, int num){
+char * noValue(char *jsonstr, jsmntok_t *t, int *nameTokIndex, int num){  // 해당 번호 name의 value 값 리턴
     int size = t[nameTokIndex[num]+1].end-t[nameTokIndex[num]+1].start; // +1은 토큰 배열에서 name 다음에 value 이므로 한거임.
     char * value = (char *)malloc(size);
     strncpy(value, jsonstr+t[nameTokIndex[num]+1].start, size);
     return value;
 }
 
-void selectNameList(char *jsonstr, jsmntok_t *t, int *nameTokIndex){
+void selectNameList(char *jsonstr, jsmntok_t *t, int *nameTokIndex){  // 해당 번호 name의 value값 출력
 
     int num;
     char *value;
@@ -80,15 +80,40 @@ void selectNameList(char *jsonstr, jsmntok_t *t, int *nameTokIndex){
     }
 }
 
-void printFirstValue(char *jsonstr, jsmntok_t *t, int tokcount){
+void printFirstValue(char *jsonstr, jsmntok_t *t, int tokcount, int *objTokIndex){  // '전체 객체' 의 첫번쨰 데이터 value만 출력
     printf("**** Object List ****\n");
     int i,count=0;
     for(i=0;i<tokcount;i++){
   //    printf("번호%d %.*s\n",i,t[i].end-t[i].start,jsonstr+t[i].start );
-      if( t[i].type == JSMN_OBJECT && t[i].size >=1 && (t[i-1].size == 0 || i == 0) ){
+      if( t[i].type == JSMN_OBJECT && t[i].size >=1 && (t[i-1].size == 0 || i == 0) ){  // '전체 객체'의 조건
           count++;
           printf("[NAME %d] %.*s\n",count,t[i+2].end-t[i+2].start,jsonstr+t[i+2].start );
   //        printf("%d\n",i);
+          objTokIndex[count] = i; // '전체 객체'의 토큰 번호를 배열에 저장
+      }
+    }
+}
+
+void printObjectAll(char *jsonstr, jsmntok_t *t, int tokcount,int *nameTokIndex, int *objTokIndex){ // 해당 번호 '전체 객체'의 name,value 출력하는 함수
+    int i,num,count=0;
+    char *value;
+    while(1){
+      printf("원하는 번호 입력(Exit:0) :");
+      scanf(" %d", &num);
+      if(num == 0) break;
+      for(i=0;i<nameTokIndex[0];i++){ // 토큰 중에 name 에 해당하는 토큰 개수
+        if(t[nameTokIndex[i+1]].start > t[objTokIndex[num]].start &&
+        t[nameTokIndex[i+1]].end < t[objTokIndex[num]].end ){ // 해당하는 번호의 object의 start보다 name의 start 가 크고
+                                                            // 해당하는 번호의 object의 end보다 name의 end 가 작은 name 들 나타냄
+          count++;
+          value = noValue(jsonstr,t,nameTokIndex,i+1);  // num 에 해당하는 name의 value 값 반환
+          if(count == 1)  // 첫번째 name 만 다르게 출력
+            printf("%.*s : %s\n", t[nameTokIndex[i+1]].end-t[nameTokIndex[i+1]].start,
+            jsonstr+t[nameTokIndex[i+1]].start, value );
+          else
+            printf("\t[%.*s]  %s\n", t[nameTokIndex[i+1]].end-t[nameTokIndex[i+1]].start,
+            jsonstr+t[nameTokIndex[i+1]].start, value );
+        }
       }
     }
 }
@@ -113,11 +138,12 @@ int main() {
 	r = jsmn_parse(&p, JSON_STRING, strlen(JSON_STRING), t, sizeof(t)/sizeof(t[0]));
   // parse해야 t 배열에 토큰들 담김
 
-  int arr[100];
-  // jsonNameList(JSON_STRING,t,r,arr);  // r 이 토큰 총 개수
+  int arr[100],objarr[50];
+  jsonNameList(JSON_STRING,t,r,arr);  // r 이 토큰 총 개수, arr 배열에 각 name의 토큰번호 저장
   // printNameList(JSON_STRING,t,arr);
   // selectNameList(JSON_STRING,t,arr);
-  printFirstValue(JSON_STRING,t,r);
+  printFirstValue(JSON_STRING,t,r,objarr);
+  printObjectAll(JSON_STRING,t,r,arr,objarr);
 	// if (r < 0) {
 	// 	printf("Failed to parse JSON: %d\n", r);
 	// 	return 1;
