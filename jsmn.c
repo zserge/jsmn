@@ -16,6 +16,7 @@ static jsmntok_t *jsmn_alloc_token(jsmn_parser *parser,
 	tok->size = 0;		// child token 개수 0으로 초기화
 #ifdef JSMN_PARENT_LINKS		// 이 변수가 선언되어 있다면
 	tok->parent = -1;
+	printf("abcafsf\n");
 #endif											// if 문 닫기
 	return tok;
 }

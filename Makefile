@@ -8,7 +8,7 @@ libjsmn.a: jsmn.o
 	$(AR) rc $@ $^
 
 %.o: %.c jsmn.h
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC) -c -DJSMN_PARENT_LINKS=1 $(CFLAGS) $< -o $@	 # define하려면 여기를 수정해야 함
 
 test: test_default test_strict test_links test_strict_links
 test_default: test/tests.c

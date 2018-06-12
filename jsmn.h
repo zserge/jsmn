@@ -1,6 +1,6 @@
 #ifndef __JSMN_H_
 #define __JSMN_H_
-#define JSMN_PARENT_LINKS 1
+// #define JSMN_PARENT_LINKS 1
 
 
 #include <stddef.h>
@@ -60,6 +60,10 @@ typedef struct {
 	int toksuper; /* superior token node, e.g parent object or array */ // 상위 토큰 위치
 } jsmn_parser;	// 각 토큰의 정보를 알아내고 저장해주는 역할
 
+typedef struct {
+	int tokindex ;
+	int objectindex;
+} NameTokenInfo;
 /**
  * Create JSON parser over an array of tokens
  */
