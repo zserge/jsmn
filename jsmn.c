@@ -12,11 +12,10 @@ static jsmntok_t *jsmn_alloc_token(jsmn_parser *parser,
 		return NULL;
 	}
 	tok = &tokens[parser->toknext++];	// 새로 토큰 할당하면서 다음 토큰 번호 +1 되게 함
-	tok->start = tok->end = -1;		// start,end 는 json 형태에서의 위치
-	tok->size = 0;		// child token 개수 0으로 초기화
+	tok->start = tok->end = -1;		// start,end 는 json 형태에서의 위치, 처음 생성될 때 -1로 초기화
+	tok->size = 0;		//  0으로 초기화
 #ifdef JSMN_PARENT_LINKS		// 이 변수가 선언되어 있다면
-	tok->parent = -1;
-	printf("abcafsf\n");
+	tok->parent = -1;	// -1이라는 건 없다는 것이나 마찬가지, 배열은 0부터 시작하기 때문
 #endif											// if 문 닫기
 	return tok;
 }
@@ -186,8 +185,8 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
 				}
 				token->type = (c == '{' ? JSMN_OBJECT : JSMN_ARRAY);
 				token->start = parser->pos;			// 토큰의 시작 위치 설정
-				parser->toksuper = parser->toknext - 1;	// 현재 토큰의 상위 토큰을 '이전 토큰'으로 설정
-
+				parser->toksuper = parser->toknext - 1;	// toksuper 값에 현재 토큰의 번호 대입
+																								// toksuper 값이 다음
 				break;
 			case '}': case ']':			// object 나 array 끝날 때
 				if (tokens == NULL)
@@ -248,14 +247,14 @@ int jsmn_parse // string 안의 char 하나씩 다 조사함
 			case '\t' : case '\r' : case '\n' : case ' ':
 				break;
 			case ':':
-				parser->toksuper = parser->toknext - 1;		// : 전의 string 토큰위치를 toksuper에 대입
+				parser->toksuper = parser->toknext - 1;		// : 전의 string 토큰번호를 toksuper에 대입
 				break;																		// : 이후에 뭔가 왔을 때 : 전의 토큰.size가 +1 되도록
 			case ',':			// , 이후에 string 오면 닫히지 않은 ,가장 근처의 array 나 object token.size가 +1 되도록 설정한 것임.---(1)
 				if (tokens != NULL && parser->toksuper != -1 &&
 						tokens[parser->toksuper].type != JSMN_ARRAY &&
 						tokens[parser->toksuper].type != JSMN_OBJECT) {
 #ifdef JSMN_PARENT_LINKS
-					parser->toksuper = tokens[parser->toksuper].parent;	// parent 로 더 간단하게 가능
+					parser->toksuper = tokens[parser->toksuper].parent;	// parent 로 더 간단하게 가능.    , 가 오면 키 값의 부모토큰번호를 toksuper에 대입
 #else
 					for (i = parser->toknext - 1; i >= 0; i--) {
 						if (tokens[i].type == JSMN_ARRAY || tokens[i].type == JSMN_OBJECT) {

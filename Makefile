@@ -8,7 +8,7 @@ libjsmn.a: jsmn.o
 	$(AR) rc $@ $^
 
 %.o: %.c jsmn.h
-	$(CC) -c -DJSMN_PARENT_LINKS=1 $(CFLAGS) $< -o $@	 # define하려면 여기를 수정해야 함
+	$(CC) -c $(CFLAGS) $< -o $@	 # define하려면 여기를 수정해야 함
 
 test: test_default test_strict test_links test_strict_links
 test_default: test/tests.c
@@ -35,10 +35,14 @@ jsondump: example/jsondump.o libjsmn.a
 filesimple: mysource/filesimple.o libjsmn.a
 	$(CC) $(LDFLAGS) $^ -o $@
 
+OSS_21000127: example/OSS_21000127.o libjsmn.a
+	$(CC) $(LDFLAGS) $^ -o $@  -lpthread
+
 clean:
 	rm -f *.o example/*.o
 	rm -f *.a *.so
 	rm -f myexample
 	rm -f jsondump
+	rm -f OSS_21000127
 
 .PHONY: all clean test

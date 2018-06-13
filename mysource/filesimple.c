@@ -10,9 +10,13 @@
  static char * readJSONFile(){
  //	char *JSON_STRING="{\"u\": \"dd\"}";
  	char oneline[255];
-	char * c = (char *)malloc(6000);
+	char * c = (char *)malloc(6);
+  int count=0;
+  // char c[1000];
 	FILE *fp = fopen("/home/u21000127/jsmn/data4.json","r");	// data.json 읽기 모드로 열기
   while(fgets(oneline,255,fp)!= NULL){
+    count += strlen(oneline);
+    c = (char *)realloc(c,count+1);
     strcat(c,oneline);
   }
   if(feof(fp)!=0)
@@ -35,9 +39,12 @@
    exit(0);
  }
   char oneline[255];
-  char * c = (char *)malloc(6000);
+  char * c = (char *)malloc(60);
+  int count=0;
 
   while(fgets(oneline,255,fp)!= NULL){
+    count += strlen(oneline);
+    c = (char *)realloc(c,count+1);
     strcat(c,oneline);
   }
   if(feof(fp)!=0)
@@ -47,17 +54,17 @@
   return c;
  }
 
- // void jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount){
- //     printf("**** Name List ****\n");
- //     int i,count=1;
- //
- //     for(i=0;i<tokcount;i++){
- //       if(t[i].size == 1 ){
- //         printf("[NAME %d]  %.*s\n",count,t[i].end-t[i].start,jsonstr+t[i].start );
- //         count++;
- //       }
- //     }
- // }
+ void jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount){  // example 4
+     printf("**** Name List ****\n");
+     int i,count=1;
+
+     for(i=0;i<tokcount;i++){
+       if(t[i].size == 1 ){
+         printf("[NAME %d]  %.*s\n",count,t[i].end-t[i].start,jsonstr+t[i].start );
+         count++;
+       }
+     }
+ }
  // static const char *JSON_STRING =
  // 	"{\"user\": \"johndoe\", \"admin\": false, \"uid\": 1000,\n  "
  // 	"\"groups\": [\"users\", \"wheel\", \"audio\", \"video\"]}";
@@ -74,17 +81,17 @@ void jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount, int *nameTokIndex )
     nameTokIndex[0] = count - 1;  // key(Name) 값이 되는 토큰 개수 저장
 }
 
-// void jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount, NameTokenInfo *nameTokenInfo ){
-//     int i,count=1;
-// //    nameTokIndex = (int *)malloc(sizeof(int)*100);
-//     for(i=0;i<tokcount;i++){
-//       if(t[i].size == 1 && t[i].type == JSMN_STRING){ // key(name)값일 때
-//         nameTokIndex[count] = i;
-//         count++;
-//       }
-//     }
-//     nameTokIndex[0] = count - 1;  // key(Name) 값이 되는 토큰 개수 저장
-// }
+void jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount, int *nameTokenIndex ){ // example 5
+    int i,count=1;
+//    nameTokIndex = (int *)malloc(sizeof(int)*100);
+    for(i=0;i<tokcount;i++){
+      if(t[i].size == 1 && t[i].type == JSMN_STRING){ // key(name)값일 때
+        nameTokIndex[count] = i;
+        count++;
+      }
+    }
+    nameTokIndex[0] = count - 1;  // key(Name) 값이 되는 토큰 개수 저장
+}
 
 void jsonBigNameList(char *jsonstr, jsmntok_t *t, int tokcount, int *nameTokIndex ){  // parent = 0 인 경우만
     int i,count=1;
@@ -98,7 +105,7 @@ void jsonBigNameList(char *jsonstr, jsmntok_t *t, int tokcount, int *nameTokInde
     nameTokIndex[0] = count - 1;  // key(Name) 값이 되는 토큰 개수 저장
 }
 
-void jsonSmallNameList(char *jsonstr, jsmntok_t *t, int tokcount, int *nameTokIndex ){
+void jsonSmallNameList(char *jsonstr, jsmntok_t *t, int tokcount, int *nameTokIndex ){  // example 12
     int i,count=1;
 //    nameTokIndex = (int *)malloc(sizeof(int)*100);
     for(i=0;i<tokcount;i++){
@@ -218,8 +225,8 @@ static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {  // 일치�
 }
 
 int main() {
-  char *JSON_STRING = readSelectJSONFile();
-//  printf("%s\n", JSON_STRING );
+  char *JSON_STRING = readJSONFile();
+ printf("%s\n", JSON_STRING );
 	int i;
 	int r;
 	jsmn_parser p;
@@ -232,12 +239,12 @@ int main() {
   int arr[100],objarr[50];
   // jsonNameList(JSON_STRING,t,r,arr);  // r 이 토큰 총 개수, arr 배열에 각 name의 토큰번호 저장
   // jsonBigNameList(JSON_STRING,t,r,arr);
-  jsonSmallNameList(JSON_STRING,t,r,arr);
-  printNameList(JSON_STRING,t,arr);
+  // jsonSmallNameList(JSON_STRING,t,r,arr);
+  // printNameList(JSON_STRING,t,arr);
   // selectNameList(JSON_STRING,t,arr);
   // printFirstValue(JSON_STRING,t,r,objarr);
-  printFirstValue3(JSON_STRING,t,r,objarr);
-  printObjectAll(JSON_STRING,t,r,arr,objarr);
+  // printFirstValue3(JSON_STRING,t,r,objarr);
+  // printObjectAll(JSON_STRING,t,r,arr,objarr);
 	// if (r < 0) {
 	// 	printf("Failed to parse JSON: %d\n", r);
 	// 	return 1;

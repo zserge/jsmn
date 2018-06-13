@@ -8,7 +8,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#define JSMN_PARENT_LINKS 1
 /**
  * JSON type identifier. Basic types are:
  * 	o Object
@@ -64,6 +64,13 @@ typedef struct {
 	int tokindex ;
 	int objectindex;
 } NameTokenInfo;
+
+typedef struct {
+	char model[20];
+	char maker[20];
+	int year;
+	char gastype[20];
+} car_t;
 /**
  * Create JSON parser over an array of tokens
  */
