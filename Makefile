@@ -36,7 +36,7 @@ filesimple: mysource/filesimple.o libjsmn.a
 	$(CC) $(LDFLAGS) $^ -o $@
 
 OSS_21000127: example/OSS_21000127.o libjsmn.a
-	$(CC) $(LDFLAGS) $^ -o $@  -lpthread
+	$(CC) $(LDFLAGS) $^ -o $@
 
 clean:
 	rm -f *.o example/*.o

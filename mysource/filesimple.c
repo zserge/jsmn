@@ -8,12 +8,11 @@
  * tokens is predictable.
  */
  static char * readJSONFile(){
- //	char *JSON_STRING="{\"u\": \"dd\"}";
  	char oneline[255];
 	char * c = (char *)malloc(6);
   int count=0;
   // char c[1000];
-	FILE *fp = fopen("/home/u21000127/jsmn/data4.json","r");	// data.json 읽기 모드로 열기
+	FILE *fp = fopen("/home/u21000127/jsmn/cars.json","r");	// data.json 읽기 모드로 열기
   while(fgets(oneline,255,fp)!= NULL){
     count += strlen(oneline);
     c = (char *)realloc(c,count+1);
@@ -69,29 +68,29 @@
  // 	"{\"user\": \"johndoe\", \"admin\": false, \"uid\": 1000,\n  "
  // 	"\"groups\": [\"users\", \"wheel\", \"audio\", \"video\"]}";
 
-void jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount, int *nameTokIndex ){
-    int i,count=1;
-//    nameTokIndex = (int *)malloc(sizeof(int)*100);
-    for(i=0;i<tokcount;i++){
-      if(t[i].size == 1 && t[i].type == JSMN_STRING){ // key(name)값일 때
-        nameTokIndex[count] = i;
-        count++;
-      }
-    }
-    nameTokIndex[0] = count - 1;  // key(Name) 값이 되는 토큰 개수 저장
-}
+// void jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount, int *nameTokIndex ){
+//     int i,count=1;
+// //    nameTokIndex = (int *)malloc(sizeof(int)*100);
+//     for(i=0;i<tokcount;i++){
+//       if(t[i].size == 1 && t[i].type == JSMN_STRING){ // key(name)값일 때
+//         nameTokIndex[count] = i;
+//         count++;
+//       }
+//     }
+//     nameTokIndex[0] = count - 1;  // key(Name) 값이 되는 토큰 개수 저장
+// }
 
-void jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount, int *nameTokenIndex ){ // example 5
-    int i,count=1;
-//    nameTokIndex = (int *)malloc(sizeof(int)*100);
-    for(i=0;i<tokcount;i++){
-      if(t[i].size == 1 && t[i].type == JSMN_STRING){ // key(name)값일 때
-        nameTokIndex[count] = i;
-        count++;
-      }
-    }
-    nameTokIndex[0] = count - 1;  // key(Name) 값이 되는 토큰 개수 저장
-}
+// void jsonNameList(char *jsonstr, jsmntok_t *t, int tokcount, int *nameTokenIndex ){ // example 5
+//     int i,count=1;
+// //    nameTokIndex = (int *)malloc(sizeof(int)*100);
+//     for(i=0;i<tokcount;i++){
+//       if(t[i].size == 1 && t[i].type == JSMN_STRING){ // key(name)값일 때
+//         nameTokIndex[count] = i;
+//         count++;
+//       }
+//     }
+//     nameTokIndex[0] = count - 1;  // key(Name) 값이 되는 토큰 개수 저장
+// }
 
 void jsonBigNameList(char *jsonstr, jsmntok_t *t, int tokcount, int *nameTokIndex ){  // parent = 0 인 경우만
     int i,count=1;

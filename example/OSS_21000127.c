@@ -28,31 +28,51 @@
 
  int makecarlist(const char *json, jsmntok_t *t, int tokcount, car_t * list[]){
     int i,count=1;
-      char * value1 = (char *)malloc(20);
-      char * value2 = (char *)malloc(20);
-      char * value3 = (char *)malloc(20);
-      char * value4 = (char *)malloc(20);
+    char * value1[4];
+    char * value2[4];
+    char * value3[4];
+    char * value4[4];
+    for(i=0;i<4;i++){
+      value1[i] = (char *)malloc(10);
+      value2[i] = (char *)malloc(10);
+      value3[i] = (char *)malloc(10);
+      value4[i] = (char *)malloc(10);
 
-    for(i=0;i<tokcount;i++){
-      if(t[i].size >= 1 && t[i].type == JSMN_OBJECT && t[i].parent != 0){ // 제품 정보담은 객체 추출
-
-        strcat(list[count]->model,strncpy(value1,json+t[i+2].start,t[i+2].end-t[i+2].start));
-        strcat(list[count]->maker,strncpy(value2,json+t[i+4].start,t[i+4].end-t[i+4].start));
-        strcat(list[count]->gastype,strncpy(value3,json+t[i+8].start,t[i+8].end-t[i+8].start));
-        list[count]->year = atoi(strncpy(value4,json+t[i+6].start,t[i+6].end-t[i+6].start));
-      }
-      count++; // list배열 번호 증가
     }
+    for(i=0;i<tokcount;i++){
+      if(t[i].size >= 1 && t[i].type == JSMN_OBJECT && t[i].parent != -1){ // 제품 정보담은 객체 추출
+        list[count] = (car_t *)malloc(sizeof(car_t));
+        int size1 = t[i+2].end-t[i+2].start;
+        value1[count-1] =(char *)realloc(value1[count-1],size1+1);
+        strcat(list[count]->model,strncpy(value1[count-1],json+t[i+2].start,size1));
+        int size2 = t[i+4].end-t[i+4].start;
+        value2[count-1] =(char *)realloc(value2[count-1],size2+1);
+        strcat(list[count]->maker,strncpy(value2[count-1],json+t[i+4].start,size2));
+        int size3 = t[i+8].end-t[i+8].start;
+        value3[count-1] =(char *) realloc(value3[count-1],size3+1);
+        strcat(list[count]->gastype,strncpy(value3[count-1],json+t[i+8].start,size3));
+        int size4 = t[i+6].end-t[i+6].start;
+        value4[count-1] = (char *)realloc(value4[count-1],size4+1);
+        list[count]->year = atoi(strncpy(value4[count-1],json+t[i+6].start,size4));
+        printf("%s\t%s\t%s \n", list[count]->model,list[count]->maker,list[count]->gastype);
+        count++; // list배열 번호 증가
+      }
+    }
+    // free(value1);
+    // free(value2);
+    // free(value3);
+    // free(value4);
     return count-1;
  }
 
  void printcarlist(car_t * list[], int carcount){
    printf("출력 예\n");
    int i;
-   printf("번호 모델명\t제조사\t제조년도\t연료타입\n");
+   printf("번호 모델명\t제조사\t\t제조년도\t연료타입\n");
    for(i=0;i<carcount;i++){
-      printf("%d %s\t%s\t%d\t%s\n",i+1,list[i+1]->model,list[i+1]->maker,list[i+1]->year,list[i+1]->gastype );
+      printf("%-3d %-10s\t%-10s\t%-10d\t%-10s\n",i+1,list[i+1]->model,list[i+1]->maker,list[i+1]->year,list[i+1]->gastype );
    }
+
  }
 
 // static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
@@ -73,9 +93,24 @@ int main() {
 	jsmn_init(&p);
 	r = jsmn_parse(&p, JSON_STRING, strlen(JSON_STRING), t, sizeof(t)/sizeof(t[0]));
   car_t * carlist[5];
-  int num = makecarlist(JSON_STRING,t,r,carlist);
-  // printcarlist(carlist,num);
+  // for(i=0;i<5;i++){
+  //   carlist[i] = (car_t *)malloc(sizeof(car_t));
+  // }
+  // carlist[1] = malloc(1000);
+  // strcat(carlist[1]->model,"ddd");  // 왜 이건 안됨?
+  // printf("%s\n",carlist[1]->model );
+  //
+  // car_t list[5];
+  // strcat(list[1].model,"fff");  // 이건 되는데
+  // printf("%s\n",list[1].model );
 
+
+  int num = makecarlist(JSON_STRING,t,r,carlist);
+  printcarlist(carlist,num);
+  // free(carlist[1]);
+  // free(carlist[2]);
+  // free(carlist[3]);
+  // free(carlist[4]);
 
 
 

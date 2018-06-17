@@ -66,7 +66,7 @@ typedef struct {
 } NameTokenInfo;
 
 typedef struct {
-	char model[20];
+	char model[200];
 	char maker[20];
 	int year;
 	char gastype[20];
