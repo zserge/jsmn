@@ -68,7 +68,7 @@
  void printcarlist(car_t * list[], int carcount){
    printf("출력 예\n");
    int i;
-   printf("번호 모델명\t제조사\t\t제조년도\t연료타입\n");
+   printf("번호 모델명\t제조사\t\t제조년도\t연료 타입\n");
    for(i=0;i<carcount;i++){
       printf("%-3d %-10s\t%-10s\t%-10d\t%-10s\n",i+1,list[i+1]->model,list[i+1]->maker,list[i+1]->year,list[i+1]->gastype );
    }
