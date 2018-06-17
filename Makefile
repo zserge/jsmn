@@ -1,13 +1,14 @@
 # You can put your build options here
 -include config.mk
 
-all: libjsmn.a 
+all: libjsmn.a
+
 
 libjsmn.a: jsmn.o
 	$(AR) rc $@ $^
 
 %.o: %.c jsmn.h
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@	 # define하려면 여기를 수정해야 함
 
 test: test_default test_strict test_links test_strict_links
 test_default: test/tests.c
@@ -25,17 +26,23 @@ test_strict_links: test/tests.c
 
 jsmn_test.o: jsmn_test.c libjsmn.a
 
-simple_example: example/simple.o libjsmn.a
+myexample: example/myjson.o libjsmn.a
 	$(CC) $(LDFLAGS) $^ -o $@
 
 jsondump: example/jsondump.o libjsmn.a
 	$(CC) $(LDFLAGS) $^ -o $@
 
+filesimple: mysource/filesimple.o libjsmn.a
+	$(CC) $(LDFLAGS) $^ -o $@
+
+OSS_21000127: example/OSS_21000127.o libjsmn.a
+	$(CC) $(LDFLAGS) $^ -o $@
+
 clean:
 	rm -f *.o example/*.o
 	rm -f *.a *.so
-	rm -f simple_example
+	rm -f myexample
 	rm -f jsondump
+	rm -f OSS_21000127
 
 .PHONY: all clean test
-

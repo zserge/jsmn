@@ -1,12 +1,14 @@
 #ifndef __JSMN_H_
 #define __JSMN_H_
+// #define JSMN_PARENT_LINKS 1
+
 
 #include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#define JSMN_PARENT_LINKS 1
 /**
  * JSON type identifier. Basic types are:
  * 	o Object
@@ -14,7 +16,7 @@ extern "C" {
  * 	o String
  * 	o Other primitive: number, boolean (true/false) or null
  */
-typedef enum {
+typedef enum {				// 토큰의 타입 지정
 	JSMN_UNDEFINED = 0,
 	JSMN_OBJECT = 1,
 	JSMN_ARRAY = 2,
@@ -39,24 +41,36 @@ enum jsmnerr {
  */
 typedef struct {
 	jsmntype_t type;
-	int start;
-	int end;
-	int size;
+	int start;	// token 의 시작위치
+	int end;		// token 의 끝 위치
+	int size;			// child token 개수인줄 알았는데 아니고, 설명하기 애매함
+								// 자신에게 속해있는 요소들의 개수라고나 할까
 #ifdef JSMN_PARENT_LINKS
-	int parent;
+	int parent;	// 상위 토큰 번호
 #endif
-} jsmntok_t;
+} jsmntok_t;		// token data 의 위치와 정보
 
 /**
  * JSON parser. Contains an array of token blocks available. Also stores
  * the string being parsed now and current position in that string
  */
 typedef struct {
-	unsigned int pos; /* offset in the JSON string */
-	unsigned int toknext; /* next token to allocate */
-	int toksuper; /* superior token node, e.g parent object or array */
-} jsmn_parser;
+	unsigned int pos; /* offset in the JSON string */ // string에서 parser 의 위치
+	unsigned int toknext; /* next token to allocate */	// 다음 토큰 번호(배열에서)
+	int toksuper; /* superior token node, e.g parent object or array */ // 상위 토큰 위치
+} jsmn_parser;	// 각 토큰의 정보를 알아내고 저장해주는 역할
 
+typedef struct {
+	int tokindex ;
+	int objectindex;
+} NameTokenInfo;
+
+typedef struct {
+	char model[200];
+	char maker[20];
+	int year;
+	char gastype[20];
+} car_t;
 /**
  * Create JSON parser over an array of tokens
  */

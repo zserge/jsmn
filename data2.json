@@ -1,0 +1,27 @@
+{
+  "name": "hello!",
+  "data": {
+    "name" : "jspiner",
+    "age" : 8,
+    "birth" : 1996
+  },
+  "friends":[
+    "john",
+    "smith",
+    "sam"
+  ],
+  "books":[
+    {
+      "name": "book1",
+      "price":10000
+    },
+    {
+      "name":"book2",
+      "price":15000
+    },
+    {
+      "name":"book3",
+      "price":7000
+    }
+  ]
+}

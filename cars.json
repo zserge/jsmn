@@ -1,0 +1,28 @@
+{
+  "cars" : [
+              {
+                "model" : "Sonata",
+                "maker" : "Hyundai",
+                "year" : 2016,
+                "gas" : "gasoline"
+              },
+              {
+                "model" : "Avante",
+                "maker" : "Hyundai",
+                "year" : 2015,
+                "gas" : "diesel"
+              },
+              {
+                "model" : "K5",
+                "maker" : "Kia",
+                "year" : 2014,
+                "gas" : "lpg"
+              },
+              {
+                "model" : "BMW5",
+                "maker" : "BMW",
+                "year" : 2013,
+                "gas" : "gasoline"
+              }
+  ]
+}

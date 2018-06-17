@@ -7,7 +7,7 @@
  * A small example of jsmn parsing when JSON structure is known and number of
  * tokens is predictable.
  */
- 
+
 static const char *JSON_STRING =
 	"{\"user\": \"johndoe\", \"admin\": false, \"uid\": 1000,\n  "
 	"\"groups\": [\"users\", \"wheel\", \"audio\", \"video\"]}";
