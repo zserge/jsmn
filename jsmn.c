@@ -4,7 +4,7 @@
  * Allocates a fresh unused token from the token pull.
  */
 static jsmntok_t *jsmn_alloc_token(jsmn_parser *parser,
-		jsmntok_t *tokens, size_t num_tokens) {
+		jsmntok_t *tokens, const size_t num_tokens) {
 	jsmntok_t *tok;
 	if (parser->toknext >= num_tokens) {
 		return NULL;
@@ -22,7 +22,7 @@ static jsmntok_t *jsmn_alloc_token(jsmn_parser *parser,
  * Fills token type and boundaries.
  */
 static void jsmn_fill_token(jsmntok_t *token, jsmntype_t type,
-                            int start, int end) {
+                            const int start, const int end) {
 	token->type = type;
 	token->start = start;
 	token->end = end;
@@ -33,11 +33,9 @@ static void jsmn_fill_token(jsmntok_t *token, jsmntype_t type,
  * Fills next available token with JSON primitive.
  */
 static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
-		size_t len, jsmntok_t *tokens, size_t num_tokens) {
+		const size_t len, jsmntok_t *tokens, const size_t num_tokens) {
 	jsmntok_t *token;
-	int start;
-
-	start = parser->pos;
+	const int start = parser->pos;
 
 	for (; parser->pos < len && js[parser->pos] != '\0'; parser->pos++) {
 		switch (js[parser->pos]) {
@@ -83,10 +81,9 @@ found:
  * Fills next token with JSON string.
  */
 static int jsmn_parse_string(jsmn_parser *parser, const char *js,
-		size_t len, jsmntok_t *tokens, size_t num_tokens) {
+		const size_t len, jsmntok_t *tokens, const size_t num_tokens) {
 	jsmntok_t *token;
-
-	int start = parser->pos;
+	const int start = parser->pos;
 
 	parser->pos++;
 
@@ -149,8 +146,8 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
 /**
  * Parse JSON string and fill tokens.
  */
-int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
-		jsmntok_t *tokens, unsigned int num_tokens) {
+int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
+		jsmntok_t *tokens, const size_t num_tokens) {
 	int count = parser->toknext;
 
 	for (; parser->pos < len && js[parser->pos] != '\0'; parser->pos++) {
@@ -274,7 +271,7 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 			case 't': case 'f': case 'n' :
 				/* And they must not be keys of the object */
 				if (tokens != NULL && parser->toksuper != -1) {
-					jsmntok_t *t = &tokens[parser->toksuper];
+					const jsmntok_t *t = &tokens[parser->toksuper];
 					if (t->type == JSMN_OBJECT ||
 							(t->type == JSMN_STRING && t->size != 0)) {
 						return JSMN_ERROR_INVAL;
