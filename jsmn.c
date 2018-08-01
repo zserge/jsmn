@@ -48,8 +48,12 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
 			case '\t' : case '\r' : case '\n' : case ' ' :
 			case ','  : case ']'  : case '}' :
 				found = 1;
+				break;
 		}
-		if (!found && (js[parser->pos] < 32 || js[parser->pos] >= 127)) {
+		if (found) {
+			break;
+		}
+		if (js[parser->pos] < 32 || js[parser->pos] >= 127) {
 			parser->pos = start;
 			return JSMN_ERROR_INVAL;
 		}
