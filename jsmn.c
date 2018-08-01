@@ -151,15 +151,16 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
  */
 int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 		jsmntok_t *tokens, unsigned int num_tokens) {
-	int r;
-	int i;
-	jsmntok_t *token;
 	int count = parser->toknext;
 
 	for (; parser->pos < len && js[parser->pos] != '\0'; parser->pos++) {
+		int r;
 		char c;
 		jsmntype_t type;
-
+		jsmntok_t *token;
+#ifndef JSMN_PARENT_LINKS
+		int i;
+#endif
 		c = js[parser->pos];
 		switch (c) {
 			case '{': case '[':
@@ -302,6 +303,7 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 	}
 
 	if (tokens != NULL) {
+		int i;
 		for (i = parser->toknext - 1; i >= 0; i--) {
 			/* Unmatched opened object or array */
 			if (tokens[i].start != -1 && tokens[i].end == -1) {
