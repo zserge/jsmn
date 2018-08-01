@@ -38,24 +38,22 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
 	int found = 0;
 	const int start = parser->pos;
 
-	for (; parser->pos < len && js[parser->pos] != '\0'; parser->pos++) {
+	while (parser->pos < len && js[parser->pos] != '\0' && !found) {
 		switch (js[parser->pos]) {
 #ifndef JSMN_STRICT
-			/* In strict mode primitive must be followed by
-			   "," or "}" or "]" */
+			/* In strict mode primitive must be followed by "," or "}" or "]" */
 			case ':':
 #endif
 			case '\t' : case '\r' : case '\n' : case ' ' :
 			case ','  : case ']'  : case '}' :
 				found = 1;
-				break;
 		}
-		if (found) {
-			break;
-		}
-		if (js[parser->pos] < 32 || js[parser->pos] >= 127) {
-			parser->pos = start;
-			return JSMN_ERROR_INVAL;
+		if (!found) {
+			if (js[parser->pos] < 32 || js[parser->pos] >= 127) {
+				parser->pos = start;
+				return JSMN_ERROR_INVAL;
+			}
+			parser->pos++;
 		}
 	}
 #ifdef JSMN_STRICT
