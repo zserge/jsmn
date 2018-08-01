@@ -312,7 +312,7 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 }
 
 /**
- * Creates a new parser based over a given  buffer with an array of tokens
+ * Creates a new parser based over a given buffer with an array of tokens
  * available.
  */
 void jsmn_init(jsmn_parser *parser) {
