@@ -18,12 +18,12 @@ Philosophy
 
 Most JSON parsers offer you a bunch of functions to load JSON data, parse it
 and extract any value by its name. jsmn proves that checking the correctness of
-every JSON packet or allocating temporary objects to store parsed JSON fields
-often is an overkill. 
+every JSON packet or allocating temporary objects to store parsed JSON fields is
+often overkill. 
 
 JSON format itself is extremely simple, so why should we complicate it?
 
-jsmn is designed to be	**robust** (it should work fine even with erroneous
+jsmn is designed to be **robust** (it should work fine even with erroneous
 data), **fast** (it should parse data on the fly), **portable** (no superfluous
 dependencies or non-standard C extensions). And of course, **simplicity** is a
 key feature - simple code style, simple algorithm, simple integration into
@@ -87,9 +87,9 @@ Repository layout is simple: jsmn.c and jsmn.h are library files, tests are in
 the jsmn\_test.c, you will also find README, LICENSE and Makefile files inside.
 
 To build the library, run `make`. It is also recommended to run `make test`.
-Let me know, if some tests fail.
+Let me know if some tests fail.
 
-If build was successful, you should get a `libjsmn.a` library.
+If the build was successful, you should get a `libjsmn.a` library.
 The header file you should include is called `"jsmn.h"`.
 
 API
@@ -99,9 +99,9 @@ Token types are described by `jsmntype_t`:
 
 	typedef enum {
 		JSMN_UNDEFINED = 0,
-		JSMN_OBJECT = 1,
-		JSMN_ARRAY = 2,
-		JSMN_STRING = 3,
+		JSMN_OBJECT    = 1,
+		JSMN_ARRAY     = 2,
+		JSMN_STRING    = 3,
 		JSMN_PRIMITIVE = 4
 	} jsmntype_t;
 
@@ -126,7 +126,8 @@ Token is an object of `jsmntok_t` type:
 the opening quote and the previous symbol before final quote. This was made 
 to simplify string extraction from JSON data.
 
-All job is done by `jsmn_parser` object. You can initialize a new parser using:
+All jobs are done by the `jsmn_parser` object. 
+You can initialize a new parser using:
 
 	jsmn_parser parser;
 	jsmntok_t tokens[10];
@@ -151,17 +152,18 @@ If something goes wrong, you will get an error. Error will be one of these:
 
 * `JSMN_ERROR_INVAL` - bad token, JSON string is corrupted
 * `JSMN_ERROR_NOMEM` - not enough tokens, JSON string is too large
-* `JSMN_ERROR_PART` - JSON string is too short, expecting more JSON data
+* `JSMN_ERROR_PART`  - JSON string is too short, expecting more JSON data
 
-If you get `JSMN_ERROR_NOMEM`, you can re-allocate more tokens and call
-`jsmn_parse` once more.  If you read json data from the stream, you can
-periodically call `jsmn_parse` and check if return value is `JSMN_ERROR_PART`.
-You will get this error until you reach the end of JSON data.
+If you get `JSMN_ERROR_NOMEM`, you can reallocate more tokens and call
+`jsmn_parse` once more.  If you read JSON data from the stream, you can
+periodically call `jsmn_parse` and check if the return value is
+`JSMN_ERROR_PART`. You will get this error until you reach the end of the JSON
+data.
 
 Other info
 ----------
 
-This software is distributed under 
+This software is distributed under the 
 [MIT license](http://www.opensource.org/licenses/mit-license.php), 
 so feel free to integrate it in your commercial products.
 

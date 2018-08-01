@@ -16,9 +16,9 @@ extern "C" {
  */
 typedef enum {
 	JSMN_UNDEFINED = 0,
-	JSMN_OBJECT = 1,
-	JSMN_ARRAY = 2,
-	JSMN_STRING = 3,
+	JSMN_OBJECT    = 1,
+	JSMN_ARRAY     = 2,
+	JSMN_STRING    = 3,
 	JSMN_PRIMITIVE = 4
 } jsmntype_t;
 
@@ -28,7 +28,7 @@ enum jsmnerr {
 	/* Invalid character inside JSON string */
 	JSMN_ERROR_INVAL = -2,
 	/* The string is not a full JSON packet, more bytes expected */
-	JSMN_ERROR_PART = -3
+	JSMN_ERROR_PART  = -3
 };
 
 /**
@@ -49,12 +49,12 @@ typedef struct {
 
 /**
  * JSON parser. Contains an array of token blocks available. Also stores
- * the string being parsed now and current position in that string
+ * the string being parsed now and current position in that string.
  */
 typedef struct {
 	unsigned int pos; /* offset in the JSON string */
 	unsigned int toknext; /* next token to allocate */
-	int toksuper; /* superior token node, e.g parent object or array */
+	int toksuper; /* superior token node, e.g. parent object or array */
 } jsmn_parser;
 
 /**
