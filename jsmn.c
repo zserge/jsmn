@@ -42,7 +42,8 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
 	for (; parser->pos < len && js[parser->pos] != '\0'; parser->pos++) {
 		switch (js[parser->pos]) {
 #ifndef JSMN_STRICT
-			/* In strict mode primitive must be followed by "," or "}" or "]" */
+			/* In strict mode primitive must be followed by
+			   "," or "}" or "]" */
 			case ':':
 #endif
 			case '\t' : case '\r' : case '\n' : case ' ' :
@@ -121,16 +122,16 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
 					break;
 				/* Allows escaped symbol \uXXXX */
 				case 'u':
-					parser->pos++;
-					for(i = 0; i < 4 && parser->pos < len && js[parser->pos] != '\0'; i++) {
+					c = js[++parser->pos];
+					for(i = 0; i < 4 && parser->pos < len && c != '\0'; i++) {
 						/* If it isn't a hex character we have an error */
-						if(!((js[parser->pos] >= 48 && js[parser->pos] <= 57) || /* 0-9 */
-									(js[parser->pos] >= 65 && js[parser->pos] <= 70) || /* A-F */
-									(js[parser->pos] >= 97 && js[parser->pos] <= 102))) { /* a-f */
+						if(!((c >= '0' && c <= '9') ||
+						     (c >= 'A' && c <= 'F') ||
+						     (c >= 'a' && c <= 'f'))) {
 							parser->pos = start;
 							return JSMN_ERROR_INVAL;
 						}
-						parser->pos++;
+						c = js[++parser->pos];
 					}
 					parser->pos--;
 					break;
@@ -254,11 +255,12 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 					parser->toksuper = tokens[parser->toksuper].parent;
 #else
 					for (i = parser->toknext - 1; i >= 0; i--) {
-						if (tokens[i].type == JSMN_ARRAY || tokens[i].type == JSMN_OBJECT) {
-							if (tokens[i].start != -1 && tokens[i].end == -1) {
+						if ((tokens[i].type == JSMN_ARRAY ||
+						     tokens[i].type == JSMN_OBJECT) &&
+						     tokens[i].start != -1 &&
+						     tokens[i].end == -1) {
 								parser->toksuper = i;
 								break;
-							}
 						}
 					}
 #endif
