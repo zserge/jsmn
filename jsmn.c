@@ -183,7 +183,7 @@ int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
 				parser->toksuper = parser->toknext - 1;
 				break;
 			case '}': case ']':
-				if (tokens == NULL){
+				if (tokens == NULL) {
 					break;
 				}
 				type = (c == '}' ? JSMN_OBJECT : JSMN_ARRAY);
