@@ -1,8 +1,6 @@
 JSMN
 ====
 
-[![Build Status](https://travis-ci.org/zserge/jsmn.svg?branch=master)](https://travis-ci.org/zserge/jsmn)
-
 jsmn (pronounced like 'jasmine') is a minimalistic JSON parser in C.  It can be
 easily integrated into resource-limited or embedded projects.
 
@@ -81,7 +79,7 @@ Install
 
 To clone the repository you should have Git installed. Just run:
 
-	$ git clone https://github.com/zserge/jsmn
+	$ git clone https://github.com/schneidersoft/jsmn
 
 Repository layout is simple: jsmn.c and jsmn.h are library files, tests are in
 the jsmn\_test.c, you will also find README, LICENSE and Makefile files inside.
@@ -125,6 +123,9 @@ Token is an object of `jsmntok_t` type:
 **Note:** string tokens point to the first character after
 the opening quote and the previous symbol before final quote. This was made 
 to simplify string extraction from JSON data.
+You can use 'jsmn_string()' from jsmn_string.h to convert a JSMN_STRING token to
+a c string. This translates in place the escaped characters into their utf8 
+representations.
 
 All job is done by `jsmn_parser` object. You can initialize a new parser using:
 
@@ -143,21 +144,21 @@ the `js` string.
 
 A non-negative return value of `jsmn_parse` is the number of tokens actually
 used by the parser.
-Passing NULL instead of the tokens array would not store parsing results, but
-instead the function will return the value of tokens needed to parse the given
-string. This can be useful if you don't know yet how many tokens to allocate.
 
 If something goes wrong, you will get an error. Error will be one of these:
 
 * `JSMN_ERROR_INVAL` - bad token, JSON string is corrupted
 * `JSMN_ERROR_NOMEM` - not enough tokens, JSON string is too large
 * `JSMN_ERROR_PART` - JSON string is too short, expecting more JSON data
-* `JSMN_ERROR_LEN` - JSON string is too long (see note)
 
 If you get `JSMN_ERROR_NOMEM`, you can re-allocate more tokens and call
 `jsmn_parse` once more.  If you read json data from the stream, you can
 periodically call `jsmn_parse` and check if return value is `JSMN_ERROR_PART`.
-You will get this error until you reach the end of JSON data.
+You will get this error until you reach the end of a JSON object or array. jsmn
+will continue parsing where it left off from the previous call to `jsmn_parse`
+You can then use token[0].end to determine how much of the buffer was actually
+used. This allows you to build jrpc servers without any additional message
+framing.
 
 **Note:** The amount of input data jsmn can parse is limited by the size of 
 jsmnint_t. Currently typedefed as an unsigned int.
@@ -168,7 +169,7 @@ Thus follows max len = 2^(sizeof(jsmnint_t)*8) -1 for various int sizes:
 * 32bit ints - 4294967295
 * 64bit ints - ~1.8e19
 
-feed more data into `jsmn_parse` and you will get `JSMN_ERROR_LEN`.
+feed more data into `jsmn_parse` and you will get strange behaviour.
 
 Other info
 ----------

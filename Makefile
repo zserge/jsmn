@@ -1,12 +1,12 @@
 # You can put your build options here
 -include config.mk
 
-all: libjsmn.a 
+all: libjsmn.a
 
-libjsmn.a: jsmn.o
+libjsmn.a: jsmn.o jsmn_string.o
 	$(AR) rc $@ $^
 
-%.o: %.c jsmn.h
+%.o: %.c jsmn.h jsmin_string.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
 test: test_default test_strict test_links test_strict_links

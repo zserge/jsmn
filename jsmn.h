@@ -28,51 +28,51 @@ enum jsmnerr {
 	/* Invalid character inside JSON string */
 	JSMN_ERROR_INVAL = -2,
 	/* The string is not a full JSON packet, more bytes expected */
-	JSMN_ERROR_PART = -3,
-	/* Input data too long */
-	JSMN_ERROR_LEN = -4
+	JSMN_ERROR_PART = -3
 };
 
 typedef unsigned int jsmnint_t;
-#define JSMN_NEG ((jsmnint_t)-1)
+#define JSMN_NULL ((jsmnint_t)-1)
 
 /**
  * JSON token description.
  * type		type (object, array, string etc.)
  * start	start position in JSON data string
  * end		end position in JSON data string
+ * parent	index pr parent token
  */
 typedef struct {
 	jsmntype_t type;
 	jsmnint_t start;
 	jsmnint_t end;
-	jsmnint_t size;
-#ifdef JSMN_PARENT_LINKS
-	int parent;
-#endif
+	jsmnint_t parent;
 } jsmntok_t;
 
 /**
- * JSON parser. Contains an array of token blocks available. Also stores
- * the string being parsed now and current position in that string
+ * JSON parser.
+ * pos		offset in the JSON string
+ * toknext	next token to allocate
+ * toksuper	parent of item currently parsing eg: of an object or array
+ * flags	bitflags to aid in parseing
  */
 typedef struct {
-	jsmnint_t pos; /* offset in the JSON string */
-	unsigned int toknext; /* next token to allocate */
-	int toksuper; /* superior token node, e.g parent object or array */
+	jsmnint_t pos;
+	jsmnint_t toknext;
+	jsmnint_t toksuper;
+	char key;
 } jsmn_parser;
 
 /**
- * Create JSON parser over an array of tokens
+ * Initialize JSON parser
  */
 void jsmn_init(jsmn_parser *parser);
 
 /**
- * Run JSON parser. It parses a JSON data string into and array of tokens, each describing
- * a single JSON object.
+ * Run JSON parser. It parses a JSON data string into and array of tokens,
+ * each describing a single JSON object.
  */
-int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
-		jsmntok_t *tokens, unsigned int num_tokens);
+int jsmn_parse(jsmn_parser *parser, const char *js, jsmnint_t len,
+		jsmntok_t *tokens, jsmnint_t num_tokens);
 
 #ifdef __cplusplus
 }
