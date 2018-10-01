@@ -1,7 +1,7 @@
 #include "jsmn.h"
 
 /**
- * Allocates a fresh unused token from the token pull.
+ * Allocates a fresh unused token from the token pool.
  */
 static jsmntok_t *jsmn_alloc_token(jsmn_parser *parser,
 		jsmntok_t *tokens, size_t num_tokens) {
