@@ -39,5 +39,5 @@ clean:
 	rm -f simple_example
 	rm -f jsondump
 
-.PHONY: all clean test
+.PHONY: all clean test test_uncrustify
 
