@@ -24,6 +24,7 @@ test_strict_links: test/tests.c
 	./test/$@
 test_uncrustify:
 	uncrustify -c uncrustify.cfg --check jsmn.c
+	uncrustify -c uncrustify.cfg --check jsmn.h
 jsmn_test.o: jsmn_test.c libjsmn.a
 
 simple_example: example/simple.o libjsmn.a

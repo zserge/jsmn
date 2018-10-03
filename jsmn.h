@@ -9,10 +9,10 @@ extern "C" {
 
 /**
  * JSON type identifier. Basic types are:
- * 	o Object
- * 	o Array
- * 	o String
- * 	o Other primitive: number, boolean (true/false) or null
+ *      o Object
+ *      o Array
+ *      o String
+ *      o Other primitive: number, boolean (true/false) or null
  */
 typedef enum {
 	JSMN_UNDEFINED = 0,
@@ -67,7 +67,7 @@ void jsmn_init(jsmn_parser *parser);
  * each describing a single JSON object.
  */
 int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
-		jsmntok_t *tokens, const size_t num_tokens);
+               jsmntok_t *tokens, const size_t num_tokens);
 
 #ifdef __cplusplus
 }
