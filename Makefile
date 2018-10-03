@@ -23,8 +23,10 @@ test_strict_links: test/tests.c
 	$(CC) -DJSMN_STRICT=1 -DJSMN_PARENT_LINKS=1 $(CFLAGS) $(LDFLAGS) $< -o test/$@
 	./test/$@
 test_uncrustify:
-	uncrustify -c uncrustify.cfg --check jsmn.c
-	uncrustify -c uncrustify.cfg --check jsmn.h
+	uncrustify -c uncrustify.cfg jsmn.c
+	cmp -s jsmn.c jsmn.c.uncrustify || echo "Uncrustify jsmn.c FAIL" && echo "PASS"
+	uncrustify -c uncrustify.cfg jsmn.h
+	cmp -s jsmn.h jsmn.h.uncrustify || echo "Uncrustify jsmn.h FAIL" && echo "PASS"
 jsmn_test.o: jsmn_test.c libjsmn.a
 
 simple_example: example/simple.o libjsmn.a
