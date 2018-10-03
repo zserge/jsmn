@@ -24,9 +24,9 @@ test_strict_links: test/tests.c
 	./test/$@
 test_uncrustify:
 	uncrustify -c uncrustify.cfg jsmn.c
-	cmp -s jsmn.c jsmn.c.uncrustify || echo "Uncrustify jsmn.c FAIL" && echo "PASS"
+	cmp -s jsmn.c jsmn.c.uncrustify && echo "PASS"
 	uncrustify -c uncrustify.cfg jsmn.h
-	cmp -s jsmn.h jsmn.h.uncrustify || echo "Uncrustify jsmn.h FAIL" && echo "PASS"
+	cmp -s jsmn.h jsmn.h.uncrustify && echo "PASS"
 jsmn_test.o: jsmn_test.c libjsmn.a
 
 simple_example: example/simple.o libjsmn.a
@@ -36,10 +36,10 @@ jsondump: example/jsondump.o libjsmn.a
 	$(CC) $(LDFLAGS) $^ -o $@
 
 clean:
-	rm -f *.o example/*.o
-	rm -f *.a *.so
-	rm -f simple_example
-	rm -f jsondump
+	rm -f *.o example/*.o *.a *.so
+	rm -f test/test_*
+	rm -f simple_example jsondump
+	rm -f *.uncrustify
 
 .PHONY: all clean test test_uncrustify
 
