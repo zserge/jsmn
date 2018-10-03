@@ -1,6 +1,7 @@
 language: c
 sudo: false
 install:
+  - sudo apt-get update -qq
   - sudo apt-get install uncrustify -qq
 script:
   - make test
