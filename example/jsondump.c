@@ -27,6 +27,8 @@ static inline void *realloc_it(void *ptrmem, size_t size) {
 
 static int dump(const char *js, jsmntok_t *t, size_t count, int indent) {
 	int i, j, k;
+	jsmntok_t *key;
+
 	if (count == 0) {
 		return 0;
 	}
@@ -41,9 +43,12 @@ static int dump(const char *js, jsmntok_t *t, size_t count, int indent) {
 		j = 0;
 		for (i = 0; i < t->size; i++) {
 			for (k = 0; k < indent; k++) printf("  ");
-			j += dump(js, t+1+j, count-j, indent+1);
-			printf(": ");
-			j += dump(js, t+1+j, count-j, indent+1);
+			key = t+1+j;
+			j += dump(js, key, count-j, indent+1);
+			if(key->size > 0) {
+				printf(": ");
+				j += dump(js, t+1+j, count-j, indent+1);
+			}
 			printf("\n");
 		}
 		return j+1;
