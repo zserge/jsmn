@@ -7,7 +7,7 @@ libjsmn.a: jsmn.o
 	$(AR) rc $@ $^
 
 %.o: %.c jsmn.h
-	$(CXX) -std=c++11 -c $(CFLAGS) $< -o $@
+	$(CC) -std=c++11 -c $(CFLAGS) $< -o $@
 
 test: test_default test_strict test_links test_strict_links
 test_default: test/tests.c
