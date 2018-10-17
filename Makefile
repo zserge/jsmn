@@ -7,7 +7,10 @@ libjsmn.a: jsmn.o
 	$(AR) rc $@ $^
 
 %.o: %.c jsmn.h
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CXX) -std=c++11 -g -c $(CFLAGS) $< -o $@
+
+%.o: %.cpp jsmn.h
+	$(CXX) -g -std=c++11 -c $(CFLAGS) $< -o $@
 
 test: test_default test_strict test_links test_strict_links
 test_default: test/tests.c
@@ -30,6 +33,9 @@ simple_example: example/simple.o libjsmn.a
 
 jsondump: example/jsondump.o libjsmn.a
 	$(CC) $(LDFLAGS) $^ -o $@
+
+structure_access: example/structure_access.o libjsmn.a
+	$(CC) -g $(LDFLAGS) $^ -o $@
 
 clean:
 	rm -f *.o example/*.o

@@ -76,7 +76,7 @@ int main() {
 	jsmn_init(&p);
 
 	/* Allocate some tokens as a start */
-	tok = malloc(sizeof(*tok) * tokcount);
+	tok = (jsmntok_t *)malloc(sizeof(*tok) * tokcount);
 	if (tok == NULL) {
 		fprintf(stderr, "malloc(): errno=%d\n", errno);
 		return 3;
@@ -91,6 +91,8 @@ int main() {
 		}
 		if (r == 0) {
 			if (eof_expected != 0) {
+                                free(js);
+                                free(tok);
 				return 0;
 			} else {
 				fprintf(stderr, "fread(): unexpected EOF\n");
@@ -98,7 +100,7 @@ int main() {
 			}
 		}
 
-		js = realloc_it(js, jslen + r + 1);
+		js = (char *)realloc_it(js, jslen + r + 1);
 		if (js == NULL) {
 			return 3;
 		}
@@ -110,7 +112,7 @@ again:
 		if (r < 0) {
 			if (r == JSMN_ERROR_NOMEM) {
 				tokcount = tokcount * 2;
-				tok = realloc_it(tok, sizeof(*tok) * tokcount);
+				tok = (jsmntok_t *)realloc_it(tok, sizeof(*tok) * tokcount);
 				if (tok == NULL) {
 					return 3;
 				}
