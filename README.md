@@ -84,13 +84,17 @@ To clone the repository you should have Git installed. Just run:
 	$ git clone https://github.com/zserge/jsmn
 
 Repository layout is simple: jsmn.c and jsmn.h are library files, tests are in
-the jsmn\_test.c, you will also find README, LICENSE and Makefile files inside.
+test/tests.c; you will also find README, LICENSE and autotools build files
+inside.
 
-To build the library, run `make`. It is also recommended to run `make test`.
-Let me know, if some tests fail.
+To build the library, run `./configure && make`. It is also recommended to run
+`make test`. Let me know if any tests fail.
 
-If build was successful, you should get a `libjsmn.a` library.
+If build was successful, you should get a `libjsmn.a` and `libjsmn.so*`
+libraries in the `.libs` directory.
 The header file you should include is called `"jsmn.h"`.
+
+You can install the libraries to your system by running `make install`.
 
 API
 ---
