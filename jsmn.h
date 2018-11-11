@@ -31,6 +31,14 @@ enum jsmnerr {
 	JSMN_ERROR_PART = -3
 };
 
+#ifdef JSMN_SHORT_TOKENS
+typedef short jsmnindex_t;
+typedef unsigned char jsmnenumtype_t;
+#else
+typedef int jsmnindex_t;
+typedef jsmntype_t jsmnenumtype_t;
+#endif
+
 /**
  * JSON token description.
  * type		type (object, array, string etc.)
@@ -38,12 +46,12 @@ enum jsmnerr {
  * end		end position in JSON data string
  */
 typedef struct {
-	jsmntype_t type;
-	int start;
-	int end;
-	int size;
+	jsmnenumtype_t type;
+	jsmnindex_t start;
+	jsmnindex_t end;
+	jsmnindex_t size;
 #ifdef JSMN_PARENT_LINKS
-	int parent;
+	jsmnindex_t parent;
 #endif
 } jsmntok_t;
 
