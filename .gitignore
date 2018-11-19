@@ -1,0 +1,13 @@
+jsmndump_example
+jsmndump_strict_example
+jsondump_example
+jsondump_strict_example
+libjsmn.a
+libjsmn_strict.a
+simple_example
+simple_strict_example
+test/test_default
+test/test_links
+test/test_strict
+test/test_strict_links
+example/*.json
