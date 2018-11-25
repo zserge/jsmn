@@ -31,11 +31,15 @@ simple_example: example/simple.o libjsmn.a
 jsondump: example/jsondump.o libjsmn.a
 	$(CC) $(LDFLAGS) $^ -o $@
 
+json_sequence: example/json_sequence.o libjsmn.a
+	$(CC) $(LDFLAGS) $^ -o $@
+
 clean:
 	rm -f *.o example/*.o
 	rm -f *.a *.so
 	rm -f simple_example
 	rm -f jsondump
+	rm -f json_sequence
 
 .PHONY: all clean test
 

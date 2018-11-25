@@ -148,8 +148,8 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
 /**
  * Parse JSON string and fill tokens.
  */
-int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
-		jsmntok_t *tokens, unsigned int num_tokens) {
+static int jsmn_parse_full(jsmn_parser *parser, const char *js, size_t len,
+		jsmntok_t *tokens, unsigned int num_tokens, int parse_next) {
 	int r;
 	int i;
 	jsmntok_t *token;
@@ -227,15 +227,23 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 					}
 				}
 #endif
+				if (parse_next != 0 && parser->toksuper == -1)
+					len = parser->pos;
 				break;
 			case '\"':
 				r = jsmn_parse_string(parser, js, len, tokens, num_tokens);
 				if (r < 0) return r;
 				count++;
-				if (parser->toksuper != -1 && tokens != NULL)
-					tokens[parser->toksuper].size++;
+				if (parser->toksuper != -1) {
+					if (tokens != NULL)
+						tokens[parser->toksuper].size++;
+				} else if (parse_next != 0) {
+					len = parser->pos;
+				}
 				break;
 			case '\t' : case '\r' : case '\n' : case ' ':
+				if (parse_next != 0 && parser->toksuper == -1 && count > 0)
+					len = parser->pos;
 				break;
 			case ':':
 				parser->toksuper = parser->toknext - 1;
@@ -278,8 +286,12 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 				r = jsmn_parse_primitive(parser, js, len, tokens, num_tokens);
 				if (r < 0) return r;
 				count++;
-				if (parser->toksuper != -1 && tokens != NULL)
-					tokens[parser->toksuper].size++;
+				if (parser->toksuper != -1) {
+					if (tokens != NULL)
+						tokens[parser->toksuper].size++;
+				} else if (parse_next != 0) {
+					len = parser->pos;
+				}
 				break;
 
 #ifdef JSMN_STRICT
@@ -300,6 +312,21 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 	}
 
 	return count;
+}
+
+
+int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
+		jsmntok_t *tokens, unsigned int num_tokens) {
+	return jsmn_parse_full(parser, js, len, tokens, num_tokens, 0);
+}
+
+int jsmn_parse_next(jsmn_parser *parser, const char *js, size_t len,
+		jsmntok_t *tokens, unsigned int num_tokens) {
+	int r;
+	r = jsmn_parse_full(parser, js, len, tokens, num_tokens, 1);
+	if (r >= 0)
+		parser->toknext = 0;
+	return r;
 }
 
 /**
