@@ -385,6 +385,68 @@ int test_unmatched_brackets(void) {
 	return 0;
 }
 
+int test_json_sequence(void) {
+	const char *js;
+	js = " null\t\"2\"[\r][ 3 ]\r\n[ {\n}] [ 4, { } ]";
+	check(parse(js, 10, 10,
+				JSMN_PRIMITIVE, "null",
+				JSMN_STRING, "2", 0,
+				JSMN_ARRAY, 9, 12, 0,
+				JSMN_ARRAY, 12, 17, 1,
+				JSMN_PRIMITIVE, "3",
+				JSMN_ARRAY, 19, 25, 1,
+				JSMN_OBJECT, 21, 24, 0,
+				JSMN_ARRAY, 26, 36, 2,
+				JSMN_PRIMITIVE, "4",
+				JSMN_OBJECT, 31, 34, 0));
+	return 0;
+}
+
+int test_json_sequence_by_one(void) {
+	const char *js;
+	size_t js_len;
+	int r;
+	jsmn_parser p;
+	jsmntok_t tokens[3];
+
+	js = " null\t\"2\"[\r][ 3 ]\r\n[ {\n}] [ 4, { } ]";
+	js_len = strlen(js);
+
+	jsmn_init(&p);
+
+	r = jsmn_parse_next(&p, js, js_len, tokens, 3);
+	check(r == 1);
+	check(tokeq(js, tokens, r,
+				JSMN_PRIMITIVE, "null"));
+	r = jsmn_parse_next(&p, js, js_len, tokens, 3);
+	check(r == 1);
+	check(tokeq(js, tokens, r,
+				JSMN_STRING, "2", 0));
+	r = jsmn_parse_next(&p, js, js_len, tokens, 3);
+	check(r == 1);
+	check(tokeq(js, tokens, r,
+				JSMN_ARRAY, 9, 12, 0));
+	r = jsmn_parse_next(&p, js, js_len, tokens, 3);
+	check(r == 2);
+	check(tokeq(js, tokens, r,
+				JSMN_ARRAY, 12, 17, 1,
+				JSMN_PRIMITIVE, "3"));
+	r = jsmn_parse_next(&p, js, js_len, tokens, 3);
+	check(r == 2);
+	check(tokeq(js, tokens, r,
+				JSMN_ARRAY, 19, 25, 1,
+				JSMN_OBJECT, 21, 24, 0));
+	r = jsmn_parse_next(&p, js, js_len, tokens, 3);
+	check(r == 3);
+	check(tokeq(js, tokens, r,
+				JSMN_ARRAY, 26, 36, 2,
+				JSMN_PRIMITIVE, "4",
+				JSMN_OBJECT, 31, 34, 0));
+	r = jsmn_parse_next(&p, js, js_len, tokens, 3);
+	check(r == 0);
+	return 0;
+}
+
 int main(void) {
 	test(test_empty, "test for a empty JSON objects/arrays");
 	test(test_object, "test for a JSON objects");
@@ -402,6 +464,8 @@ int main(void) {
 	test(test_count, "test tokens count estimation");
 	test(test_nonstrict, "test for non-strict mode");
 	test(test_unmatched_brackets, "test for unmatched brackets");
+	test(test_json_sequence, "test for many JSONs in one string");
+	test(test_json_sequence_by_one, "test for many JSONs in one string by one");
 	printf("\nPASSED: %d\nFAILED: %d\n", test_passed, test_failed);
 	return (test_failed > 0);
 }
