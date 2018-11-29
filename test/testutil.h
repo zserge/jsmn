@@ -1,7 +1,7 @@
 #ifndef __TEST_UTIL_H__
 #define __TEST_UTIL_H__
 
-#include "../jsmn.c"
+#include "../jsmn.h"
 
 static int vtokeq(const char *s, jsmntok_t *t, int numtok, va_list ap) {
   if (numtok > 0) {
