@@ -76,21 +76,35 @@ object hierarchy.
 This approach provides enough information for parsing any JSON data and makes
 it possible to use zero-copy techniques.
 
-Install
--------
+Usage
+-----
 
-To clone the repository you should have Git installed. Just run:
+Download `jsmn.h`, include it, done.
 
-	$ git clone https://github.com/zserge/jsmn
+```
+#include "jsmn.h"
 
-Repository layout is simple: jsmn.c and jsmn.h are library files, tests are in
-the jsmn\_test.c, you will also find README, LICENSE and Makefile files inside.
+...
+jsmn_parser p;
+jsmntok_t t[128]; /* We expect no more than 128 JSON tokens */
 
-To build the library, run `make`. It is also recommended to run `make test`.
-Let me know, if some tests fail.
+jsmn_init(&p);
+r = jsmn_parse(&p, s, strlen(s), t, 128);
+```
 
-If build was successful, you should get a `libjsmn.a` library.
-The header file you should include is called `"jsmn.h"`.
+Since jsmn is a single-header, header-only library, for more complex use cases
+you might need to define additional macros. `#define JSMN_STATIC` hides all
+jsmn API symbols by making them static. Also, if you want to include `jsmn.h`
+from multiple C files, to avoid duplication of symbols you may define  `JSMN_HEADER` macro.
+
+```
+/* In every .c file that uses jsmn include only declarations: */
+#define JSMN_HEADER
+#include "jsmn.h"
+
+/* Additionally, create one jsmn.c file for jsmn implementation: */
+#include "jsmn.h"
+```
 
 API
 ---
