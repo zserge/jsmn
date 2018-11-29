@@ -1,7 +1,7 @@
 # You can put your build options here
--include config.mk
-
 all: libjsmn.a 
+
+-include config.mk
 
 libjsmn.a: jsmn.o
 	$(AR) rc $@ $^
