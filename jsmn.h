@@ -21,8 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef __JSMN_H_
-#define __JSMN_H_
+#ifndef JSMN_H
+#define JSMN_H
 
 #include <stddef.h>
 
@@ -97,4 +97,4 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 }
 #endif
 
-#endif /* __JSMN_H_ */
+#endif /* JSMN_H */
