@@ -3,9 +3,11 @@
 
 #include "../jsmn.h"
 
-static int vtokeq(const char *s, jsmntok_t *t, int numtok, va_list ap) {
+static int vtokeq(const char *s, jsmntok_t *t, unsigned long numtok,
+                  va_list ap) {
   if (numtok > 0) {
-    int i, start, end, size;
+    unsigned long i;
+    int start, end, size;
     int type;
     char *value;
 
@@ -27,29 +29,29 @@ static int vtokeq(const char *s, jsmntok_t *t, int numtok, va_list ap) {
         value = NULL;
       }
       if (t[i].type != type) {
-        printf("token %d type is %d, not %d\n", i, t[i].type, type);
+        printf("token %lu type is %d, not %d\n", i, t[i].type, type);
         return 0;
       }
       if (start != -1 && end != -1) {
         if (t[i].start != start) {
-          printf("token %d start is %d, not %d\n", i, t[i].start, start);
+          printf("token %lu start is %d, not %d\n", i, t[i].start, start);
           return 0;
         }
         if (t[i].end != end) {
-          printf("token %d end is %d, not %d\n", i, t[i].end, end);
+          printf("token %lu end is %d, not %d\n", i, t[i].end, end);
           return 0;
         }
       }
       if (size != -1 && t[i].size != size) {
-        printf("token %d size is %d, not %d\n", i, t[i].size, size);
+        printf("token %lu size is %d, not %d\n", i, t[i].size, size);
         return 0;
       }
 
       if (s != NULL && value != NULL) {
         const char *p = s + t[i].start;
-        if (strlen(value) != t[i].end - t[i].start ||
+        if (strlen(value) != (unsigned long)(t[i].end - t[i].start) ||
             strncmp(p, value, t[i].end - t[i].start) != 0) {
-          printf("token %d value is %.*s, not %s\n", i, t[i].end - t[i].start,
+          printf("token %lu value is %.*s, not %s\n", i, t[i].end - t[i].start,
                  s + t[i].start, value);
           return 0;
         }

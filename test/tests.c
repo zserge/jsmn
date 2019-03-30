@@ -97,8 +97,8 @@ int test_string(void) {
 }
 
 int test_partial_string(void) {
-  int i;
   int r;
+  unsigned long i;
   jsmn_parser p;
   jsmntok_t tok[5];
   const char *js = "{\"x\": \"va\\\\ue\", \"y\": \"value y\"}";
@@ -121,7 +121,7 @@ int test_partial_string(void) {
 int test_partial_array(void) {
 #ifdef JSMN_STRICT
   int r;
-  int i;
+  unsigned long i;
   jsmn_parser p;
   jsmntok_t tok[10];
   const char *js = "[ 1, true, [123, \"hello\"]]";
@@ -291,7 +291,7 @@ int test_nonstrict(void) {
               JSMN_PRIMITIVE, "Month", JSMN_PRIMITIVE, "Sep", JSMN_PRIMITIVE,
               "Year", JSMN_PRIMITIVE, "12"));
 
-  // nested {s don't cause a parse error.
+  /* nested {s don't cause a parse error. */
   js = "\"key {1\": 1234";
   check(parse(js, 2, 2, JSMN_STRING, "key {1", 1, JSMN_PRIMITIVE, "1234"));
 
