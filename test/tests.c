@@ -340,7 +340,7 @@ int test_root(void) {
 	const char *js;
 	js = "\"hello\"";
 	check(parse(js, 1, 1,
-				JSMN_STRING, "hello"));
+				JSMN_STRING, "hello", 0));
 	js = "null";
 	check(parse(js, 1, 1,
 				JSMN_PRIMITIVE, "null"));
