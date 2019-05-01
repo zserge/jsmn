@@ -459,6 +459,113 @@ JSMN_API void jsmn_init(jsmn_parser *parser) {
   parser->toksuper = -1;
 }
 
+/**
+ * Get the size (in tokens) consumed by token and its children.
+ */
+JSMN_API size_t jsmn_get_total_size(jsmntok_t *token) {
+  unsigned int i, j;
+  jsmntok_t   *key;
+
+  if (token->type == JSMN_PRIMITIVE) {
+    return 1;
+  } else if (token->type == JSMN_STRING) {
+    return 1;
+  } else if (token->type == JSMN_OBJECT) {
+    j = 0;
+    for (i = 0; i < token->size; i++) {
+      key = token + 1 + j;
+      j += jsmn_get_total_size(key);
+      if (key->size > 0) {
+        j += jsmn_get_total_size(token + 1 + j);
+      }
+    }
+    return j + 1;
+  } else if (token->type == JSMN_ARRAY) {
+    j = 0;
+    for (i = 0; i < token->size; i++) {
+      j += jsmn_get_total_size(token + 1 + j);
+    }
+    return j + 1;
+  }
+  return 0;
+}
+
+/**
+ * Get token with a given key.
+ * The object (JSMN_OBJECT) to look within is set by input parameter 'token'.
+ */
+JSMN_API jsmntok_t *jsmn_get_token_by_key(const char *js, jsmntok_t *token,
+                                          const char *key) {
+  unsigned int  i;
+  int           res = -1;
+  size_t        key_len = 0;
+  const char   *tmp_key = key;
+  size_t        total_size;
+
+  if (token->type != JSMN_OBJECT)
+    return NULL;
+
+  total_size = jsmn_get_total_size(token);
+
+  while (*tmp_key != '\0' && tmp_key++) {
+    ;
+  }
+  key_len = tmp_key - key;
+
+  for (i = 1; i < total_size; i++) {
+    int j;
+    int len = token[i].end - token[i].start;
+    int match = 1;
+
+    if (len == key_len) {
+      for (j = 0; j < len; ++j) {
+        if (js[token[i].start + j] != key[j]) {
+          match = 0;
+          break;
+        }
+      }
+    } else {
+      match = 0;
+    }
+
+    if (match == 1) {
+      res = i;
+      break;
+    }
+
+    i += jsmn_get_total_size(&token[i + 1]);
+  }
+
+  if (res == -1)
+    return NULL;
+  return &token[res];
+}
+
+/**
+ * Get token with a given index inside the array defined by 'token' parameter.
+ */
+JSMN_API jsmntok_t *jsmn_get_token_by_index(jsmntok_t   *token,
+                                            unsigned int index) {
+  int         i;
+  int         res = -1;
+  int         total_size;
+
+  if (token->type != JSMN_ARRAY)
+    return NULL;
+
+  total_size = jsmn_get_total_size(token);
+  for (i = 1; i < total_size; i++) {
+    if (index == 0) {
+      return &token[i];
+    }
+
+    i += jsmn_get_total_size(&token[i]) - 1;
+    --index;
+  }
+
+  return NULL;
+}
+
 #endif /* JSMN_HEADER */
 
 #ifdef __cplusplus
