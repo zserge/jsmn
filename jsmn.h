@@ -99,6 +99,23 @@ JSMN_API void jsmn_init(jsmn_parser *parser);
 JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
                         jsmntok_t *tokens, const unsigned int num_tokens);
 
+/**
+ * Get the size (in tokens) consumed by token and its children.
+ */
+JSMN_API size_t jsmn_get_total_size(jsmntok_t *token);
+/**
+ * Get token with a given key.
+ * The object (JSMN_OBJECT) to look within is set by input parameter 'token'.
+ */
+JSMN_API jsmntok_t *jsmn_get_token_by_key(const char *js, jsmntok_t *token,
+                                          const char *key);
+
+/**
+ * Get token with a given index inside the array defined by 'token' parameter.
+ */
+JSMN_API jsmntok_t *jsmn_get_token_by_index(jsmntok_t   *token,
+                                            unsigned int index);
+
 #ifndef JSMN_HEADER
 /**
  * Allocates a fresh unused token from the token pool.
