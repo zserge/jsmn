@@ -1,0 +1,6 @@
+option('with_example', type : 'boolean', value : 'false', description: 'Enable jsmn example projects.')
+option('with_tests', type : 'boolean', value : 'false', description: 'Enable jsmn unit test.')
+
+
+
+
