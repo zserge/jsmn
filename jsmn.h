@@ -113,7 +113,7 @@ JSMN_API jsmntok_t *jsmn_get_token_by_key(const char *js, jsmntok_t *token,
 /**
  * Get token with a given index inside the array defined by 'token' parameter.
  */
-JSMN_API jsmntok_t *jsmn_get_token_by_index(jsmntok_t   *token,
+JSMN_API jsmntok_t *jsmn_get_token_by_index(jsmntok_t *token,
                                             unsigned int index);
 
 #ifndef JSMN_HEADER
@@ -481,12 +481,13 @@ JSMN_API void jsmn_init(jsmn_parser *parser) {
  */
 JSMN_API size_t jsmn_get_total_size(jsmntok_t *token) {
   unsigned int i, j;
-  jsmntok_t   *key;
+  jsmntok_t *key;
+  int result = 0;
 
   if (token->type == JSMN_PRIMITIVE) {
-    return 1;
+    result = 1;
   } else if (token->type == JSMN_STRING) {
-    return 1;
+    result = 1;
   } else if (token->type == JSMN_OBJECT) {
     j = 0;
     for (i = 0; i < token->size; i++) {
@@ -496,15 +497,16 @@ JSMN_API size_t jsmn_get_total_size(jsmntok_t *token) {
         j += jsmn_get_total_size(token + 1 + j);
       }
     }
-    return j + 1;
+    result = j + 1;
   } else if (token->type == JSMN_ARRAY) {
     j = 0;
     for (i = 0; i < token->size; i++) {
       j += jsmn_get_total_size(token + 1 + j);
     }
-    return j + 1;
+    result = j + 1;
   }
-  return 0;
+
+  return result;
 }
 
 /**
@@ -513,14 +515,15 @@ JSMN_API size_t jsmn_get_total_size(jsmntok_t *token) {
  */
 JSMN_API jsmntok_t *jsmn_get_token_by_key(const char *js, jsmntok_t *token,
                                           const char *key) {
-  unsigned int  i;
-  int           res = -1;
-  size_t        key_len = 0;
-  const char   *tmp_key = key;
-  size_t        total_size;
+  unsigned int i;
+  int res = -1;
+  size_t key_len = 0;
+  const char *tmp_key = key;
+  size_t total_size;
 
-  if (token->type != JSMN_OBJECT)
+  if (token->type != JSMN_OBJECT) {
     return NULL;
+  }
 
   total_size = jsmn_get_total_size(token);
 
@@ -553,22 +556,25 @@ JSMN_API jsmntok_t *jsmn_get_token_by_key(const char *js, jsmntok_t *token,
     i += jsmn_get_total_size(&token[i + 1]);
   }
 
-  if (res == -1)
+  if (res == -1) {
     return NULL;
+  }
+
   return &token[res];
 }
 
 /**
  * Get token with a given index inside the array defined by 'token' parameter.
  */
-JSMN_API jsmntok_t *jsmn_get_token_by_index(jsmntok_t   *token,
+JSMN_API jsmntok_t *jsmn_get_token_by_index(jsmntok_t *token,
                                             unsigned int index) {
-  int         i;
-  int         res = -1;
-  int         total_size;
+  int i;
+  int res = -1;
+  int total_size;
 
-  if (token->type != JSMN_ARRAY)
+  if (token->type != JSMN_ARRAY) {
     return NULL;
+  }
 
   total_size = jsmn_get_total_size(token);
   for (i = 1; i < total_size; i++) {

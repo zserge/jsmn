@@ -339,8 +339,8 @@ int test_object_key(void) {
 int test_get_total_size(void) {
   jsmn_parser p;
   const char *js;
-  jsmntok_t   tok[128];
-  int         ret;
+  jsmntok_t tok[128];
+  int ret;
 
   js = "{}";
   jsmn_init(&p);
@@ -405,8 +405,8 @@ int test_get_total_size(void) {
 int test_get_by_key(void) {
   jsmn_parser p;
   const char *js;
-  jsmntok_t   tok[128];
-  int         ret;
+  jsmntok_t tok[128];
+  int ret;
 
   /* No element found in case there is only a top element */
   js = "{}";
@@ -478,12 +478,11 @@ int test_get_by_key(void) {
   return 0;
 }
 
-
 int test_get_by_index(void) {
   jsmn_parser p;
   const char *js;
-  jsmntok_t   tok[128];
-  int         ret;
+  jsmntok_t tok[128];
+  int ret;
 
   /* Object handling */
   js = "{}";
@@ -534,8 +533,6 @@ int test_get_by_index(void) {
 
   return 0;
 }
-
-
 
 int main(void) {
   test(test_empty, "test for a empty JSON objects/arrays");
