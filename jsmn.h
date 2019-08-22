@@ -203,8 +203,13 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
   for (; parser->pos < len && js[parser->pos] != '\0'; parser->pos++) {
     char c = js[parser->pos];
 
-    /* Quote: end of string */
+#ifdef JSMN_STRICT
+    /* In strict mode string must end with quotation mark */
     if (c == '\"') {
+#else
+    /* Quote or unescaped newline: end of string */
+    if (c == '\"' || c == '\n') {
+#endif
       if (tokens == NULL) {
         return 0;
       }
