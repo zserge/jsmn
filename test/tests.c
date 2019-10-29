@@ -6,6 +6,8 @@
 #include "test.h"
 #include "testutil.h"
 
+#include "../jsmn_extra.h"
+
 int test_empty(void) {
   check(parse("{}", 1, 1, JSMN_OBJECT, 0, 2, 0));
   check(parse("[]", 1, 1, JSMN_ARRAY, 0, 2, 0));
@@ -336,6 +338,58 @@ int test_object_key(void) {
   return 0;
 }
 
+struct foreach_in_compound_ctx {
+  int should_be[5];
+  int index;
+  int error;
+};
+
+int foreach_in_compound_cb(const char *js, jsmntok_t *tokens,
+                           int key_token_index, void *ctx) {
+  struct foreach_in_compound_ctx *ctx_ptr = ctx;
+  if (ctx_ptr->should_be[ctx_ptr->index] != key_token_index) {
+    ctx_ptr->error = 1;
+    return 1;
+  } else {
+    ctx_ptr->error = 0;
+  }
+  ctx_ptr->index++;
+  return 0;
+}
+
+#define NUM_TOKS (20)
+
+int test_foreach_in_compound(void) {
+  const char *js;
+  js = "{\"1\": 2, \"3\":{\"5\":6}, \"7\":[9, 10, 11], \"12\":13}";
+  jsmn_parser p;
+  jsmntok_t tokens[NUM_TOKS];
+  jsmn_init(&p);
+  int num_parsed_tokens = jsmn_parse(&p, js, strlen(js), tokens, NUM_TOKS);
+  if (num_parsed_tokens < 0)
+    return num_parsed_tokens;
+  struct foreach_in_compound_ctx ctx = {0};
+  ctx.error = 1;
+  int should_be_for_object[] = {1, 3, 7, 12};
+  memcpy(&ctx.should_be, &should_be_for_object, sizeof(int) * 4);
+  jsmn_foreach_in_compound(js, tokens, num_parsed_tokens, 0,
+                           foreach_in_compound_cb, &ctx);
+  if (ctx.error)
+    return ctx.error;
+
+  js = "[1, 2, {\"4\":5}, [7, 8], 9]";
+  jsmn_init(&p);
+  num_parsed_tokens = jsmn_parse(&p, js, strlen(js), tokens, NUM_TOKS);
+  if (num_parsed_tokens < 0) return num_parsed_tokens;
+  ctx.error = 1;
+  ctx.index = 0;
+  int should_be_for_array[] = {1, 2, 3, 6, 9};
+  memcpy(&ctx.should_be, &should_be_for_array, sizeof(int) * 5);
+  jsmn_foreach_in_compound(js, tokens, num_parsed_tokens, 0,
+                           foreach_in_compound_cb, &ctx);
+  return ctx.error;
+}
+
 int main(void) {
   test(test_empty, "test for a empty JSON objects/arrays");
   test(test_object, "test for a JSON objects");
@@ -354,6 +408,7 @@ int main(void) {
   test(test_nonstrict, "test for non-strict mode");
   test(test_unmatched_brackets, "test for unmatched brackets");
   test(test_object_key, "test for key type");
+  test(test_foreach_in_compound, "test foreach_in_compound failed");
   printf("\nPASSED: %d\nFAILED: %d\n", test_passed, test_failed);
   return (test_failed > 0);
 }
