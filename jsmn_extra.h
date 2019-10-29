@@ -1,7 +1,7 @@
 
 #include "jsmn.h"
 
-//call a function for each key in an object
+//call a function for each key in an object or value in an array
 //if the callback function returns a value other than 0 then the rest of the 
 JSMN_API void jsmn_foreach_in_compound(const char *js, 
                                        jsmntok_t *tokens, 
@@ -22,21 +22,20 @@ JSMN_API void jsmn_foreach_in_compound(const char *js,
     int value_token_index = key_token_index;
     if (is_object) value_token_index++;
     while (key_token_index < num_tokens) {
-        if (tokens[key_token_index].start > tokens[compound_token_index].end) //current token is past end of object
+        if (tokens[key_token_index].start > tokens[compound_token_index].end)
             break;
         if (cb(js, tokens, key_token_index, ctx) != 0)
             return;
         if (tokens[value_token_index].type == JSMN_OBJECT
             || tokens[value_token_index].type == JSMN_ARRAY) {
-            //skip keys in sub object and sub array
             int value_token_end = tokens[value_token_index].end;
             int i = key_token_index;
             while (i < num_tokens) {
-                if (tokens[i].start > value_token_end) //tokens[i] is outside of value
+                if (tokens[i].start > value_token_end)
                     break;
                 i++;
             }
-            if (i == num_tokens) //end of parsed tokens
+            if (i == num_tokens)
                 break;
             else {
                 key_token_index = i;
