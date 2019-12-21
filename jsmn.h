@@ -163,11 +163,14 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
       return JSMN_ERROR_INVAL;
     }
   }
-#ifdef JSMN_STRICT
-  /* In strict mode primitive must be followed by a comma/object/array */
-  parser->pos = start;
-  return JSMN_ERROR_PART;
+#ifndef JSMN_STRICT
+  if( parser->toksuper != -1)  // if we are "inside" we may not be done yet
 #endif
+  /* In strict mode primitive must be followed by a comma/object/array */
+  {
+     parser->pos = start;
+     return JSMN_ERROR_PART;
+  }
 
 found:
   if (tokens == NULL) {
