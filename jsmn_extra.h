@@ -3,6 +3,7 @@
 
 //call a function for each key in an object or value in an array
 //if the callback function returns a value other than 0 then the rest of the 
+//values are skipped
 JSMN_API void jsmn_foreach_in_compound(const char *js, 
                                        jsmntok_t *tokens, 
                                        int num_tokens, 
