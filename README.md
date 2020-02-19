@@ -158,7 +158,7 @@ the `js` string.
 A non-negative return value of `jsmn_parse` is the number of tokens actually
 used by the parser.
 Passing NULL instead of the tokens array would not store parsing results, but
-instead the function will return the value of tokens needed to parse the given
+instead the function will return the number of tokens needed to parse the given
 string. This can be useful if you don't know yet how many tokens to allocate.
 
 If something goes wrong, you will get an error. Error will be one of these:
