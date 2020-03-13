@@ -8,13 +8,13 @@ static int vtokeq(const char *s, jsmntok_t *t, unsigned long numtok,
   if (numtok > 0) {
     unsigned long i;
     int start, end, size;
-    int type;
+    jsmntype_t type;
     char *value;
 
     size = -1;
     value = NULL;
     for (i = 0; i < numtok; i++) {
-      type = va_arg(ap, int);
+      type = va_arg(ap, jsmntype_t);
       if (type == JSMN_STRING) {
         value = va_arg(ap, char *);
         size = va_arg(ap, int);
@@ -61,7 +61,7 @@ static int vtokeq(const char *s, jsmntok_t *t, unsigned long numtok,
   return 1;
 }
 
-static int tokeq(const char *s, jsmntok_t *tokens, int numtok, ...) {
+static int tokeq(const char *s, jsmntok_t *tokens, unsigned long numtok, ...) {
   int ok;
   va_list args;
   va_start(args, numtok);
@@ -70,7 +70,7 @@ static int tokeq(const char *s, jsmntok_t *tokens, int numtok, ...) {
   return ok;
 }
 
-static int parse(const char *s, int status, int numtok, ...) {
+static int parse(const char *s, int status, unsigned long numtok, ...) {
   int r;
   int ok = 1;
   va_list args;
