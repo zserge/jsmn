@@ -8,13 +8,13 @@ static int vtokeq(const char *s, jsmntok_t *t, unsigned long numtok,
   if (numtok > 0) {
     unsigned long i;
     int start, end, size;
-    int type;
+    jsmntype_t type;
     char *value;
 
     size = -1;
     value = NULL;
     for (i = 0; i < numtok; i++) {
-      type = va_arg(ap, int);
+      type = va_arg(ap, jsmntype_t);
       if (type == JSMN_STRING) {
         value = va_arg(ap, char *);
         size = va_arg(ap, int);
