@@ -61,7 +61,7 @@ static int vtokeq(const char *s, jsmntok_t *t, unsigned long numtok,
   return 1;
 }
 
-static int tokeq(const char *s, jsmntok_t *tokens, int numtok, ...) {
+static int tokeq(const char *s, jsmntok_t *tokens, unsigned long numtok, ...) {
   int ok;
   va_list args;
   va_start(args, numtok);
@@ -70,7 +70,7 @@ static int tokeq(const char *s, jsmntok_t *tokens, int numtok, ...) {
   return ok;
 }
 
-static int parse(const char *s, int status, int numtok, ...) {
+static int parse(const char *s, int status, unsigned long numtok, ...) {
   int r;
   int ok = 1;
   va_list args;
