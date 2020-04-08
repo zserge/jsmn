@@ -1,3 +1,5 @@
+ /* Fixed variable scope warning by Ercan Ersoy. */
+
 #ifndef __TEST_UTIL_H__
 #define __TEST_UTIL_H__
 
@@ -73,7 +75,6 @@ static int tokeq(const char *s, jsmntok_t *tokens, unsigned long numtok, ...) {
 static int parse(const char *s, int status, unsigned long numtok, ...) {
   int r;
   int ok = 1;
-  va_list args;
   jsmn_parser p;
   jsmntok_t *t = malloc(numtok * sizeof(jsmntok_t));
 
@@ -85,6 +86,7 @@ static int parse(const char *s, int status, unsigned long numtok, ...) {
   }
 
   if (status >= 0) {
+    va_list args;
     va_start(args, numtok);
     ok = vtokeq(s, t, numtok, args);
     va_end(args);
