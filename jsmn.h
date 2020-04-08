@@ -446,7 +446,7 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
   }
 
   if (tokens != NULL) {
-    for (i = parser->toknext - 1; i >= 0; i--) {
+    for (int i = parser->toknext - 1; i >= 0; i--) {
       /* Unmatched opened object or array */
       if (tokens[i].start != -1 && tokens[i].end == -1) {
         return JSMN_ERROR_PART;
