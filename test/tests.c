@@ -1,3 +1,5 @@
+ /* Fixed variable scope warnings by Ercan Ersoy. */
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -97,7 +99,6 @@ int test_string(void) {
 }
 
 int test_partial_string(void) {
-  int r;
   unsigned long i;
   jsmn_parser p;
   jsmntok_t tok[5];
@@ -105,7 +106,7 @@ int test_partial_string(void) {
 
   jsmn_init(&p);
   for (i = 1; i <= strlen(js); i++) {
-    r = jsmn_parse(&p, js, i, tok, sizeof(tok) / sizeof(tok[0]));
+    int r = jsmn_parse(&p, js, i, tok, sizeof(tok) / sizeof(tok[0]));
     if (i == strlen(js)) {
       check(r == 5);
       check(tokeq(js, tok, 5, JSMN_OBJECT, -1, -1, 2, JSMN_STRING, "x", 1,
@@ -120,7 +121,6 @@ int test_partial_string(void) {
 
 int test_partial_array(void) {
 #ifdef JSMN_STRICT
-  int r;
   unsigned long i;
   jsmn_parser p;
   jsmntok_t tok[10];
@@ -128,7 +128,7 @@ int test_partial_array(void) {
 
   jsmn_init(&p);
   for (i = 1; i <= strlen(js); i++) {
-    r = jsmn_parse(&p, js, i, tok, sizeof(tok) / sizeof(tok[0]));
+    int r = jsmn_parse(&p, js, i, tok, sizeof(tok) / sizeof(tok[0]));
     if (i == strlen(js)) {
       check(r == 6);
       check(tokeq(js, tok, 6, JSMN_ARRAY, -1, -1, 3, JSMN_PRIMITIVE, "1",
@@ -144,7 +144,6 @@ int test_partial_array(void) {
 
 int test_array_nomem(void) {
   int i;
-  int r;
   jsmn_parser p;
   jsmntok_t toksmall[10], toklarge[10];
   const char *js;
@@ -155,7 +154,7 @@ int test_array_nomem(void) {
     jsmn_init(&p);
     memset(toksmall, 0, sizeof(toksmall));
     memset(toklarge, 0, sizeof(toklarge));
-    r = jsmn_parse(&p, js, strlen(js), toksmall, i);
+    int r = jsmn_parse(&p, js, strlen(js), toksmall, i);
     check(r == JSMN_ERROR_NOMEM);
 
     memcpy(toklarge, toksmall, sizeof(toksmall));
