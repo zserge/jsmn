@@ -11,7 +11,7 @@ You can find more information about JSON format at [json.org][1]
 Library sources are available at https://github.com/zserge/jsmn
 
 The web page with some information about jsmn can be found at
-[http://zserge.com/jsmn.html][2]
+[https://zserge.com/jsmn.html][2]
 
 Philosophy
 ----------
@@ -175,8 +175,8 @@ You will get this error until you reach the end of JSON data.
 Other info
 ----------
 
-This software is distributed under [MIT license](http://www.opensource.org/licenses/mit-license.php),
+This software is distributed under [MIT license](https://www.opensource.org/licenses/mit-license.php),
  so feel free to integrate it in your commercial products.
 
-[1]: http://www.json.org/
-[2]: http://zserge.com/jsmn.html
+[1]: https://www.json.org/
+[2]: https://zserge.com/jsmn.html
