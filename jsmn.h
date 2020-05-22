@@ -407,15 +407,20 @@ container_close:
         return r;
       }
       count++;
+      if (tokens == NULL) {
+        if (depth == 0) {
+          return count;
+        } else {
+          break;
+        }
+      }
       if (parser->toksuper == -1) {
         return count;
-      } else if (tokens != NULL) {
-        if (parser->state & 0x1) {
-          return JSMN_ERROR_INVAL;
-        }
-        parser->state++;
-        tokens[parser->toksuper].size++;
+      } else if (parser->state & 0x1) {
+        return JSMN_ERROR_INVAL;
       }
+      parser->state++;
+      tokens[parser->toksuper].size++;
       break;
     case '\t':
     case '\r':
@@ -475,19 +480,24 @@ container_close:
         return r;
       }
       count++;
+      if (tokens == NULL) {
+        if (depth == 0) {
+          return count;
+        } else {
+          break;
+        }
+      }
       if (parser->toksuper == -1) {
         return count;
-      } else if (tokens != NULL) {
 #ifdef JSMN_STRICT
-        if (parser->state & 0x3) {
+      } else if (parser->state & 0x3) {
 #else
-        if (parser->state & 0x1) {
+      } else if (parser->state & 0x1) {
 #endif
-          return JSMN_ERROR_INVAL;
-        }
-        parser->state++;
-        tokens[parser->toksuper].size++;
+        return JSMN_ERROR_INVAL;
       }
+      parser->state++;
+      tokens[parser->toksuper].size++;
       break;
 #ifdef JSMN_STRICT
     /* Unexpected char in strict mode */
