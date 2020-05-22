@@ -98,7 +98,7 @@ typedef enum {
   JSMN_STATE_OBJ_KEY = 0x12,      /* Expecting object key */
   JSMN_STATE_OBJ_COLON = 0x13,    /* Expecting object colon */
   JSMN_STATE_OBJ_VAL = 0x10,      /* Expecting object value */
-  JSMN_STATE_OBJ_COMMA = 0x11     /* Expecting object comma or } */
+  JSMN_STATE_OBJ_COMMA = 0x11,    /* Expecting object comma or } */
   JSMN_STATE_ARRAY_ITEM = 0x20,   /* Expecting array item */
   JSMN_STATE_ARRAY_COMMA = 0x21,  /* Expecting array comma or ] */
 } jsmnstate_t;
@@ -369,7 +369,7 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
           return count;
         }
         break;
-      } else if (jsmn->state != JSMN_STATE_OBJ_COMMA) {
+      } else if (parser->state != JSMN_STATE_OBJ_COMMA) {
         return JSMN_ERROR_INVAL;
       }
       goto container_close;
@@ -380,7 +380,7 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
           return count;
         }
         break;
-      } else if (jsmn->state != JSMN_STATE_ARRAY_COMMA) {
+      } else if (parser->state != JSMN_STATE_ARRAY_COMMA) {
         return JSMN_ERROR_INVAL;
       }
 container_close:
@@ -399,7 +399,7 @@ container_close:
       if (parser->toksuper == -1) {
         return count;
       } else {
-        jsmn->state = tokens[parser->toksuper].type << 4 & 0x1;
+        parser->state = tokens[parser->toksuper].type << 4 & 0x1;
       }
     case '\"':
       r = jsmn_parse_string(parser, js, len, tokens, num_tokens);
@@ -408,7 +408,7 @@ container_close:
       }
       count++;
       if (tokens == NULL) {
-        if (depth == 0) {
+        if (parser->depth == 0) {
           return count;
         } else {
           break;
@@ -481,7 +481,7 @@ container_close:
       }
       count++;
       if (tokens == NULL) {
-        if (depth == 0) {
+        if (parser->depth == 0) {
           return count;
         } else {
           break;
