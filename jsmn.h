@@ -1,4 +1,4 @@
-/* vim: set expandtab ts=8 sts=2 sw=2
+/* vim: set expandtab ts=8 sts=2 sw=2:
  *
  * MIT License
  *
@@ -46,10 +46,8 @@ extern "C" {
  */
 typedef enum {
   JSMN_UNDEFINED = 0,
-  JSMN_OBJECT = 1,  /* MUST remain same as (JSON_STATE_OBJ_COMMA >> 4) or
-                     * code will break! */
-  JSMN_ARRAY = 2,   /* MUST remain same as (JSON_STATE_ARRAY_COMMA >> 4) or
-                     * code will break! */
+  JSMN_OBJECT = 1,
+  JSMN_ARRAY = 2,
   JSMN_STRING = 3,
   JSMN_PRIMITIVE = 4
 } jsmntype_t;
@@ -82,25 +80,26 @@ typedef struct jsmntok {
 /**
  * JSON parser state. Describes what kind of token or character is expected
  * next. In addition:
- * (state & 0x1 == 0)   if a string is currently allowed (or primitive in
- *                      non-strict mode)
- * (state & 0x3 == 0)   if an object or array is currently allowed
- * (state & 0x3 == 1)   if a comma is currently allowed
- * (state & 0x30 != 0)  if currently in a container
- * (state & 0x10 != 0)  if currently in an object
- * (state & 0x20 != 0)  if currently in an array
- *
- * toksuper == -1 is equivalent to state == JSMN_STATE_ROOT but works when
- *   tokens == NULL
+ * (state & 0x1) == 0       if a string is currently allowed (or primitive in
+ *                          non-strict mode)
+ * (state & 0x3) == 0       if an object or array is currently allowed
+ * (state & 0x3) == 1       if a comma is currently allowed
+ * (state & 0x30) != 0      if currently in a container
+ * (state & 0x10) != 0      if currently in an object
+ * (state & 0x20) != 0      if currently in an array
+ * (state & 0x14) == 0x14   if an array can be closed
+ * (state & 0x24) == 0x24   if an object can be closed
  */
 typedef enum {
   JSMN_STATE_ROOT = 0x0,          /* At root */
+  JSMN_STATE_OBJ_NEW = 0x16,      /* Expecting object key or } */
   JSMN_STATE_OBJ_KEY = 0x12,      /* Expecting object key */
   JSMN_STATE_OBJ_COLON = 0x13,    /* Expecting object colon */
   JSMN_STATE_OBJ_VAL = 0x10,      /* Expecting object value */
-  JSMN_STATE_OBJ_COMMA = 0x11,    /* Expecting object comma or } */
+  JSMN_STATE_OBJ_COMMA = 0x15,    /* Expecting object comma or } */
+  JSMN_STATE_ARRAY_NEW = 0x24,    /* Expecting array item or ] */
   JSMN_STATE_ARRAY_ITEM = 0x20,   /* Expecting array item */
-  JSMN_STATE_ARRAY_COMMA = 0x21,  /* Expecting array comma or ] */
+  JSMN_STATE_ARRAY_COMMA = 0x25,  /* Expecting array comma or ] */
 } jsmnstate_t;
 
 /**
@@ -140,7 +139,6 @@ static jsmntok_t *jsmn_alloc_token(jsmn_parser *parser, jsmntok_t *tokens,
     return NULL;
   }
   tok = &tokens[parser->toknext++];
-  tok->start = 0;
   tok->end = 0;
   tok->size = 0;
 #ifdef JSMN_PARENT_LINKS
@@ -179,6 +177,7 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
     case '\n':
     case ' ':
     case ',':
+    case '"':
     case ']':
     case '}':
       goto found;
@@ -205,11 +204,8 @@ found:
       return JSMN_ERROR_NOMEM;
     }
     jsmn_fill_token(token, JSMN_PRIMITIVE, start, parser->pos);
-#ifdef JSMN_PARENT_LINKS
-    token->parent = parser->toksuper;
-#endif
+    parser->pos--;
   }
-  parser->pos--;
   return 0;
 }
 
@@ -240,9 +236,6 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
         return JSMN_ERROR_NOMEM;
       }
       jsmn_fill_token(token, JSMN_STRING, start + 1, parser->pos);
-#ifdef JSMN_PARENT_LINKS
-      token->parent = parser->toksuper;
-#endif
       return 0;
     }
 
@@ -292,7 +285,7 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
  * If in the middle of a primitive, add the rest of it to the current primitive
  * token
  */
-static int jsmn_complete_primitive(jsmn_parser *parser, const char *js,
+static int jsmn_finish_primitive(jsmn_parser *parser, const char *js,
                                    const size_t len, jsmntok_t *tokens,
                                    const size_t num_tokens) {
   unsigned int pos = parser->pos;
@@ -321,7 +314,7 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
   jsmntok_t *token;
   int count = parser->toknext;
 
-  r = jsmn_complete_primitive(parser, js, len, tokens, num_tokens);
+  r = jsmn_finish_primitive(parser, js, len, tokens, num_tokens);
   if (r < 0) {
     return r;
   }
@@ -346,21 +339,21 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
       if (token == NULL) {
         return JSMN_ERROR_NOMEM;
       }
-      if (parser->state & 0x10) {
+      if (parser->toksuper != -1) {
         tokens[parser->toksuper].size++;
 #ifdef JSMN_PARENT_LINKS
         token->parent = parser->toksuper;
 #endif
       }
+      parser->toksuper = parser->toknext - 1;
+      token->start = parser->pos;
       if (c == '{') {
         token->type = JSMN_OBJECT;
-        parser->state = JSMN_STATE_OBJ_KEY;
+        parser->state = JSMN_STATE_OBJ_NEW;
       } else {
         token->type = JSMN_ARRAY;
-        parser->state = JSMN_STATE_ARRAY_ITEM;
+        parser->state = JSMN_STATE_ARRAY_NEW;
       }
-      token->start = parser->pos;
-      parser->toksuper = parser->toknext - 1;
       break;
     case '}':
       if (tokens == NULL) {
@@ -369,8 +362,20 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
           return count;
         }
         break;
-      } else if (parser->state != JSMN_STATE_OBJ_COMMA) {
+      } else if ((parser->state & 0x14) != 0x14) {
         return JSMN_ERROR_INVAL;
+      }
+      if (parser->state & 0x1) {
+#ifdef JSMN_PARENT_LINKS
+        parser->toksuper = tokens[parser->toksuper].parent;
+#else
+        for (i = parser->toksuper - 1; i >= 0; i--) {
+          if (tokens[i].end == 0) {
+            break;
+          }
+        }
+        parser->toksuper = i;
+#endif
       }
       goto container_close;
     case ']':
@@ -380,7 +385,7 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
           return count;
         }
         break;
-      } else if (parser->state != JSMN_STATE_ARRAY_COMMA) {
+      } else if ((parser->state & 0x24) != 0x24) {
         return JSMN_ERROR_INVAL;
       }
 container_close:
@@ -389,24 +394,30 @@ container_close:
 #ifdef JSMN_PARENT_LINKS
       parser->toksuper = token->parent;
 #else
-      for (i = parser->toksuper - 1; i >= 0; i--) {
-        if (tokens[i].end == 0) {
-          break;
+      if (parser->toksuper - 1 == -1 || token[-1].size > 0) {
+        parser->toksuper--;
+      } else {
+        for (i = parser->toksuper - 2; i >= 0; i--) {
+          if (tokens[i].end == 0) {
+            break;
+          }
         }
+        parser->toksuper = i;
       }
-      parser->toksuper = i;
 #endif
       if (parser->toksuper == -1) {
         return count;
       } else {
-        parser->state = tokens[parser->toksuper].type << 4 & 0x1;
+        parser->state = (tokens[parser->toksuper].type == JSMN_ARRAY) ?
+                        JSMN_STATE_ARRAY_COMMA : JSMN_STATE_OBJ_COMMA;
       }
+      break;
     case '\"':
+      count++;
       r = jsmn_parse_string(parser, js, len, tokens, num_tokens);
       if (r < 0) {
         return r;
       }
-      count++;
       if (tokens == NULL) {
         if (parser->depth == 0) {
           return count;
@@ -419,8 +430,15 @@ container_close:
       } else if (parser->state & 0x1) {
         return JSMN_ERROR_INVAL;
       }
-      parser->state++;
       tokens[parser->toksuper].size++;
+#ifdef JSMN_PARENT_LINKS
+      tokens[parser->toknext - 1].parent = parser->toksuper;
+#endif
+      if ((parser->state & 0x3) == 0x2) {
+        parser->state = JSMN_STATE_OBJ_COLON;
+      } else {
+        parser->state |= 0x5;
+      }
       break;
     case '\t':
     case '\r':
@@ -439,22 +457,19 @@ container_close:
     case ',':
       if (tokens == NULL) {
         break;
-      } else if (parser->state & 0x3 != 1) {
+      } else if (parser->state == JSMN_STATE_OBJ_COMMA) {
+#ifdef JSMN_PARENT_LINKS
+        parser->toksuper = tokens[parser->toksuper].parent;
+#else
+        for (i = parser->toksuper - 1; tokens[i].end != 0; i--);
+        parser->toksuper = i;
+#endif
+        parser->state = JSMN_STATE_OBJ_KEY;
+      } else if (parser->state == JSMN_STATE_ARRAY_COMMA) {
+        parser->state = JSMN_STATE_ARRAY_ITEM;
+      } else {
         return JSMN_ERROR_INVAL;
       }
-#ifdef JSMN_PARENT_LINKS
-      parser->toksuper = tokens[parser->toksuper].parent;
-#else
-      for (i = parser->toksuper - 1; i >= 0; i--) {
-        if (tokens[i].end == 0) {
-          type = tokens[i].type;
-          break;
-        }
-      }
-      parser->toksuper = i;
-#endif
-      parser->state =
-        (type == JSMN_OBJECT) ? JSMN_STATE_OBJ_KEY : JSMN_STATE_ARRAY_ITEM;
       break;
 #ifdef JSMN_STRICT
     /* In strict mode primitives are: numbers and booleans */
@@ -475,11 +490,11 @@ container_close:
 #else
     default:
 #endif
+      count++;
       r = jsmn_parse_primitive(parser, js, len, tokens, num_tokens, 0);
       if (r < 0) {
         return r;
       }
-      count++;
       if (tokens == NULL) {
         if (parser->depth == 0) {
           return count;
@@ -496,8 +511,19 @@ container_close:
 #endif
         return JSMN_ERROR_INVAL;
       }
-      parser->state++;
       tokens[parser->toksuper].size++;
+#ifdef JSMN_PARENT_LINKS
+      tokens[parser->toknext - 1].parent = parser->toksuper;
+#endif
+#ifdef JSMN_STRICT
+      parser->state |= 0x5;
+#else
+      if ((parser->state & 0x3) == 0x2) {
+        parser->state = JSMN_STATE_OBJ_COLON;
+      } else {
+        parser->state |= 0x5;
+      }
+#endif
       break;
 #ifdef JSMN_STRICT
     /* Unexpected char in strict mode */
