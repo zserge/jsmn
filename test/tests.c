@@ -125,7 +125,6 @@ int test_partial_string(void) {
 }
 
 int test_partial_array(void) {
-#ifdef JSMN_STRICT
   int r;
   unsigned long i;
   jsmn_parser p;
@@ -144,7 +143,6 @@ int test_partial_array(void) {
       check(r == JSMN_ERROR_PART);
     }
   }
-#endif
   return 0;
 }
 
