@@ -429,6 +429,7 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
     if (c == '\\' && parser->pos + 1 < len) {
       int i;
       parser->pos++;
+#ifndef JSMN_STRICT
       switch (js[parser->pos]) {
       /* Allowed escaped symbols */
       case '\"':
@@ -461,7 +462,16 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
         parser->pos = start;
         return JSMN_ERROR_INVAL;
       }
+#endif
     }
+
+#ifdef JSMN_STRICT
+    /* No control characters allowed in strict mode */
+    if (c >= 0 && c < 32) {
+      parser->pos = start;
+      return JSMN_ERROR_INVAL;
+    }
+#endif
   }
   parser->pos = start;
   return JSMN_ERROR_PART;
