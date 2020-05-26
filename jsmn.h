@@ -159,28 +159,198 @@ static void jsmn_fill_token(jsmntok_t *token, const jsmntype_t type,
   token->end = end;
 }
 
+#ifdef JSMN_STRICT
+static char true_str[] = "true";
+static char false_str[] = "false";
+static char null_str[] = "null";
+
+typedef enum {
+  JSMN_NUM_INT_START,
+  JSMN_NUM_INT_HAVE_SIGN,
+  JSMN_NUM_INT_ZERO,
+  JSMN_NUM_INT,
+  JSMN_NUM_FRAC_START,
+  JSMN_NUM_FRAC,
+  JSMN_NUM_EXP_START,
+  JSMN_NUM_EXP_HAVE_SIGN,
+  JSMN_NUM_EXP
+} jsmn_numberstate;
+#endif
+
 /**
  * If extend is false, fills next available token with JSON primitive. If
  * extend is true, complete the primitive that the parser is in the middle of.
+ * If extend is false, it is assumed that the current char is a valid start of
+ * a primitive.
  */
 static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
                                 const size_t len, jsmntok_t *tokens,
                                 const size_t num_tokens, int extend) {
   jsmntok_t *token;
   int start;
-
+#ifdef JSMN_STRICT
+  int i;
+  if (extend) {
+    parser->pos = tokens[parser->toknext - 1].start;
+  }
+#endif
   start = parser->pos;
 
+#ifdef JSMN_STRICT
+  if (js[parser->pos] == 't') {
+    for (i = 1;
+         i < strlen(true_str);
+         i++) {
+      if (parser->pos + i >= len || js[parser->pos + i] == '\0') {
+        return JSMN_ERROR_PART;
+      } else if (js[parser->pos + i] != true_str[i]) {
+        return JSMN_ERROR_INVAL;
+      }
+    }
+    parser->pos += 4;
+  } else if (js[parser->pos] == 'f') {
+    for (i = 1;
+         i < strlen(false_str);
+         i++) {
+      if (parser->pos + i >= len || js[parser->pos + i] == '\0') {
+        return JSMN_ERROR_PART;
+      } else if (js[parser->pos + i] != false_str[i]) {
+        return JSMN_ERROR_INVAL;
+      }
+    }
+    parser->pos += 5;
+  } else if (js[parser->pos] == 'n') {
+    for (i = 1;
+         i < strlen(null_str);
+         i++) {
+      if (parser->pos + i >= len || js[parser->pos + i] == '\0') {
+        return JSMN_ERROR_PART;
+      } else if (js[parser->pos + i] != null_str[i]) {
+        return JSMN_ERROR_INVAL;
+      }
+    }
+    parser->pos += 4;
+  } else {
+    jsmn_numberstate numstate = JSMN_NUMBER_MINUS;
+    for (; parser->pos < len && js[parser->pos] != '\0'; parser->pos++) {
+      switch (js[parser->pos]) {
+      case '-':
+        if (numstate == JSMN_NUM_INT_START ||
+            numstate == JSMN_NUM_EXP_START) {
+          numstate++;
+        } else {
+          return JSMN_ERROR_INVAL;
+        }
+        break;
+      case '0':
+        if (numstate == JSMN_NUM_INT_START ||
+            numstate == JSMN_NUM_INT_HAVE_SIGN) {
+          numstate = JSMN_NUM_INT_ZERO;
+        } else if (numstate == JSMN_NUM_INT) {
+          numstate = JSMN_NUM_INT;
+        } else if (numstate == JSMN_NUM_FRAC ||
+                   numstate == JSMN_NUM_FRAC_START) {
+          numstate = JSMN_NUM_FRAC;
+        } else if (numstate == JSMN_NUM_EXP ||
+                   numstate == JSMN_NUM_EXP_START ||
+                   numstate == JSMN_NUM_EXP_HAVE_SIGN) {
+          numstate = JSMN_NUM_EXP;
+        } else {
+          return JSMN_ERROR_INVAL;
+        }
+        break;
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+        if (numstate == JSMN_NUM_INT ||
+            numstate == JSMN_NUM_INT_START ||
+            numstate == JSMN_NUM_INT_HAVE_SIGN) {
+          numstate = JSMN_NUM_INT;
+        } else if (numstate == JSMN_NUM_FRAC ||
+                   numstate == JSMN_NUM_FRAC_START) {
+          numstate = JSMN_NUM_FRAC;
+        } else if (numstate == JSMN_NUM_EXP ||
+                   numstate == JSMN_NUM_EXP_START ||
+                   numstate == JSMN_NUM_EXP_HAVE_SIGN) {
+          numstate = JSMN_NUM_EXP;
+        } else {
+          return JSMN_ERROR_INVAL;
+        }
+        break;
+      case '+':
+        if (numstate == JSMN_NUM_EXP_START) {
+          numstate++;
+        } else {
+          return JSMN_ERROR_INVAL;
+        }
+        break;
+      case 'e':
+      case 'E':
+        if (numstate == JSMN_NUM_INT_ZERO ||
+            numstate == JSMN_NUM_INT ||
+            numstate == JSMN_NUM_FRAC) {
+          numstate = JSMN_NUM_EXP_START;
+        } else {
+          return JSMN_ERROR_INVAL;
+        }
+        break;
+      case '.':
+        if (numstate == JSMN_NUM_INT_ZERO ||
+            numstate == JSMN_NUM_INT) {
+          numstate = JSMN_NUM_FRAC_START;
+        } else {
+          return JSMN_ERROR_INVAL;
+        }
+        break;
+      default:
+        goto check_number_complete;
+      }
+    }
+check_number_complete:
+    if (numstate != JSMN_NUM_INT &&
+        numstate != JSMN_NUM_INT_ZERO &&
+        numstate != JSMN_NUM_FRAC &&
+        numstate != JSMN_NUM_EXP) {
+      return JSMN_ERROR_INVAL;
+    }
+  }
+
+  /* Verify that what comes after the primitive is a non-primitive character */
+  switch (js[parser->pos]) {
+  case '\t':
+  case '\r':
+  case '\n':
+  case ' ':
+  case ',':
+  case ':':
+  case '"':
+  case '[':
+  case ']':
+  case '{':
+  case '}':
+    break;
+  default:
+    return JSMN_ERROR_INVAL;
+  }
+#else
   for (; parser->pos < len && js[parser->pos] != '\0'; parser->pos++) {
     switch (js[parser->pos]) {
-    case ':':
     case '\t':
     case '\r':
     case '\n':
     case ' ':
     case ',':
+    case ':':
     case '"':
+    case '[':
     case ']':
+    case '{':
     case '}':
       goto found;
     default:       /* to quiet a warning from gcc*/
@@ -191,6 +361,7 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
       return JSMN_ERROR_INVAL;
     }
   }
+#endif
 
 found:
   if (tokens == NULL) {
