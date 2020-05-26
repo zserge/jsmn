@@ -306,15 +306,15 @@ int test_nonstrict(void) {
 
 int test_unmatched_brackets(void) {
   const char *js;
-  /* js = "\"key 1\": 1234}";
-  check(parse(js, JSMN_ERROR_INVAL, 2)); */
+  js = "\"key 1\": 1234}";
+  check(parse(js, JSMN_ERROR_INVAL, 2));
   js = "{\"key 1\": 1234";
   check(parse(js, JSMN_ERROR_PART, 3));
-  /*
+  
   js = "{\"key 1\": 1234}}";
   check(parse(js, JSMN_ERROR_INVAL, 3));
   js = "\"key 1\"}: 1234";
-  check(parse(js, JSMN_ERROR_INVAL, 3));*/
+  check(parse(js, JSMN_ERROR_INVAL, 3));
   js = "{\"key {1\": 1234}";
   check(parse(js, 3, 3, JSMN_OBJECT, 0, 16, 1, JSMN_STRING, "key {1", 1,
               JSMN_PRIMITIVE, "1234"));
@@ -355,7 +355,7 @@ int main(void) {
   test(test_unquoted_keys, "test unquoted keys (like in JavaScript)");
   test(test_input_length, "test strings that are not null-terminated");
   test(test_issue_22, "test issue #22");
-  /* test(test_issue_27, "test issue #27"); */
+  test(test_issue_27, "test issue #27");
   test(test_count, "test tokens count estimation");
   /* test(test_nonstrict, "test for non-strict mode"); */
   test(test_unmatched_brackets, "test for unmatched brackets");
