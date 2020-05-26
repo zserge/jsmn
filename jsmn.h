@@ -111,8 +111,6 @@ typedef struct jsmn_parser {
   unsigned int toknext; /* next token to allocate */
   int toksuper;         /* superior token node, e.g. parent object or array */
   int state;            /* parser state, from jsmnstate_t */
-  unsigned int depth;   /* nesting depth of arrays and objects (used only when
-                         * tokens is NULL) */
   int tokbefore;        /* token immediately preceding the first token in the
                            current JSON object */
 } jsmn_parser;
@@ -485,6 +483,7 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
   int i;
 #endif
   jsmntok_t *token;
+  int depth = 0; /* Obj/array nesting depth. Used only when tokens == NULL */
   int count = parser->toknext;
 
   r = jsmn_finish_primitive(parser, js, len, tokens, num_tokens);
@@ -501,7 +500,7 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
     case '[':
       count++;
       if (tokens == NULL) {
-        parser->depth++;
+        depth++;
         break;
       }
       if (parser->state & 0x3) {
@@ -529,7 +528,7 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
       break;
     case '}':
       if (tokens == NULL) {
-        parser->depth--;
+        depth--;
         break;
       } else if ((parser->state & 0x14) != 0x14) {
         return JSMN_ERROR_INVAL;
@@ -549,7 +548,7 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
       goto container_close;
     case ']':
       if (tokens == NULL) {
-        parser->depth--;
+        depth--;
         break;
       } else if ((parser->state & 0x24) != 0x24) {
         return JSMN_ERROR_INVAL;
@@ -699,7 +698,7 @@ container_close:
     }
   }
 
-  if (parser->depth == 0 && parser->state == JSMN_STATE_ROOT) {
+  if (depth == 0 && parser->state == JSMN_STATE_ROOT) {
     return count;
   } else {
     return JSMN_ERROR_PART;
@@ -715,7 +714,6 @@ JSMN_API void jsmn_init(jsmn_parser *parser) {
   parser->toknext = 0;
   parser->toksuper = -1;
   parser->state = JSMN_STATE_ROOT;
-  parser->depth = 0;
   parser->tokbefore = -1;
 }
 
