@@ -37,6 +37,24 @@ extern "C" {
 #define JSMN_API extern
 #endif
 
+#ifndef JSMN_LOW_MEMORY
+#ifndef JSMN_PARENT_LINKS
+#define JSMN_PARENT_LINKS
+#endif
+#endif
+
+#ifdef JSMN_NON_STRICT
+#ifndef
+#define JSMN_PERMISSIVE_PRIMITIVES
+#endif
+#ifndef
+#define JSMN_PERMISSIVE_STRINGS
+#endif
+#ifndef
+#define JSMN_PRIMITIVE_KEYS
+#endif
+#endif
+
 /**
  * JSON type identifier. Basic types are:
  * 	o Object
@@ -168,7 +186,7 @@ static void jsmn_fill_token(jsmntok_t *token, const jsmntype_t type,
   token->end = end;
 }
 
-#ifdef JSMN_STRICT
+#ifndef JSMN_PERMISSIVE_PRIMITIVES
 static const char true_str[] = "true";
 static const char false_str[] = "false";
 static const char null_str[] = "null";
@@ -197,7 +215,7 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
                                 const size_t num_tokens, int extend) {
   jsmntok_t *token;
   int start;
-#ifdef JSMN_STRICT
+#ifndef JSMN_PERMISSIVE_PRIMITIVES
   int i;
   if (extend) {
     parser->pos = tokens[parser->toknext - 1].start;
@@ -205,7 +223,7 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
 #endif
   start = parser->pos;
 
-#ifdef JSMN_STRICT
+#ifndef JSMN_PERMISSIVE_PRIMITIVES
   if (js[parser->pos] == 't') {
     for (i = 1;
          i < sizeof(true_str) - 1;
@@ -440,7 +458,7 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
     if (c == '\\' && parser->pos + 1 < len) {
       int i;
       parser->pos++;
-#ifdef JSMN_STRICT
+#ifndef JSMN_PERMISSIVE_STRINGS
       switch (js[parser->pos]) {
       /* Allowed escaped symbols */
       case '\"':
@@ -476,7 +494,7 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
 #endif
     }
 
-#ifdef JSMN_STRICT
+#ifndef JSMN_PERMISSIVE_STRINGS
     /* No control characters allowed in strict mode */
     if (c >= 0 && c < 32) {
       parser->pos = start;
@@ -675,7 +693,7 @@ container_close:
         return JSMN_ERROR_INVAL;
       }
       break;
-#ifdef JSMN_STRICT
+#ifndef JSMN_PERMISSIVE_PRIMITIVES
     /* In strict mode primitives are: numbers and booleans */
     case '-':
     case '0':
@@ -707,10 +725,10 @@ container_close:
         parser->toksuper = parser->toknext - 1;
         parser->state = JSMN_STATE_ROOT;
         break;
-#ifdef JSMN_STRICT
-      } else if (parser->state & (JSMN_DELIMITER | JSMN_KEY)) {
-#else
+#ifdef JSMN_PRIMITIVE_KEYS
       } else if (parser->state & JSMN_DELIMITER) {
+#else
+      } else if (parser->state & (JSMN_DELIMITER | JSMN_KEY)) {
 #endif
         return JSMN_ERROR_INVAL;
       }
@@ -718,17 +736,17 @@ container_close:
 #ifdef JSMN_PARENT_LINKS
       tokens[parser->toknext - 1].parent = parser->toksuper;
 #endif
-#ifdef JSMN_STRICT
-      parser->state |= JSMN_DELIMITER | JSMN_CAN_CLOSE;
-#else
+#ifdef JSMN_PRIMITIVE_KEYS
       if (parser->state & JSMN_KEY) {
         parser->state = JSMN_STATE_OBJ_COLON;
       } else {
         parser->state |= JSMN_DELIMITER | JSMN_CAN_CLOSE;
       }
+#else
+      parser->state |= JSMN_DELIMITER | JSMN_CAN_CLOSE;
 #endif
       break;
-#ifdef JSMN_STRICT
+#ifndef JSMN_PERMISSIVE_PRIMITIVES
     /* Unexpected char in strict mode */
     default:
       return JSMN_ERROR_INVAL;
