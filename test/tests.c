@@ -73,8 +73,54 @@ int test_primitive(void) {
               JSMN_STRING, "nullVar", 1, JSMN_PRIMITIVE, "null"));
   check(parse("{\"intVar\" : 12}", 3, 3, JSMN_OBJECT, -1, -1, 1, JSMN_STRING,
               "intVar", 1, JSMN_PRIMITIVE, "12"));
+  check(parse("{\"intVar\" : 0}", 3, 3, JSMN_OBJECT, -1, -1, 1, JSMN_STRING,
+              "intVar", 1, JSMN_PRIMITIVE, "0"));
   check(parse("{\"floatVar\" : 12.345}", 3, 3, JSMN_OBJECT, -1, -1, 1,
               JSMN_STRING, "floatVar", 1, JSMN_PRIMITIVE, "12.345"));
+  check(parse("{\"floatVar\" : -12.345}", 3, 3, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "floatVar", 1, JSMN_PRIMITIVE, "-12.345"));
+  check(parse("{\"floatVar\" : 0.345}", 3, 3, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "floatVar", 1, JSMN_PRIMITIVE, "0.345"));
+  check(parse("{\"floatVar\" : 12.345e6}", 3, 3, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "floatVar", 1, JSMN_PRIMITIVE, "12.345e6"));
+  check(parse("{\"floatVar\" : 12.345E+6}", 3, 3, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "floatVar", 1, JSMN_PRIMITIVE, "12.345E+6"));
+  check(parse("{\"floatVar\" : 12e+6}", 3, 3, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "floatVar", 1, JSMN_PRIMITIVE, "12e+6"));
+
+#ifdef JSMN_STRICT
+  check(parse("{\"boolVar\" : tru }", JSMN_ERROR_INVAL, 3));
+  check(parse("{\"boolVar\" : falsee }", JSMN_ERROR_INVAL, 3));
+  check(parse("{\"nullVar\" : nulm }", JSMN_ERROR_INVAL, 3));
+  check(parse("{\"intVar\" : 01}", JSMN_ERROR_INVAL, 3));
+  check(parse("{\"floatVar\" : .345}", JSMN_ERROR_INVAL, 3));
+  check(parse("{\"floatVar\" : -}", JSMN_ERROR_INVAL, 3));
+  check(parse("{\"floatVar\" : 12.}", JSMN_ERROR_INVAL, 3));
+  check(parse("{\"floatVar\" : 12.}", JSMN_ERROR_INVAL, 3));
+  check(parse("{\"floatVar\" : +12}", JSMN_ERROR_INVAL, 3));
+  check(parse("{\"floatVar\" : 12.345e-}", JSMN_ERROR_INVAL, 3));
+#else
+  check(parse("{\"boolVar\" : tru }", 3, 3, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "boolVar", 1, JSMN_PRIMITIVE, "tru"));
+  check(parse("{\"boolVar\" : falsee }", 3, 3, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "boolVar", 1, JSMN_PRIMITIVE, "falsee"));
+  check(parse("{\"nullVar\" : nulm }", 3, 3, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "nullVar", 1, JSMN_PRIMITIVE, "nulm"));
+  check(parse("{\"intVar\" : 01}", 3, 3, JSMN_OBJECT, -1, -1, 1, JSMN_STRING,
+              "intVar", 1, JSMN_PRIMITIVE, "01"));
+  check(parse("{\"floatVar\" : .345}", 3, 3, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "floatVar", 1, JSMN_PRIMITIVE, ".345"));
+  check(parse("{\"floatVar\" : -}", 3, 3, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "floatVar", 1, JSMN_PRIMITIVE, "-"));
+  check(parse("{\"floatVar\" : 12.}", 3, 3, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "floatVar", 1, JSMN_PRIMITIVE, "12."));
+  check(parse("{\"floatVar\" : 12.}", 3, 3, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "floatVar", 1, JSMN_PRIMITIVE, "12."));
+  check(parse("{\"floatVar\" : +12}", 3, 3, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "floatVar", 1, JSMN_PRIMITIVE, "+12"));
+  check(parse("{\"floatVar\" : 12.345e-}", 3, 3, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "floatVar", 1, JSMN_PRIMITIVE, "12.345e-"));
+#endif
   return 0;
 }
 
@@ -95,10 +141,26 @@ int test_string(void) {
   check(parse("{\"a\":[\"\\u0280\"]}", 4, 4, JSMN_OBJECT, -1, -1, 1,
               JSMN_STRING, "a", 1, JSMN_ARRAY, -1, -1, 1, JSMN_STRING,
               "\\u0280", 0));
+  /* \xc2\xa9 is the copyright symbol in UTF-8 */
+  check(parse("{\"a\":\"str\xc2\xa9\"}", 3, 3, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "a", 1, JSMN_STRING, "str\xc2\xa9", 0));
 
+#ifdef JSMN_STRICT
+  check(parse("{\"a\":\"str\nstr\"}", JSMN_ERROR_INVAL, 3));
   check(parse("{\"a\":\"str\\uFFGFstr\"}", JSMN_ERROR_INVAL, 3));
   check(parse("{\"a\":\"str\\u@FfF\"}", JSMN_ERROR_INVAL, 3));
-  check(parse("{{\"a\":[\"\\u028\"]}", JSMN_ERROR_INVAL, 4));
+  check(parse("{\"a\":[\"\\u028\"]}", JSMN_ERROR_INVAL, 4));
+#else
+  check(parse("{\"a\":\"str\nstr\"}", 3, 3, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "a", 1, JSMN_STRING, "str\nstr", 0));
+  check(parse("{\"a\":\"str\\uFFGFstr\"}", 3, 3, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "a", 1, JSMN_STRING, "str\\uFFGFstr", 0));
+  check(parse("{\"a\":\"str\\u@FfF\"}", 3, 3, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "a", 1, JSMN_STRING, "str\\u@FfF", 0));
+  check(parse("{\"a\":[\"\\u028\"]}", 4, 4, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "a", 1, JSMN_ARRAY, -1, -1, 1,
+              JSMN_STRING, "\\u028", 0));
+#endif
   return 0;
 }
 
@@ -215,13 +277,6 @@ int test_issue_22(void) {
   return 0;
 }
 
-int test_issue_27(void) {
-  const char *js =
-      "{ \"name\" : \"Jack\", \"age\" : 27 } { \"name\" : \"Anna\", ";
-  check(parse(js, JSMN_ERROR_PART, 8));
-  return 0;
-}
-
 int test_input_length(void) {
   const char *js;
   int r;
@@ -285,9 +340,64 @@ int test_count(void) {
   return 0;
 }
 
-int test_nonstrict(void) {
-#ifndef JSMN_STRICT
+int test_unenclosed(void) {
   const char *js;
+  js = "1234";
+  check(parse(js, 1, 1, JSMN_PRIMITIVE, "1234"));
+
+  js = "false";
+  check(parse(js, 1, 1, JSMN_PRIMITIVE, "false"));
+ 
+  js = "0garbage";
+#ifdef JSMN_STRICT
+  check(parse(js, JSMN_ERROR_INVAL, 1));
+#else
+  check(parse(js, 1, 1, JSMN_PRIMITIVE, "0garbage"));
+#endif
+
+  js = "\"0garbage\"";
+  check(parse(js, 1, 1, JSMN_STRING, "0garbage", 0));
+
+  js = "\"0garbage";
+  check(parse(js, JSMN_ERROR_PART, 1));
+
+  js = "1234\"0garbage\"";
+  check(parse(js, 2, 2, JSMN_PRIMITIVE, "1234", JSMN_STRING, "0garbage", 0));
+
+  js = "\"0garbage\"1234";
+  check(parse(js, 2, 2, JSMN_STRING, "0garbage", 0, JSMN_PRIMITIVE, "1234"));
+
+  js = " 1234";
+  check(parse(js, 1, 1, JSMN_PRIMITIVE, "1234"));
+
+  js = "1234 ";
+  check(parse(js, 1, 1, JSMN_PRIMITIVE, "1234"));
+
+  js = " 1234 ";
+  check(parse(js, 1, 1, JSMN_PRIMITIVE, "1234"));
+
+#ifdef JSMN_STRICT
+  js = "fal";
+  check(parse(js, JSMN_ERROR_PART, 1));
+ 
+  js = "fal ";
+  check(parse(js, JSMN_ERROR_INVAL, 1));
+#else
+  js = "fal";
+  check(parse(js, 1, 1, JSMN_PRIMITIVE, "fal"));
+ 
+  js = "fal ";
+  check(parse(js, 1, 1, JSMN_PRIMITIVE, "fal "));
+#endif
+ 
+  js = "\"a\": 0";
+  check(parse(js, JSMN_ERROR_INVAL, 2));
+
+  js = "\"a\", 0";
+  check(parse(js, JSMN_ERROR_INVAL, 2));
+
+  /* XXX No longer valid after RFC 8259 fixes
+#ifndef JSMN_STRICT
   js = "a: 0garbage";
   check(parse(js, 2, 2, JSMN_PRIMITIVE, "a", JSMN_PRIMITIVE, "0garbage"));
 
@@ -295,12 +405,14 @@ int test_nonstrict(void) {
   check(parse(js, 6, 6, JSMN_PRIMITIVE, "Day", JSMN_PRIMITIVE, "26",
               JSMN_PRIMITIVE, "Month", JSMN_PRIMITIVE, "Sep", JSMN_PRIMITIVE,
               "Year", JSMN_PRIMITIVE, "12"));
+  */
 
   /* nested {s don't cause a parse error. */
+  /* XXX No longer valid after RFC 8259 fixes
   js = "\"key {1\": 1234";
   check(parse(js, 2, 2, JSMN_STRING, "key {1", 1, JSMN_PRIMITIVE, "1234"));
-
 #endif
+  */
   return 0;
 }
 
@@ -342,6 +454,31 @@ int test_object_key(void) {
   return 0;
 }
 
+int test_multiple_objects(void) {
+  const char *js;
+  js = "true {\"def\": 123}";
+  check(parse(js, 4, 4, JSMN_PRIMITIVE, "true", JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "def", 1, JSMN_PRIMITIVE, "123"));
+
+  js = "{\"def\": 123} true";
+  check(parse(js, 4, 4, JSMN_OBJECT, -1, -1, 1, JSMN_STRING, "def", 1,
+              JSMN_PRIMITIVE, "123", JSMN_PRIMITIVE, "true"));
+
+  js = "true{\"def\": 123}";
+  check(parse(js, 4, 4, JSMN_PRIMITIVE, "true", JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "def", 1, JSMN_PRIMITIVE, "123"));
+
+  js = "[true, \"abc\"]{\"def\": 123}";
+  check(parse(js, 6, 6, JSMN_ARRAY, -1, -1, 2, JSMN_PRIMITIVE, "true",
+              JSMN_STRING, "abc", 0, JSMN_OBJECT, -1, -1, 1,
+              JSMN_STRING, "def", 1, JSMN_PRIMITIVE, "123"));
+
+  /* Issue #27 */
+  js = "{ \"name\" : \"Jack\", \"age\" : 27 } { \"name\" : \"Anna\", ";
+  check(parse(js, JSMN_ERROR_PART, 8));
+  return 0;
+}
+
 int main(void) {
   test(test_empty, "test for a empty JSON objects/arrays");
   test(test_object, "test for a JSON objects");
@@ -355,11 +492,11 @@ int main(void) {
   test(test_unquoted_keys, "test unquoted keys (like in JavaScript)");
   test(test_input_length, "test strings that are not null-terminated");
   test(test_issue_22, "test issue #22");
-  test(test_issue_27, "test issue #27");
   test(test_count, "test tokens count estimation");
-  /* test(test_nonstrict, "test for non-strict mode"); */
+  /* test(test_unenclosed, "test for non-strict mode"); */
   test(test_unmatched_brackets, "test for unmatched brackets");
   test(test_object_key, "test for key type");
+  test(test_multiple_objects, "test parsing multiple items at once");
   printf("\nPASSED: %d\nFAILED: %d\n", test_passed, test_failed);
   return (test_failed > 0);
 }

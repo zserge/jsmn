@@ -142,7 +142,7 @@ static jsmntok_t *jsmn_alloc_token(jsmn_parser *parser, jsmntok_t *tokens,
   tok->end = 0;
   tok->size = 0;
 #ifdef JSMN_PARENT_LINKS
-  tok->parent = -1;
+  tok->parent = parser->tokbefore;
 #endif
   return tok;
 }
@@ -429,7 +429,7 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
     if (c == '\\' && parser->pos + 1 < len) {
       int i;
       parser->pos++;
-#ifndef JSMN_STRICT
+#ifdef JSMN_STRICT
       switch (js[parser->pos]) {
       /* Allowed escaped symbols */
       case '\"':
