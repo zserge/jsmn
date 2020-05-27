@@ -387,7 +387,7 @@ int test_unenclosed(void) {
   check(parse(js, 1, 1, JSMN_PRIMITIVE, "fal"));
  
   js = "fal ";
-  check(parse(js, 1, 1, JSMN_PRIMITIVE, "fal "));
+  check(parse(js, 1, 1, JSMN_PRIMITIVE, "fal"));
 #endif
  
   js = "\"a\": 0";
@@ -493,7 +493,7 @@ int main(void) {
   test(test_input_length, "test strings that are not null-terminated");
   test(test_issue_22, "test issue #22");
   test(test_count, "test tokens count estimation");
-  /* test(test_unenclosed, "test for non-strict mode"); */
+   test(test_unenclosed, "test for non-strict mode");
   test(test_unmatched_brackets, "test for unmatched brackets");
   test(test_object_key, "test for key type");
   test(test_multiple_objects, "test parsing multiple items at once");
