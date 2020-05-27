@@ -44,13 +44,13 @@ extern "C" {
 #endif
 
 #ifdef JSMN_NON_STRICT
-#ifndef
+#ifndef JSMN_PERMISSIVE_PRIMITIVES
 #define JSMN_PERMISSIVE_PRIMITIVES
 #endif
-#ifndef
+#ifndef JSMN_PERMISSIVE_STRINGS
 #define JSMN_PERMISSIVE_STRINGS
 #endif
-#ifndef
+#ifndef JSMN_PRIMITIVE_KEYS
 #define JSMN_PRIMITIVE_KEYS
 #endif
 #endif

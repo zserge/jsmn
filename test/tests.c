@@ -30,11 +30,10 @@ int test_object(void) {
               JSMN_STRING, "a", 1, JSMN_PRIMITIVE, "0", JSMN_STRING, "b", 1,
               JSMN_STRING, "c", 0));
 
-#ifdef JSMN_STRICT
+#ifndef JSMN_NON_STRICT
   check(parse("{\"a\"\n0}", JSMN_ERROR_INVAL, 3));
   check(parse("{\"a\", 0}", JSMN_ERROR_INVAL, 3));
   check(parse("{\"a\": {2}}", JSMN_ERROR_INVAL, 4));
-  check(parse("{\"a\": {2: 3}}", JSMN_ERROR_INVAL, 5));
   check(parse("{\"a\": {\"a\": 2 3}}", JSMN_ERROR_INVAL, 6));
   check(parse("{\"a\"}", JSMN_ERROR_INVAL, 2));
   check(parse("{\"a\": 1, \"b\"}", JSMN_ERROR_INVAL, 4));
@@ -88,7 +87,7 @@ int test_primitive(void) {
   check(parse("{\"floatVar\" : 12e+6}", 3, 3, JSMN_OBJECT, -1, -1, 1,
               JSMN_STRING, "floatVar", 1, JSMN_PRIMITIVE, "12e+6"));
 
-#ifdef JSMN_STRICT
+#ifndef JSMN_PERMISSIVE_PRIMITIVES
   check(parse("{\"boolVar\" : tru }", JSMN_ERROR_INVAL, 3));
   check(parse("{\"boolVar\" : falsee }", JSMN_ERROR_INVAL, 3));
   check(parse("{\"nullVar\" : nulm }", JSMN_ERROR_INVAL, 3));
@@ -145,7 +144,7 @@ int test_string(void) {
   check(parse("{\"a\":\"str\xc2\xa9\"}", 3, 3, JSMN_OBJECT, -1, -1, 1,
               JSMN_STRING, "a", 1, JSMN_STRING, "str\xc2\xa9", 0));
 
-#ifdef JSMN_STRICT
+#ifndef JSMN_PERMISSIVE_STRINGS
   check(parse("{\"a\":\"str\nstr\"}", JSMN_ERROR_INVAL, 3));
   check(parse("{\"a\":\"str\\uFFGFstr\"}", JSMN_ERROR_INVAL, 3));
   check(parse("{\"a\":\"str\\u@FfF\"}", JSMN_ERROR_INVAL, 3));
@@ -236,20 +235,22 @@ int test_array_nomem(void) {
 }
 
 int test_unquoted_keys(void) {
-#ifndef JSMN_STRICT
   int r;
   jsmn_parser p;
   jsmntok_t tok[10];
   const char *js;
 
   jsmn_init(&p);
-  js = "{key1: \"value\", key2 : 123}";
+  js = "{123: \"value\", 456 : null}";
 
   r = jsmn_parse(&p, js, strlen(js), tok, 10);
+#ifdef JSMN_PRIMITIVE_KEYS
   check(r >= 0);
-  check(tokeq(js, tok, 5, JSMN_OBJECT, -1, -1, 2, JSMN_PRIMITIVE, "key1",
-              JSMN_STRING, "value", 0, JSMN_PRIMITIVE, "key2",
-              JSMN_PRIMITIVE, "123"));
+  check(tokeq(js, tok, 5, JSMN_OBJECT, -1, -1, 2, JSMN_PRIMITIVE, "123",
+              JSMN_STRING, "value", 0, JSMN_PRIMITIVE, "456",
+              JSMN_PRIMITIVE, "null"));
+#else
+  check(r == JSMN_ERROR_INVAL);
 #endif
   return 0;
 }
@@ -349,7 +350,7 @@ int test_unenclosed(void) {
   check(parse(js, 1, 1, JSMN_PRIMITIVE, "false"));
  
   js = "0garbage";
-#ifdef JSMN_STRICT
+#ifndef JSMN_PERMISSIVE_PRIMITIVES
   check(parse(js, JSMN_ERROR_INVAL, 1));
 #else
   check(parse(js, 1, 1, JSMN_PRIMITIVE, "0garbage"));
@@ -376,7 +377,7 @@ int test_unenclosed(void) {
   js = " 1234 ";
   check(parse(js, 1, 1, JSMN_PRIMITIVE, "1234"));
 
-#ifdef JSMN_STRICT
+#ifndef JSMN_PERMISSIVE_PRIMITIVES
   js = "fal";
   check(parse(js, JSMN_ERROR_PART, 1));
  
@@ -441,7 +442,7 @@ int test_object_key(void) {
   js = "{\"key\": 1}";
   check(parse(js, 3, 3, JSMN_OBJECT, 0, 10, 1, JSMN_STRING, "key", 1,
               JSMN_PRIMITIVE, "1"));
-#ifdef JSMN_STRICT
+#ifndef JSMN_PRIMITIVE_KEYS
   js = "{true: 1}";
   check(parse(js, JSMN_ERROR_INVAL, 3));
   js = "{1: 1}";
@@ -493,7 +494,7 @@ int main(void) {
   test(test_input_length, "test strings that are not null-terminated");
   test(test_issue_22, "test issue #22");
   test(test_count, "test tokens count estimation");
-   test(test_unenclosed, "test for non-strict mode");
+  test(test_unenclosed, "test for non-strict mode");
   test(test_unmatched_brackets, "test for unmatched brackets");
   test(test_object_key, "test for key type");
   test(test_multiple_objects, "test parsing multiple items at once");
