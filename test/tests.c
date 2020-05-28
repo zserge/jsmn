@@ -400,10 +400,18 @@ int test_unenclosed(void) {
 #endif
  
   js = "\"a\": 0";
+#ifndef JSMN_SINGLE
   check(parse(js, JSMN_ERROR_INVAL, 2));
+#else
+  check(parse(js, 1, 1, JSMN_STRING, "a", 0));
+#endif
 
   js = "\"a\", 0";
+#ifndef JSMN_SINGLE
   check(parse(js, JSMN_ERROR_INVAL, 2));
+#else
+  check(parse(js, 1, 1, JSMN_STRING, "a", 0));
+#endif
 
   /* XXX No longer valid after RFC 8259 fixes
 #ifndef JSMN_STRICT
