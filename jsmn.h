@@ -99,7 +99,7 @@ typedef enum {
   JSMN_STATE_OBJ_COMMA = 0x15,    /* Expecting object comma or } */
   JSMN_STATE_ARRAY_NEW = 0x24,    /* Expecting array item or ] */
   JSMN_STATE_ARRAY_ITEM = 0x20,   /* Expecting array item */
-  JSMN_STATE_ARRAY_COMMA = 0x25,  /* Expecting array comma or ] */
+  JSMN_STATE_ARRAY_COMMA = 0x25   /* Expecting array comma or ] */
 } jsmnstate_t;
 
 /**
@@ -158,9 +158,9 @@ static void jsmn_fill_token(jsmntok_t *token, const jsmntype_t type,
 }
 
 #ifdef JSMN_STRICT
-static char true_str[] = "true";
-static char false_str[] = "false";
-static char null_str[] = "null";
+static const char true_str[] = "true";
+static const char false_str[] = "false";
+static const char null_str[] = "null";
 
 typedef enum {
   JSMN_NUM_INT_START,
