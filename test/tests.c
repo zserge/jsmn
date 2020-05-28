@@ -363,10 +363,18 @@ int test_unenclosed(void) {
   check(parse(js, JSMN_ERROR_PART, 1));
 
   js = "1234\"0garbage\"";
+#ifndef JSMN_SINGLE
   check(parse(js, 2, 2, JSMN_PRIMITIVE, "1234", JSMN_STRING, "0garbage", 0));
+#else
+  check(parse(js, 1, 1, JSMN_PRIMITIVE, "1234"));
+#endif
 
   js = "\"0garbage\"1234";
+#ifndef JSMN_SINGLE
   check(parse(js, 2, 2, JSMN_STRING, "0garbage", 0, JSMN_PRIMITIVE, "1234"));
+#else
+  check(parse(js, 1, 1, JSMN_STRING, "0garbage", 0));
+#endif
 
   js = " 1234";
   check(parse(js, 1, 1, JSMN_PRIMITIVE, "1234"));
@@ -419,15 +427,19 @@ int test_unenclosed(void) {
 
 int test_unmatched_brackets(void) {
   const char *js;
+#ifndef JSMN_SINGLE
   js = "\"key 1\": 1234}";
   check(parse(js, JSMN_ERROR_INVAL, 2));
+#endif
   js = "{\"key 1\": 1234";
   check(parse(js, JSMN_ERROR_PART, 3));
   
+#ifndef JSMN_SINGLE
   js = "{\"key 1\": 1234}}";
   check(parse(js, JSMN_ERROR_INVAL, 3));
   js = "\"key 1\"}: 1234";
   check(parse(js, JSMN_ERROR_INVAL, 3));
+#endif
   js = "{\"key {1\": 1234}";
   check(parse(js, 3, 3, JSMN_OBJECT, 0, 16, 1, JSMN_STRING, "key {1", 1,
               JSMN_PRIMITIVE, "1234"));
@@ -458,25 +470,62 @@ int test_object_key(void) {
 int test_multiple_objects(void) {
   const char *js;
   js = "true {\"def\": 123}";
+#ifndef JSMN_SINGLE
   check(parse(js, 4, 4, JSMN_PRIMITIVE, "true", JSMN_OBJECT, -1, -1, 1,
               JSMN_STRING, "def", 1, JSMN_PRIMITIVE, "123"));
+#else
+  check(parse(js, 1, 1, JSMN_PRIMITIVE, "true"));
+#endif
 
   js = "{\"def\": 123} true";
+#ifndef JSMN_SINGLE
   check(parse(js, 4, 4, JSMN_OBJECT, -1, -1, 1, JSMN_STRING, "def", 1,
               JSMN_PRIMITIVE, "123", JSMN_PRIMITIVE, "true"));
+#else
+  check(parse(js, 3, 3, JSMN_OBJECT, -1, -1, 1, JSMN_STRING, "def", 1,
+              JSMN_PRIMITIVE, "123"));
+#endif
 
   js = "true{\"def\": 123}";
+#ifndef JSMN_SINGLE
   check(parse(js, 4, 4, JSMN_PRIMITIVE, "true", JSMN_OBJECT, -1, -1, 1,
               JSMN_STRING, "def", 1, JSMN_PRIMITIVE, "123"));
+#else
+  check(parse(js, 1, 1, JSMN_PRIMITIVE, "true"));
+#endif
 
   js = "[true, \"abc\"]{\"def\": 123}";
+#ifndef JSMN_SINGLE
   check(parse(js, 6, 6, JSMN_ARRAY, -1, -1, 2, JSMN_PRIMITIVE, "true",
               JSMN_STRING, "abc", 0, JSMN_OBJECT, -1, -1, 1,
               JSMN_STRING, "def", 1, JSMN_PRIMITIVE, "123"));
+#else
+  check(parse(js, 3, 3, JSMN_ARRAY, -1, -1, 2, JSMN_PRIMITIVE, "true",
+              JSMN_STRING, "abc", 0));
+#endif
 
   /* Issue #27 */
   js = "{ \"name\" : \"Jack\", \"age\" : 27 } { \"name\" : \"Anna\", ";
+#ifndef JSMN_SINGLE
   check(parse(js, JSMN_ERROR_PART, 8));
+#else
+  check(parse(js, 5, 5, JSMN_OBJECT, 0, 31, 2, JSMN_STRING, "name", 1,
+              JSMN_STRING, "Jack", 0, JSMN_STRING, "age", 1,
+              JSMN_PRIMITIVE, "27"));
+#endif
+
+#ifdef JSMN_SINGLE
+#ifdef JSMN_PERMISSIVE_PRIMITIVES
+  js = "tru{\"def\": 123}";
+  check(parse(js, 1, 1, JSMN_PRIMITIVE, "tru"));
+
+  js = "truee{\"def\": 123}";
+  check(parse(js, 1, 1, JSMN_PRIMITIVE, "truee"));
+
+  js = "trux{\"def\": 123}";
+  check(parse(js, 1, 1, JSMN_PRIMITIVE, "trux"));
+#endif
+#endif
   return 0;
 }
 
