@@ -522,6 +522,13 @@ int test_multiple_objects(void) {
               JSMN_PRIMITIVE, "27"));
 #endif
 
+  js = "   ";
+#ifdef JSMN_SINGLE
+  check(parse(js, JSMN_ERROR_PART, 1));
+#else
+  check(parse(js, 0, 0));
+#endif
+
 #ifdef JSMN_SINGLE
 #ifdef JSMN_PERMISSIVE_PRIMITIVES
   js = "tru{\"def\": 123}";
