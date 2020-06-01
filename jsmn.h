@@ -79,27 +79,38 @@ typedef struct jsmntok {
 
 /**
  * JSON parser state. Describes what kind of token or character is expected
- * next. In addition:
- * (state & 0x1) == 0       if a string is currently allowed (or primitive in
- *                          non-strict mode)
- * (state & 0x3) == 0       if an object or array is currently allowed
- * (state & 0x3) == 1       if a comma is currently allowed
- * (state & 0x30) != 0      if currently in a container
- * (state & 0x10) != 0      if currently in an object
- * (state & 0x20) != 0      if currently in an array
- * (state & 0x14) == 0x14   if an array can be closed
- * (state & 0x24) == 0x24   if an object can be closed
+ * next.
  */
 typedef enum {
-  JSMN_STATE_ROOT = 0x0,          /* At root */
-  JSMN_STATE_OBJ_NEW = 0x16,      /* Expecting object key or } */
-  JSMN_STATE_OBJ_KEY = 0x12,      /* Expecting object key */
-  JSMN_STATE_OBJ_COLON = 0x13,    /* Expecting object colon */
-  JSMN_STATE_OBJ_VAL = 0x10,      /* Expecting object value */
-  JSMN_STATE_OBJ_COMMA = 0x15,    /* Expecting object comma or } */
-  JSMN_STATE_ARRAY_NEW = 0x24,    /* Expecting array item or ] */
-  JSMN_STATE_ARRAY_ITEM = 0x20,   /* Expecting array item */
-  JSMN_STATE_ARRAY_COMMA = 0x25   /* Expecting array comma or ] */
+  JSMN_DELIMITER = 0x1,   /* Expecting colon if JSMN_KEY, comma otherwise */
+  JSMN_CAN_CLOSE = 0x2,   /* Object or array can close here */
+
+  JSMN_KEY = 0x10,    /* Expecting an object key or the delimiter following */
+  JSMN_VALUE = 0x20,  /* Expecting an object value or the delimiter following */
+  JSMN_IN_ARRAY = 0x40,   /* Expecting array item or the delimiter following */
+  /* In an object if (state & JSMN_IN_OBJECT). Otherwise, in an array or at
+   * the root. */
+  JSMN_IN_OBJECT = JSMN_KEY | JSMN_VALUE,
+
+  /* Actual values for parser->state */
+  /* Root: not in any array or object */
+  JSMN_STATE_ROOT = 0x0,
+  /* Just saw object opening ({). Expecting key or close. */
+  JSMN_STATE_OBJ_NEW = (JSMN_KEY | JSMN_CAN_CLOSE),
+  /* Just saw a comma in an object. Expecting key. */
+  JSMN_STATE_OBJ_KEY = (JSMN_KEY),
+  /* Just saw a key in an object. Expecting colon or maybe close/comma. */
+  JSMN_STATE_OBJ_COLON = (JSMN_KEY | JSMN_DELIMITER),
+  /* Just saw a colon in an object. Expecting value. */
+  JSMN_STATE_OBJ_VAL = (JSMN_VALUE),
+  /* Just saw a value in an object. Expecting comma or close. */
+  JSMN_STATE_OBJ_COMMA = (JSMN_VALUE | JSMN_DELIMITER | JSMN_CAN_CLOSE),
+  /* Just saw an array opening ([). Expecting item or close. */
+  JSMN_STATE_ARRAY_NEW = (JSMN_IN_ARRAY | JSMN_CAN_CLOSE),
+  /* Just saw a comma in an array. Expecting item. */
+  JSMN_STATE_ARRAY_ITEM = (JSMN_IN_ARRAY),
+  /* Just saw an item in an array. Expecting comma or close. */
+  JSMN_STATE_ARRAY_COMMA = (JSMN_DELIMITER | JSMN_IN_ARRAY | JSMN_CAN_CLOSE)
 } jsmnstate_t;
 
 /**
@@ -110,7 +121,7 @@ typedef struct jsmn_parser {
   unsigned int pos;     /* offset in the JSON string */
   unsigned int toknext; /* next token to allocate */
   int toksuper;         /* superior token node, e.g. parent object or array */
-  int state;            /* parser state, from jsmnstate_t */
+  jsmnstate_t state;    /* parser state, from jsmnstate_t */
   int tokbefore;        /* token immediately preceding the first token in the
                            current JSON object */
 } jsmn_parser;
@@ -528,7 +539,7 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
         depth++;
         break;
       }
-      if (parser->state & 0x3) {
+      if (parser->state & JSMN_KEY) {
         return JSMN_ERROR_INVAL;
       }
       token = jsmn_alloc_token(parser, tokens, num_tokens);
@@ -555,10 +566,11 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
       if (tokens == NULL) {
         depth--;
         break;
-      } else if ((parser->state & 0x14) != 0x14) {
+      } else if (!(parser->state & JSMN_IN_OBJECT) ||
+                 !(parser->state & JSMN_CAN_CLOSE)) {
         return JSMN_ERROR_INVAL;
       }
-      if (parser->state & 0x1) {
+      if (parser->state & JSMN_VALUE) {
 #ifdef JSMN_PARENT_LINKS
         parser->toksuper = tokens[parser->toksuper].parent;
 #else
@@ -575,7 +587,8 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
       if (tokens == NULL) {
         depth--;
         break;
-      } else if ((parser->state & 0x24) != 0x24) {
+      } else if (!(parser->state & JSMN_IN_ARRAY) ||
+                 !(parser->state & JSMN_CAN_CLOSE)) {
         return JSMN_ERROR_INVAL;
       }
 container_close:
@@ -618,17 +631,17 @@ container_close:
         parser->toksuper = parser->toknext - 1;
         parser->state = JSMN_STATE_ROOT;
         break;
-      } else if (parser->state & 0x1) {
+      } else if (parser->state & JSMN_DELIMITER) {
         return JSMN_ERROR_INVAL;
       }
       tokens[parser->toksuper].size++;
 #ifdef JSMN_PARENT_LINKS
       tokens[parser->toknext - 1].parent = parser->toksuper;
 #endif
-      if ((parser->state & 0x3) == 0x2) {
+      if (parser->state & JSMN_KEY) {
         parser->state = JSMN_STATE_OBJ_COLON;
       } else {
-        parser->state |= 0x5;
+        parser->state |= JSMN_DELIMITER | JSMN_CAN_CLOSE;
       }
       break;
     case '\t':
@@ -695,9 +708,9 @@ container_close:
         parser->state = JSMN_STATE_ROOT;
         break;
 #ifdef JSMN_STRICT
-      } else if (parser->state & 0x3) {
+      } else if (parser->state & (JSMN_DELIMITER | JSMN_KEY)) {
 #else
-      } else if (parser->state & 0x1) {
+      } else if (parser->state & JSMN_DELIMITER) {
 #endif
         return JSMN_ERROR_INVAL;
       }
@@ -706,12 +719,12 @@ container_close:
       tokens[parser->toknext - 1].parent = parser->toksuper;
 #endif
 #ifdef JSMN_STRICT
-      parser->state |= 0x5;
+      parser->state |= JSMN_DELIMITER | JSMN_CAN_CLOSE;
 #else
-      if ((parser->state & 0x3) == 0x2) {
+      if (parser->state & JSMN_KEY) {
         parser->state = JSMN_STATE_OBJ_COLON;
       } else {
-        parser->state |= 0x5;
+        parser->state |= JSMN_DELIMITER | JSMN_CAN_CLOSE;
       }
 #endif
       break;
