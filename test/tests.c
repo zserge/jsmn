@@ -36,13 +36,12 @@ int test_object(void) {
   check(parse("{\"a\": {2}}", JSMN_ERROR_INVAL, 3));
   check(parse("{\"a\": {2: 3}}", JSMN_ERROR_INVAL, 3));
   check(parse("{\"a\": {\"a\": 2 3}}", JSMN_ERROR_INVAL, 5));
-/* FIXME */
-/*check(parse("{\"a\"}", JSMN_ERROR_INVAL, 2));*/
-/*check(parse("{\"a\": 1, \"b\"}", JSMN_ERROR_INVAL, 4));*/
-/*check(parse("{\"a\",\"b\":1}", JSMN_ERROR_INVAL, 4));*/
-/*check(parse("{\"a\":1,}", JSMN_ERROR_INVAL, 4));*/
-/*check(parse("{\"a\":\"b\":\"c\"}", JSMN_ERROR_INVAL, 4));*/
-/*check(parse("{,}", JSMN_ERROR_INVAL, 4));*/
+  check(parse("{\"a\"}", JSMN_ERROR_INVAL, 2));
+  check(parse("{\"a\": 1, \"b\"}", JSMN_ERROR_INVAL, 4));
+  check(parse("{\"a\",\"b\":1}", JSMN_ERROR_INVAL, 4));
+  check(parse("{\"a\":1,}", JSMN_ERROR_INVAL, 4));
+  check(parse("{\"a\":\"b\":\"c\"}", JSMN_ERROR_INVAL, 4));
+  check(parse("{,}", JSMN_ERROR_INVAL, 4));
 #endif
   return 0;
 }
@@ -53,8 +52,7 @@ int test_array(void) {
   /*check(parse("[1,,3]", JSMN_ERROR_INVAL, 3)*/
   check(parse("[10]", 2, 2, JSMN_ARRAY, -1, -1, 1, JSMN_PRIMITIVE, "10"));
   check(parse("{\"a\": 1]", JSMN_ERROR_INVAL, 3));
-  /* FIXME */
-  /*check(parse("[\"a\": 1]", JSMN_ERROR_INVAL, 3));*/
+  check(parse("[\"a\": 1]", JSMN_ERROR_INVAL, 3));
   return 0;
 }
 
@@ -97,7 +95,7 @@ int test_string(void) {
 }
 
 int test_partial_string(void) {
-  int r;
+  jsmnint_t r;
   unsigned long i;
   jsmn_parser p;
   jsmntok_t tok[5];
@@ -120,7 +118,7 @@ int test_partial_string(void) {
 
 int test_partial_array(void) {
 #ifdef JSMN_STRICT
-  int r;
+  jsmnint_t r;
   unsigned long i;
   jsmn_parser p;
   jsmntok_t tok[10];
@@ -144,7 +142,7 @@ int test_partial_array(void) {
 
 int test_array_nomem(void) {
   int i;
-  int r;
+  jsmnint_t r;
   jsmn_parser p;
   jsmntok_t toksmall[10], toklarge[10];
   const char *js;
@@ -171,7 +169,7 @@ int test_array_nomem(void) {
 
 int test_unquoted_keys(void) {
 #ifndef JSMN_STRICT
-  int r;
+  jsmnint_t r;
   jsmn_parser p;
   jsmntok_t tok[10];
   const char *js;
@@ -188,7 +186,7 @@ int test_unquoted_keys(void) {
 }
 
 int test_issue_22(void) {
-  int r;
+  jsmnint_t r;
   jsmn_parser p;
   jsmntok_t tokens[128];
   const char *js;
@@ -219,7 +217,7 @@ int test_issue_27(void) {
 
 int test_input_length(void) {
   const char *js;
-  int r;
+  jsmnint_t r;
   jsmn_parser p;
   jsmntok_t tokens[10];
 

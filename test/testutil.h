@@ -28,7 +28,7 @@ static int vtokeq(const char *s, jsmntok_t *t, unsigned long numtok,
         size = va_arg(ap, int);
         value = NULL;
       }
-      if (t[i].type != type) {
+      if (!(t[i].type & type)) {
         printf("token %lu type is %d, not %d\n", i, t[i].type, type);
         return 0;
       }
@@ -71,7 +71,7 @@ static int tokeq(const char *s, jsmntok_t *tokens, unsigned long numtok, ...) {
 }
 
 static int parse(const char *s, int status, unsigned long numtok, ...) {
-  int r;
+  jsmnint_t r;
   int ok = 1;
   va_list args;
   jsmn_parser p;
