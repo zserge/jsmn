@@ -214,10 +214,10 @@ jsmnint_t jsmn_parse_primitive(jsmn_parser *parser, const char *js,
     // In strict mode primitive must be followed by "," or "}" or "]"
     case ':':
 #endif
-    case '\t':
-    case '\r':
-    case '\n':
     case ' ':
+    case '\t':
+    case '\n':
+    case '\r':
     case ',':
     case ']':
     case '}':
@@ -323,12 +323,12 @@ jsmnint_t jsmn_parse_string(jsmn_parser *parser, const char *js,
       switch (js[parser->pos]) {
       // Allowed escaped symbols
       case '\"':
-      case '/':
       case '\\':
+      case '/':
       case 'b':
       case 'f':
-      case 'r':
       case 'n':
+      case 'r':
       case 't':
         break;
       // Allows escaped symbol \uXXXX
@@ -485,10 +485,10 @@ jsmnint_t jsmn_parse(jsmn_parser *parser, const char *js,
         tokens[parser->toksuper].size++;
       }
       break;
-    case '\t':
-    case '\r':
-    case '\n':
     case ' ':
+    case '\t':
+    case '\n':
+    case '\r':
       break;
     case ':':
       if (tokens != NULL && parser->toksuper != JSMN_NEG) {
