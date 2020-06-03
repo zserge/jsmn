@@ -30,7 +30,7 @@ int test_object(void) {
               JSMN_STRING, "a", 1, JSMN_PRIMITIVE, "0", JSMN_STRING, "b", 1,
               JSMN_STRING, "c", 0));
 
-#ifdef JSMN_STRICT
+#ifndef JSMN_PERMISSIVE
   check(parse("{\"a\"\n0}", JSMN_ERROR_INVAL, 3));
   check(parse("{\"a\", 0}", JSMN_ERROR_INVAL, 3));
   check(parse("{\"a\": {2}}", JSMN_ERROR_INVAL, 3));
@@ -117,7 +117,7 @@ int test_partial_string(void) {
 }
 
 int test_partial_array(void) {
-#ifdef JSMN_STRICT
+#ifndef JSMN_PERMISSIVE
   jsmnint_t r;
   unsigned long i;
   jsmn_parser p;
@@ -168,7 +168,7 @@ int test_array_nomem(void) {
 }
 
 int test_unquoted_keys(void) {
-#ifndef JSMN_STRICT
+#ifdef JSMN_PERMISSIVE
   jsmnint_t r;
   jsmn_parser p;
   jsmntok_t tok[10];
@@ -279,7 +279,7 @@ int test_count(void) {
 }
 
 int test_nonstrict(void) {
-#ifndef JSMN_STRICT
+#ifdef JSMN_PERMISSIVE
   const char *js;
   js = "a: 0garbage";
   check(parse(js, 2, 2, JSMN_PRIMITIVE, "a", JSMN_PRIMITIVE, "0garbage"));
@@ -321,7 +321,7 @@ int test_object_key(void) {
   js = "{\"key\": 1}";
   check(parse(js, 3, 3, JSMN_OBJECT, 0, 10, 1, JSMN_STRING, "key", 1,
               JSMN_PRIMITIVE, "1"));
-#ifdef JSMN_STRICT
+#ifndef JSMN_PERMISSIVE
   js = "{true: 1}";
   check(parse(js, JSMN_ERROR_INVAL, 3));
   js = "{1: 1}";
