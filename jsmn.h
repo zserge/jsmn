@@ -30,10 +30,12 @@
 extern "C" {
 #endif
 
-#ifdef JSMN_STATIC
-#define JSMN_API static
-#else
-#define JSMN_API extern
+#ifndef JSMN_API
+#  ifdef JSMN_STATIC
+#    define JSMN_API static
+#  else
+#    define JSMN_API extern
+#  endif
 #endif
 
 /**
@@ -52,7 +54,8 @@ typedef enum {
   JSMN_CLOSE     = 0x40,    //!< Close OBJECT '}' or ARRAY ']'
   JSMN_DELIMITER = 0x80,    //!< Colon ':' after KEY, Comma ',' after VALUE
 
-  // Combined elements for valid enum tests
+  // Combined elements
+  JSMN_CONTAINER = JSMN_OBJECT | JSMN_ARRAY,
   JSMN_ANY_TYPE  = JSMN_OBJECT | JSMN_ARRAY | JSMN_STRING | JSMN_PRIMITIVE,
 
   JSMN_OBJ_VAL   = JSMN_OBJECT | JSMN_VALUE,
@@ -191,8 +194,14 @@ void jsmn_fill_token(jsmntok_t *token, const jsmntype_t type,
  */
 static
 void jsmn_next_sibling(jsmn_parser *parser, jsmntok_t *tokens) {
+  jsmnint_t sibling;
+
   // Start with parent's first child
-  jsmnint_t sibling = parser->toksuper + 1;
+  if (parser->toksuper != JSMN_NEG) {
+    sibling = parser->toksuper + 1;
+  } else {
+    sibling = 0;
+  }
 
   // If the first child is the current token
   if (sibling == parser->toknext - 1)
@@ -226,12 +235,23 @@ static
 jsmnint_t jsmn_parse_primitive(jsmn_parser *parser, const char *js,
                                const size_t len, jsmntok_t *tokens,
                                const size_t num_tokens) {
-#ifndef JSMN_PERMISSIVE
   // If a PRIMITIVE wasn't expected
   if (tokens != NULL &&
       !jsmn_is_expected(parser, JSMN_PRIMITIVE)) {
     return JSMN_ERROR_INVAL;
   }
+
+#ifdef JSMN_PERMISSIVE
+#  ifdef JSMN_PARENT_LINKS
+  // If either a PRIMITIVE or DELIMITER were expected and this PRIMITIVE is
+  //   following a KEY/VALUE pair, a comma didn't separate the last element
+  //   and this element so parser->toksuper needs to be fixed.
+  if (tokens != NULL && parser->toknext >= 2 &&
+      jsmn_is_expected(parser, JSMN_DELIMITER) &&
+      jsmn_is_type(&tokens[parser->toknext - 2], JSMN_KEY)) {
+    parser->toksuper = tokens[parser->toksuper].parent;
+  }
+#  endif
 #endif
 
   jsmntok_t *token;
@@ -279,7 +299,32 @@ found:
   jsmn_fill_token(token, JSMN_PRIMITIVE, start, parser->pos);
 #ifndef JSMN_PERMISSIVE
   token->type |= JSMN_VALUE;
+#else
+  if (parser->toksuper != JSMN_NEG &&
+      jsmn_is_type(&tokens[parser->toksuper], JSMN_KEY)) {
+    token->type |= JSMN_VALUE;
+  }
+#endif
   parser->expected = JSMN_DELIMITER | JSMN_CLOSE;
+#ifdef JSMN_PERMISSIVE
+#  ifdef JSMN_PARENT_LINKS
+  if (parser->toksuper != JSMN_NEG &&
+      tokens[parser->toksuper].parent == JSMN_NEG) {
+    parser->expected |= JSMN_ANY_TYPE;
+  }
+#  else
+  if (parser->toksuper != JSMN_NEG) {
+    for (jsmnint_t i = parser->toksuper; i != JSMN_NEG; i--) {
+      if (jsmn_is_type(&tokens[i], JSMN_CONTAINER)) {
+        break;
+      }
+      if (i != 0) {
+        continue;
+      }
+      parser->expected |= JSMN_ANY_TYPE;
+    }
+  }
+#  endif
 #endif
 #ifdef JSMN_PARENT_LINKS
   token->parent = parser->toksuper;
@@ -298,12 +343,23 @@ static
 jsmnint_t jsmn_parse_string(jsmn_parser *parser, const char *js,
                             const size_t len, jsmntok_t *tokens,
                             const size_t num_tokens) {
-#ifndef JSMN_PERMISSIVE
   // If a STRING wasn't expected
   if (tokens != NULL &&
       !jsmn_is_expected(parser, JSMN_STRING)) {
     return JSMN_ERROR_INVAL;
   }
+
+#ifdef JSMN_PERMISSIVE
+#  ifdef JSMN_PARENT_LINKS
+  // If both a PRIMITIVE and DELIMITER were expected and this STRING is
+  //   following a KEY/VALUE pair, a comma didn't separate the last element
+  //   and this element so parser->toksuper needs to be fixed.
+  if (tokens != NULL && parser->toknext >= 2 &&
+      jsmn_is_expected(parser, JSMN_DELIMITER) &&
+      jsmn_is_type(&tokens[parser->toknext - 2], JSMN_KEY)) {
+    parser->toksuper = tokens[parser->toksuper].parent;
+  }
+#  endif
 #endif
 
   jsmntok_t *token;
@@ -338,6 +394,13 @@ jsmnint_t jsmn_parse_string(jsmn_parser *parser, const char *js,
         token->type |= JSMN_VALUE;
         parser->expected = JSMN_DELIMITER | JSMN_CLOSE;
       }
+#else
+      // If the previous token is an KEY
+      if (parser->toknext >= 2 &&
+          jsmn_is_type(&tokens[parser->toknext - 2], JSMN_KEY)) {
+        token->type |= JSMN_VALUE;
+      }
+      parser->expected = JSMN_ANY_TYPE | JSMN_DELIMITER | JSMN_CLOSE;
 #endif
 #ifdef JSMN_PARENT_LINKS
       token->parent = parser->toksuper;
@@ -416,18 +479,20 @@ jsmnint_t jsmn_parse(jsmn_parser *parser, const char *js,
         return JSMN_ERROR_NOMEM;
       }
       token->type = (c == '{' ? JSMN_OBJECT : JSMN_ARRAY);
-#ifndef JSMN_PERMISSIVE
       // If an OBJECT or ARRAY (respectively) wasn't expected
       if (!jsmn_is_expected(parser, token->type)) {
         return JSMN_ERROR_INVAL;
       }
 
       token->type |= JSMN_VALUE;
+#ifndef JSMN_PERMISSIVE
       if (jsmn_is_type(token, JSMN_OBJECT)) {
         parser->expected = JSMN_STRING | JSMN_CLOSE;
       } else {
         parser->expected = JSMN_ANY_TYPE | JSMN_CLOSE;
       }
+#else
+      parser->expected = JSMN_ANY_TYPE | JSMN_CLOSE;
 #endif
       if (parser->toksuper != JSMN_NEG) {
         tokens[parser->toksuper].size++;
@@ -446,11 +511,9 @@ jsmnint_t jsmn_parse(jsmn_parser *parser, const char *js,
       if (tokens == NULL) {
         break;
       }
-#ifndef JSMN_PERMISSIVE
       if (!jsmn_is_expected(parser, JSMN_CLOSE)) {
         return JSMN_ERROR_INVAL;
       }
-#endif
       type = (c == '}' ? JSMN_OBJECT : JSMN_ARRAY);
 #ifdef JSMN_PARENT_LINKS
       if (parser->toknext < 1) {
@@ -498,13 +561,16 @@ jsmnint_t jsmn_parse(jsmn_parser *parser, const char *js,
         }
       }
 #endif
-#ifndef JSMN_PERMISSIVE
       if (parser->toksuper == JSMN_NEG) {
-        parser->expected = JSMN_OBJECT | JSMN_ARRAY;
+#ifndef JSMN_PERMISSIVE
+        parser->expected = JSMN_CONTAINER;
+#else
+        tokens[parser->toknext - 1].type |= JSMN_VALUE;
+        parser->expected = JSMN_ANY_TYPE;
+#endif
       } else {
         parser->expected = JSMN_DELIMITER | JSMN_CLOSE;
       }
-#endif
       break;
     case '\"':
       r = jsmn_parse_string(parser, js, len, tokens, num_tokens);
@@ -522,29 +588,33 @@ jsmnint_t jsmn_parse(jsmn_parser *parser, const char *js,
     case '\r':
       break;
     case ':':
-      if (tokens != NULL && parser->toksuper != JSMN_NEG) {
-#ifndef JSMN_PERMISSIVE
-        // If a DELIMITER wasn't expected or the previous token wasn't a KEY
-        if (!jsmn_is_expected(parser, JSMN_DELIMITER) ||
-            !jsmn_is_type(&tokens[parser->toknext - 1], JSMN_KEY)) {
-          return JSMN_ERROR_INVAL;
-        }
-        parser->expected = JSMN_ANY_TYPE;
-#else
-        // ':' is not a valid DELIMITER in an ARRAY
-        if (jsmn_is_type(&tokens[parser->toksuper], JSMN_ARRAY)) {
-          return JSMN_ERROR_INVAL;
-        }
-#endif
+      // If a DELIMITER wasn't expected
+      if (!jsmn_is_expected(parser, JSMN_DELIMITER)) {
+        return JSMN_ERROR_INVAL;
       }
+#ifndef JSMN_PERMISSIVE
+      if (tokens != NULL &&
+          // Only simple single allowed
+          (parser->toksuper == JSMN_NEG ||
+           // If the previous token wasn't a KEY
+           !jsmn_is_type(&tokens[parser->toknext - 1], JSMN_KEY))) {
+        return JSMN_ERROR_INVAL;
+      }
+#else
+      tokens[parser->toknext - 1].type |= JSMN_KEY;
+#endif
+      parser->expected = JSMN_ANY_TYPE;
       parser->toksuper = parser->toknext - 1;
       break;
     case ',':
       if (tokens != NULL && parser->toksuper != JSMN_NEG) {
+        // If a DELIMITER wasn't expected
+        if (!jsmn_is_expected(parser, JSMN_DELIMITER)) {
+          return JSMN_ERROR_INVAL;
+        }
 #ifndef JSMN_PERMISSIVE
-        // If a DELIMITER wasn't expected or the previous token was a KEY
-        if (!jsmn_is_expected(parser, JSMN_DELIMITER) ||
-            jsmn_is_type(&tokens[parser->toknext - 1], JSMN_KEY)) {
+        // If the previous token was a KEY
+        if (jsmn_is_type(&tokens[parser->toknext - 1], JSMN_KEY)) {
           return JSMN_ERROR_INVAL;
         }
         // If this is in an OBJECT, a STRING KEY must follow a comma
@@ -554,13 +624,17 @@ jsmnint_t jsmn_parse(jsmn_parser *parser, const char *js,
         } else {
           parser->expected = JSMN_ANY_TYPE;
         }
+#else
+        // The previous token
+        tokens[parser->toknext - 1].type |= JSMN_VALUE;
+        parser->expected = JSMN_ANY_TYPE;
 #endif
-        if (!jsmn_is_type(&tokens[parser->toksuper], JSMN_OBJECT | JSMN_ARRAY)) {
+        if (!jsmn_is_type(&tokens[parser->toksuper], JSMN_CONTAINER)) {
 #ifdef JSMN_PARENT_LINKS
           parser->toksuper = tokens[parser->toksuper].parent;
 #else
           for (i = parser->toknext - 1; i != JSMN_NEG; i--) {
-            if (jsmn_is_type(&tokens[i], JSMN_OBJECT | JSMN_ARRAY)) {
+            if (jsmn_is_type(&tokens[i], JSMN_CONTAINER)) {
               if (tokens[i].start != JSMN_NEG && tokens[i].end == JSMN_NEG) {
                 parser->toksuper = i;
                 break;
@@ -630,7 +704,11 @@ void jsmn_init(jsmn_parser *parser) {
   parser->pos = 0;
   parser->toknext = 0;
   parser->toksuper = JSMN_NEG;
-  parser->expected = (JSMN_OBJECT | JSMN_ARRAY);
+#ifndef JSMN_PERMISSIVE
+  parser->expected = JSMN_CONTAINER;
+#else
+  parser->expected = JSMN_ANY_TYPE;
+#endif
 }
 
 #endif // JSMN_HEADER

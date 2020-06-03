@@ -47,12 +47,15 @@ int test_object(void) {
 }
 
 int test_array(void) {
-  /* FIXME */
-  /*check(parse("[10}", JSMN_ERROR_INVAL, 3));*/
-  /*check(parse("[1,,3]", JSMN_ERROR_INVAL, 3)*/
+  check(parse("[10}", JSMN_ERROR_INVAL, 3));
+  check(parse("[1,,3]", JSMN_ERROR_INVAL, 3));
   check(parse("[10]", 2, 2, JSMN_ARRAY, -1, -1, 1, JSMN_PRIMITIVE, "10"));
   check(parse("{\"a\": 1]", JSMN_ERROR_INVAL, 3));
+#ifndef JSMN_PERMISSIVE
   check(parse("[\"a\": 1]", JSMN_ERROR_INVAL, 3));
+#else
+  check(parse("[\"a\": 1]", 3, 3, JSMN_ARRAY, -1, -1, 1, JSMN_STRING, "a", 1, JSMN_PRIMITIVE, "1"));
+#endif
   return 0;
 }
 
@@ -292,7 +295,6 @@ int test_nonstrict(void) {
   /* nested {s don't cause a parse error. */
   js = "\"key {1\": 1234";
   check(parse(js, 2, 2, JSMN_STRING, "key {1", 1, JSMN_PRIMITIVE, "1234"));
-
 #endif
   return 0;
 }
