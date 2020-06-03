@@ -68,6 +68,18 @@ typedef enum {
   JSMN_ARR_KEY   = JSMN_ARRAY  | JSMN_KEY,
   JSMN_PRI_KEY   = JSMN_PRIMITIVE | JSMN_KEY,
 #endif
+
+  JSMN_PRI_LITERAL  = 0x0100,   //!< true, false, null
+
+  JSMN_PRI_ZERO     = 0x0400,   //!< 0
+  JSMN_PRI_DIGIT    = 0x0800,   //!< 1 - 9
+  JSMN_PRI_MINUS    = 0x1000,   //!< minus sign, '-'
+  JSMN_PRI_PLUS     = 0x2000,   //!< plus sign, '+'
+  JSMN_PRI_DECIMAL  = 0x4000,   //!< deminal point '.'
+  JSMN_PRI_EXPONENT = 0x8000,   //!< exponent, 'e' or 'E'
+
+  JSMN_PRI_NUMBER   = JSMN_PRI_ZERO | JSMN_PRI_DIGIT,
+  JSMN_PRI_SIGN     = JSMN_PRI_PLUS | JSMN_PRI_MINUS,
 } jsmntype_t;
 
 enum jsmnerr {
