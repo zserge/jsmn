@@ -1,18 +1,20 @@
 # You can put your build options here
 -include config.mk
 
+CFLAGS:=${CFLAGS} -std=c89
+
 test: test_default test_permissive test_links test_permissive_links
 test_default: test/tests.c jsmn.h
 	$(CC) $(CFLAGS) $(LDFLAGS) $< -o test/$@
 	./test/$@
 test_permissive: test/tests.c jsmn.h
-	$(CC) -DJSMN_DEFINES=1 -DJSMN_PERMISSIVE=1 $(CFLAGS) $(LDFLAGS) $< -o test/$@
+	$(CC) -DJSMN_PERMISSIVE=1 $(CFLAGS) $(LDFLAGS) $< -o test/$@
 	./test/$@
 test_links: test/tests.c jsmn.h
 	$(CC) -DJSMN_PARENT_LINKS=1 $(CFLAGS) $(LDFLAGS) $< -o test/$@
 	./test/$@
 test_permissive_links: test/tests.c jsmn.h
-	$(CC) -DJSMN_DEFINES=1 -DJSMN_PERMISSIVE=1 -DJSMN_PARENT_LINKS=1 $(CFLAGS) $(LDFLAGS) $< -o test/$@
+	$(CC) -DJSMN_PERMISSIVE=1 -DJSMN_PARENT_LINKS=1 $(CFLAGS) $(LDFLAGS) $< -o test/$@
 	./test/$@
 
 simple_example: example/simple.c jsmn.h
