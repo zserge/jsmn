@@ -208,7 +208,7 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
 #ifdef JSMN_STRICT
   if (js[parser->pos] == 't') {
     for (i = 1;
-         i < strlen(true_str);
+         i < sizeof(true_str) - 1;
          i++) {
       if (parser->pos + i >= len || js[parser->pos + i] == '\0') {
         return JSMN_ERROR_PART;
@@ -219,7 +219,7 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
     parser->pos += 4;
   } else if (js[parser->pos] == 'f') {
     for (i = 1;
-         i < strlen(false_str);
+         i < sizeof(false_str) - 1;
          i++) {
       if (parser->pos + i >= len || js[parser->pos + i] == '\0') {
         return JSMN_ERROR_PART;
@@ -230,7 +230,7 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
     parser->pos += 5;
   } else if (js[parser->pos] == 'n') {
     for (i = 1;
-         i < strlen(null_str);
+         i < sizeof(null_str) - 1;
          i++) {
       if (parser->pos + i >= len || js[parser->pos + i] == '\0') {
         return JSMN_ERROR_PART;
