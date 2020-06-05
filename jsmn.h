@@ -99,7 +99,7 @@ typedef enum {
   JSMN_STATE_OBJ_NEW = (JSMN_KEY | JSMN_CAN_CLOSE),
   /* Just saw a comma in an object. Expecting key. */
   JSMN_STATE_OBJ_KEY = (JSMN_KEY),
-  /* Just saw a key in an object. Expecting colon or maybe close/comma. */
+  /* Just saw a key in an object. Expecting colon. */
   JSMN_STATE_OBJ_COLON = (JSMN_KEY | JSMN_DELIMITER),
   /* Just saw a colon in an object. Expecting value. */
   JSMN_STATE_OBJ_VAL = (JSMN_VALUE),
