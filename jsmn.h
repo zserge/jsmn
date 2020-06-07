@@ -38,10 +38,19 @@ extern "C" {
 #  endif
 #endif
 
+#ifdef JSMN_SHORT_TOKENS
+typedef unsigned short jsmnint_t;
+#  define packed __attribute__((packed))
+#else
+typedef unsigned int jsmnint_t;
+#  define packed
+#endif
+#define JSMN_NEG ((jsmnint_t)-1)
+
 /**
  * JSON type identifier. Basic types are:
  */
-typedef enum __attribute__((packed)) {
+typedef enum packed {
   JSMN_UNDEFINED    = 0x0000,
   JSMN_OBJECT       = 0x0001,   //!< Object
   JSMN_ARRAY        = 0x0002,   //!< Array
@@ -122,9 +131,6 @@ enum jsmnerr {
   JSMN_ERROR_PART  = -3,        //!< The string is not a full JSON packet, more bytes expected
   JSMN_ERROR_LEN   = -4,        //!< Input data too long
 };
-
-typedef unsigned int jsmnint_t;
-#define JSMN_NEG ((jsmnint_t)-1)
 
 /**
  * JSON token description.
