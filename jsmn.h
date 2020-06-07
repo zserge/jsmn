@@ -703,6 +703,12 @@ jsmnint_t jsmn_parse_container_close(jsmn_parser *parser, const char c,
 
   if (tokens == NULL) {
     if (parser->toksuper < (sizeof(jsmnint_t) * 8)) {
+      jsmntype_t type;
+      type = (c == '}' ? JSMN_OBJECT : JSMN_ARRAY);
+      if ((((parser->toknext & 1 << parser->toksuper) == 1) && !(type & JSMN_OBJECT)) ||
+          (((parser->toknext & 1 << parser->toksuper) == 0) && !(type & JSMN_ARRAY))) {
+        return JSMN_ERROR_INVAL;
+      }
       parser->toknext &= ~(1 << parser->toksuper);
     }
     parser->toksuper--;
