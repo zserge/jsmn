@@ -435,21 +435,21 @@ check_primitive_border:
 found:
   expected = parser->expected;
   if (parser->toksuper != JSMN_NEG) {
-    // OBJECT KEY, strict query
+    /* OBJECT KEY, strict query */
     if ((parser->expected & (JSMN_KEY | JSMN_INSD_OBJ)) == (JSMN_KEY | JSMN_INSD_OBJ)) {
       parser->expected = JSMN_AFTR_OBJ_KEY;
       type |= JSMN_KEY   | JSMN_INSD_OBJ;
-    // OBJECT VALUE, VALUE is implicit
+    /* OBJECT VALUE, VALUE is implicit */
     } else if (parser->expected & JSMN_INSD_OBJ) {
       parser->expected = JSMN_AFTR_OBJ_VAL;
       type |= JSMN_VALUE | JSMN_INSD_OBJ;
 #ifdef JSMN_PERMISSIVE
-    // OBJECT VALUE at the ROOT level
+    /* OBJECT VALUE at the ROOT level */
     } else if (parser->expected == JSMN_AFTR_COLON_R) {
       parser->expected = JSMN_ROOT_AFTR_O;
       type |= JSMN_VALUE;
 #endif
-    // ARRAY VALUE, VALUE is implicit
+    /* ARRAY VALUE, VALUE is implicit */
     } else {
       parser->expected = JSMN_AFTR_ARR_VAL;
       type |= JSMN_VALUE;
@@ -537,21 +537,21 @@ jsmnint_t jsmn_parse_string(jsmn_parser *parser, const char *js,
       jsmntype_t expected = parser->expected;
       jsmntype_t type;
       if (parser->toksuper != JSMN_NEG) {
-        // OBJECT KEY, strict query
+        /* OBJECT KEY, strict query */
         if ((parser->expected & (JSMN_INSD_OBJ | JSMN_KEY)) == (JSMN_INSD_OBJ | JSMN_KEY)) {
           parser->expected = JSMN_AFTR_OBJ_KEY;
           type = JSMN_STRING | JSMN_KEY   | JSMN_INSD_OBJ;
-        // OBJECT VALUE, VALUE is implicit
+        /* OBJECT VALUE, VALUE is implicit */
         } else if (parser->expected & JSMN_INSD_OBJ) {
           parser->expected = JSMN_AFTR_OBJ_VAL;
           type = JSMN_STRING | JSMN_VALUE | JSMN_INSD_OBJ;
 #ifdef JSMN_PERMISSIVE
-        // OBJECT VALUE at the ROOT level
+        /* OBJECT VALUE at the ROOT level */
         } else if (parser->expected == JSMN_AFTR_COLON_R) {
           parser->expected = JSMN_ROOT_AFTR_O;
           type = JSMN_STRING | JSMN_VALUE;
 #endif
-        // ARRAY VALUE, VALUE is implicit
+        /* ARRAY VALUE, VALUE is implicit */
         } else {
           parser->expected = JSMN_AFTR_ARR_VAL;
           type = JSMN_STRING | JSMN_VALUE;
@@ -836,7 +836,6 @@ jsmnint_t jsmn_parse(jsmn_parser *parser, const char *js,
                      const size_t len, jsmntok_t *tokens,
                      const size_t num_tokens) {
   jsmnint_t r;
-  jsmnint_t i;
   jsmnint_t count = parser->toknext;
 
   char c;
@@ -917,13 +916,8 @@ jsmnint_t jsmn_parse(jsmn_parser *parser, const char *js,
     }
   }
 
-  if (tokens != NULL) {
-    for (i = parser->toknext - 1; i != JSMN_NEG; i--) {
-      /* Unmatched opened OBJECT or ARRAY */
-      if (tokens[i].start != JSMN_NEG && tokens[i].end == JSMN_NEG) {
-        return JSMN_ERROR_PART;
-      }
-    }
+  if (parser->toksuper != JSMN_NEG) {
+    return JSMN_ERROR_PART;
   }
 
   return count;
