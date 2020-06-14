@@ -85,7 +85,7 @@ Download `jsmn.h`, include it, done.
 
 ...
 jsmn_parser p;
-jsmntok_t t[128]; // We expect no more than 128 JSON tokens
+jsmntok_t t[128]; /* We expect no more than 128 JSON tokens */
 
 jsmn_init(&p);
 r = jsmn_parse(&p, s, strlen(s), t, 128);
@@ -98,11 +98,11 @@ from multiple C files, to avoid duplication of symbols you may define
 `JSMN_HEADER` macro.
 
 ```c
-// In every .c file that uses jsmn include only declarations:
+/* In every .c file that uses jsmn include only declarations: */
 #define JSMN_HEADER
 #include "jsmn.h"
 
-// Additionally, create one jsmn.c file for jsmn implementation:
+/* Additionally, create one jsmn.c file for jsmn implementation: */
 #include "jsmn.h"
 ```
 
@@ -112,11 +112,11 @@ API
 Token types are described by `jsmntype_t`:
 ```c
 typedef enum {
-	JSMN_UNDEFINED = 0x00,
-	JSMN_OBJECT    = 0x01,    //!< Object
-	JSMN_ARRAY     = 0x02,    //!< Array
-	JSMN_STRING    = 0x04,    //!< String
-	JSMN_PRIMITIVE = 0x08,    //!< Other primitive: number, boolean (true/false) or null
+	JSMN_UNDEFINED    = 0x0000,
+  JSMN_OBJECT       = 0x0001,   /*!< Object */
+  JSMN_ARRAY        = 0x0002,   /*!< Array */
+  JSMN_STRING       = 0x0004,   /*!< String */
+  JSMN_PRIMITIVE    = 0x0008,   /*!< Other primitive: number, boolean (true/false) or null */
 	...
 } jsmntype_t;
 ```
@@ -131,10 +131,10 @@ first character:
 Token is an object of `jsmntok_t` type:
 ```c
 typedef struct {
-	jsmntype_t type;          //!< type (object, array, string etc.)
-	jsmnint_t start;          //!< start position in JSON data string
-	jsmnint_t end;            //!< end position in JSON data string
-	jsmnint_t size;           //!< number of children
+	jsmntype_t type;              /*!< type (object, array, string etc.) */
+	jsmnint_t start;              /*!< start position in JSON data string */
+	jsmnint_t end;                /*!< end position in JSON data string */
+	jsmnint_t size;               /*!< number of children */
 	...
 } jsmntok_t;
 ```
@@ -150,9 +150,9 @@ jsmntok_t tokens[10];
 
 jsmn_init(&parser);
 
-// js - pointer to JSON string
-// tokens - an array of tokens available
-// 10 - number of tokens available
+/* js - pointer to JSON string */
+/* tokens - an array of tokens available */
+/* 10 - number of tokens available */
 jsmn_parse(&parser, js, strlen(js), tokens, 10);
 ```
 This will create a parser, and then it tries to parse up to 10 JSON tokens from
