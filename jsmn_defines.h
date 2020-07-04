@@ -1,5 +1,5 @@
-#ifndef JSMN_DEFINES
-#define JSMN_DEFINES
+#ifndef JSMN_DEFINES_H_
+#define JSMN_DEFINES_H_
 
 /*!
  * If nothing is defined, the default definitions are JSMN_PARENT_LINKS and   *
@@ -47,14 +47,19 @@
  * This reduces the jsmntok_t size by half by changing jsmntok_t field sizes
  *   from an unsigned int to an unsigned short. NOTE: This reduces the maximum
  *   possible json string length from 4,294,967,295 to 65,535 minus the size of
- *   jsmnerr.
+ *   jsmnerr (JSMN_ERROR_MAX).
  */
 
 /*! @def JSMN_PERMISSIVE
  * @brief Enables all PERMISSIVE definitions
  *
- * Enables JSMN_PERMISSIVE_KEY, JSMN_PERMISSIVE_PRIMITIVE, and
- *   JSMN_MULTIPLE_JSON
+ * Enables JSMN_PERMISSIVE_RULESET, JSMN_PERMISSIVE_KEY,
+ *   JSMN_PERMISSIVE_PRIMITIVE, JSMN_PERMISSIVE_LITERALS,
+ *   JSMN_PERMISSIVE_UTF32, and JSMN_MULTIPLE_JSON
+ */
+
+/*! @def JSMN_PERMISSIVE_RULESET
+ * @brief Enables the PERMISSIVE set of rules
  */
 
 /*! @def JSMN_PERMISSIVE_KEY
@@ -66,8 +71,16 @@
  *
  * This allows PRIMIVITEs to be any contiguous value that does not contain a
  *   character that has a special meaning to json (`{}[]",:`). NOTE: There is no
- *   validation of JSMN_PRI_MINUS, JSNM_PRI_DECIMAL, or JSMN_PRI_EXPONENT;
- *   everything is the base type JSMN_PRIMITIVE.
+ *   validation of JSMN_PRI_LITERAL, JSMN_PRI_MINUS, JSNM_PRI_DECIMAL, or
+ *   JSMN_PRI_EXPONENT; everything is the base type JSMN_PRIMITIVE.
+ */
+
+/*! @def JSMN_PERMISSIVE_LITERALS
+ * @brief Extends the PRIMITIVE literals to include 'NaN' and 'Infinity'
+ */
+
+/*! @def JSMN_PERMISSIVE_UTF32
+ * @brief Allows escaped characters in the style \Uhhhhhhhh
  */
 
 /*! @def JSMN_MULTIPLE_JSON
@@ -82,44 +95,53 @@
  * @brief Fails if there is more than one json object in a buffer.
  */
 
-#ifndef JSMN_API
-# ifdef JSMN_STATIC
+#if !defined(JSMN_API)
+# if defined(JSMN_STATIC)
 #  define JSMN_API static
 # else
 #  define JSMN_API extern
 # endif
 #endif
 
-#ifndef JSMN_LOW_MEMORY
+#if !defined(JSMN_LOW_MEMORY)
 
-# ifndef JSMN_PARENT_LINKS
+# if !defined(JSMN_PARENT_LINKS)
 #  define JSMN_PARENT_LINKS
 # endif
-# ifndef JSMN_NEXT_SIBLING
+# if !defined(JSMN_NEXT_SIBLING)
 #  define JSMN_NEXT_SIBLING
 # endif
 
 #else
 
-# ifndef JSMN_SHORT_TOKENS
+# if !defined(JSMN_SHORT_TOKENS)
 #  define JSMN_SHORT_TOKENS
 # endif
 
 #endif
 
-#ifdef JSMN_PERMISSIVE
-# ifndef JSMN_PERMISSIVE_KEY
+#if defined(JSMN_PERMISSIVE)
+# if !defined(JSMN_PERMISSIVE_RULESET)
+#  define JSMN_PERMISSIVE_RULESET
+# endif
+# if !defined(JSMN_PERMISSIVE_KEY)
 #  define JSMN_PERMISSIVE_KEY
 # endif
-# ifndef JSMN_PERMISSIVE_PRIMITIVE
+# if !defined(JSMN_PERMISSIVE_PRIMITIVE)
 #  define JSMN_PERMISSIVE_PRIMITIVE
 # endif
-# ifndef JSMN_MULTIPLE_JSON
+# if !defined(JSMN_PERMISSIVE_LITERALS)
+#  define JSMN_PERMISSIVE_LITERALS
+# endif
+# if !defined(JSMN_PERMISSIVE_UTF32)
+#  define JSMN_PERMISSIVE_UTF32
+# endif
+# if !defined(JSMN_MULTIPLE_JSON)
 #  define JSMN_MULTIPLE_JSON
 # endif
 #endif
 
-#ifdef JSMN_MULTIPLE_JSON_FAIL
+#if defined(JSMN_MULTIPLE_JSON_FAIL)
 # undef JSMN_MULTIPLE_JSON
 #endif
 
@@ -134,4 +156,4 @@
 # define JSMN_LOCAL
 #endif
 
-#endif /* JSMN_DEFINES */
+#endif /* JSMN_DEFINES_H_ */

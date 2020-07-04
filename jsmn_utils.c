@@ -19,13 +19,13 @@ const char *jsmn_strerror(jsmnerr errno)
             return "*** Success, should not be printing an error. ***";
         case JSMN_ERROR_NOMEM:
             return "Not enough tokens were provided.";
-        case JSMN_ERROR_LEN:
+        case JSMN_ERROR_LENGTH:
             return "Input data too long.";
         case JSMN_ERROR_INVAL:
             return "Invalid character inside JSON string.";
         case JSMN_ERROR_PART:
             return "The string is not a full JSON packet, more bytes expected.";
-        case JSMN_ERROR_UNMATCHED_BRACKETS:
+        case JSMN_ERROR_BRACKETS:
             return "The JSON string has unmatched brackets.";
     }
 
@@ -41,7 +41,7 @@ jsmntok_t *jsmn_tokenize(const char *json, const size_t json_len, jsmnint_t *rv)
     *rv = jsmn_parse(&p, json, json_len, NULL, 0);
 
     /* enum jsmnerr has four errors, thus */
-    if (*rv >= (jsmnint_t)-5) {
+    if (*rv >= (jsmnint_t)JSMN_ERROR_MAX) {
         fprintf(stderr, "jsmn_parse error: %s\n", jsmn_strerror(*rv));
         return NULL;
     }
@@ -67,7 +67,7 @@ jsmnint_t jsmn_tokenize_noalloc(jsmntok_t *tokens, const uint32_t num_tokens, co
     rv = jsmn_parse(&p, json, json_len, tokens, num_tokens);
 
     /* enum jsmnerr has four errors, thus */
-    if (rv >= (jsmnint_t)-5) {
+    if (rv >= (jsmnint_t)JSMN_ERROR_MAX) {
         fprintf(stderr, "jsmn_parse error: %s\n", jsmn_strerror(rv));
         return rv;
     }
@@ -236,7 +236,7 @@ void jsmn_explodeJSON(const char *json, const size_t len)
     for (i = 0, depth = 0; i < rv; i++) {
         token = &tokens[i];
         printf(   "%9d", i);
-        printf(" | %9s", jsmntype[token->type & JSMN_ANY_TYPE]);
+        printf(" | %9s", jsmntype[token->type & JSMN_VAL_TYPE]);
         printf(" | %8d", token->start);
         printf(" | %8d", token->end);
         printf(" | %8d", token->end - token->start);

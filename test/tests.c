@@ -825,7 +825,7 @@ int test_jsmn_test_suite_n_(void) {
   check(query("[\"a\"", JSMN_ERROR_PART));
 
   /* n_structure_open_object_close_array.json */
-  check(query("{]", JSMN_ERROR_UNMATCHED_BRACKETS));
+  check(query("{]", JSMN_ERROR_BRACKETS));
 
   /* n_structure_open_object_comma.json */
   check(query("{,", JSMN_ERROR_INVAL));
@@ -1440,10 +1440,10 @@ int test_object(void) {
 }
 
 int test_array(void) {
-  check(query("[10}", JSMN_ERROR_UNMATCHED_BRACKETS));
+  check(query("[10}", JSMN_ERROR_BRACKETS));
   check(query("[1,,3]", JSMN_ERROR_INVAL));
   check(parse("[10]", 2, 2, JSMN_ARRAY, -1, -1, 1, JSMN_PRIMITIVE, "10"));
-  check(query("{\"a\": 1]", JSMN_ERROR_UNMATCHED_BRACKETS));
+  check(query("{\"a\": 1]", JSMN_ERROR_BRACKETS));
   check(query("[\"a\": 1]", JSMN_ERROR_INVAL));
   return 0;
 }
@@ -1635,8 +1635,8 @@ int test_count(void) {
   check(query("[[], \"[], [[]]\", [[]]]", 5));
   check(query("[1, 2, 3]", 4));
   check(query("[1, 2, [3, \"a\"], null]", 7));
-  check(query("[}", JSMN_ERROR_UNMATCHED_BRACKETS));
-  check(query("{]", JSMN_ERROR_UNMATCHED_BRACKETS));
+  check(query("[}", JSMN_ERROR_BRACKETS));
+  check(query("{]", JSMN_ERROR_BRACKETS));
   return 0;
 }
 

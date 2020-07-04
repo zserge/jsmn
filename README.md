@@ -1,7 +1,7 @@
 JSMN
 ====
 
-[![Build Status](https://travis-ci.org/zserge/jsmn.svg?branch=master)](https://travis-ci.org/zserge/jsmn)
+[![pipeline status](https://gitlab.com/themobiusproject/jsmn/badges/master/pipeline.svg)](https://gitlab.com/themobiusproject/jsmn/-/commits/master) [![coverage report](https://gitlab.com/themobiusproject/jsmn/badges/master/coverage.svg)](https://gitlab.com/themobiusproject/jsmn/-/commits/master)
 
 jsmn (pronounced like 'jasmine') is a minimalistic JSON parser in C. It can be
 easily integrated into resource-limited or embedded projects.
@@ -23,7 +23,7 @@ often is an overkill.
 
 JSON format itself is extremely simple, so why should we complicate it?
 
-jsmn is designed to be	**robust** (it should work fine even with erroneous
+jsmn is designed to be **robust** (it should work fine even with erroneous
 data), **fast** (it should parse data on the fly), **portable** (no superfluous
 dependencies or non-standard C extensions). And of course, **simplicity** is a
 key feature - simple code style, simple algorithm, simple integration into
@@ -170,11 +170,23 @@ If something goes wrong, you will get an error. Error will be one of these:
 * `JSMN_ERROR_INVAL` - bad token, JSON string is corrupted
 * `JSMN_ERROR_NOMEM` - not enough tokens, JSON string is too large
 * `JSMN_ERROR_PART` - JSON string is too short, expecting more JSON data
+* `JSMN_ERROR_LEN`  - JSON string is too long (see note)
 
 If you get `JSMN_ERROR_NOMEM`, you can re-allocate more tokens and call
 `jsmn_parse` once more.  If you read json data from the stream, you can
 periodically call `jsmn_parse` and check if return value is `JSMN_ERROR_PART`.
 You will get this error until you reach the end of JSON data.
+
+**Note:** The amount of input data jsmn can parse is limited by the size of
+jsmnint_t. Currently typedefed as an unsigned int.
+
+Thus follows max len = 2^(sizeof(jsmnint_t)*8) -1 for various int sizes:
+
+* 16bit ints - 65535
+* 32bit ints - 4294967295
+* 64bit ints - ~1.8e19
+
+feed more data into `jsmn_parse` and you will get `JSMN_ERROR_LEN`.
 
 Other info
 ----------
