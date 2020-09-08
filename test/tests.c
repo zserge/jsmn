@@ -1403,6 +1403,8 @@ int test_object(void) {
               JSMN_PRIMITIVE, "0"));
   check(parse("{\"a\":[]}", 3, 3, JSMN_OBJECT, 0, 8, 1, JSMN_STRING, "a", 1,
               JSMN_ARRAY, 5, 7, 0));
+  check(parse("{\"a\":[1,2]}", 5, 5, JSMN_OBJECT, 0, 11, 1, JSMN_STRING, "a", 1,
+              JSMN_ARRAY, 5, 10, 2, JSMN_PRIMITIVE, "1", JSMN_PRIMITIVE, "2"));
   check(parse("{\"a\":{},\"b\":{}}", 5, 5, JSMN_OBJECT, -1, -1, 2, JSMN_STRING,
               "a", 1, JSMN_OBJECT, -1, -1, 0, JSMN_STRING, "b", 1, JSMN_OBJECT,
               -1, -1, 0));
