@@ -3,36 +3,36 @@
 
 #include "../jsmn.h"
 
-static int vtokeq(const char *s, jsmntok_t *t, unsigned long numtok,
+static int vtokeq(const char *s, const jsmntok_t *t, const size_t numtok,
                   va_list ap) {
   if (numtok > 0) {
-    unsigned long i;
-    int start, end, size;
+    size_t i;
+    jsmnint_t start, end, size;
     jsmntype_t type;
     char *value;
 
-    size = -1;
+    size = JSMN_NEG;
     value = NULL;
     for (i = 0; i < numtok; i++) {
       type = va_arg(ap, jsmntype_t);
       if (type == JSMN_STRING) {
         value = va_arg(ap, char *);
         size = va_arg(ap, int);
-        start = end = -1;
+        start = end = JSMN_NEG;
       } else if (type == JSMN_PRIMITIVE) {
         value = va_arg(ap, char *);
-        start = end = size = -1;
+        start = end = size = JSMN_NEG;
       } else {
         start = va_arg(ap, int);
         end = va_arg(ap, int);
         size = va_arg(ap, int);
         value = NULL;
       }
-      if (t[i].type != type) {
+      if (!(t[i].type & type)) {
         printf("token %lu type is %d, not %d\n", i, t[i].type, type);
         return 0;
       }
-      if (start != -1 && end != -1) {
+      if (start != JSMN_NEG && end != JSMN_NEG) {
         if (t[i].start != start) {
           printf("token %lu start is %d, not %d\n", i, t[i].start, start);
           return 0;
@@ -42,14 +42,14 @@ static int vtokeq(const char *s, jsmntok_t *t, unsigned long numtok,
           return 0;
         }
       }
-      if (size != -1 && t[i].size != size) {
+      if (size != JSMN_NEG && t[i].size != size) {
         printf("token %lu size is %d, not %d\n", i, t[i].size, size);
         return 0;
       }
 
       if (s != NULL && value != NULL) {
         const char *p = s + t[i].start;
-        if (strlen(value) != (unsigned long)(t[i].end - t[i].start) ||
+        if (strlen(value) != (size_t)(t[i].end - t[i].start) ||
             strncmp(p, value, t[i].end - t[i].start) != 0) {
           printf("token %lu value is %.*s, not %s\n", i, t[i].end - t[i].start,
                  s + t[i].start, value);
@@ -61,7 +61,7 @@ static int vtokeq(const char *s, jsmntok_t *t, unsigned long numtok,
   return 1;
 }
 
-static int tokeq(const char *s, jsmntok_t *tokens, unsigned long numtok, ...) {
+static int tokeq(const char *s, const jsmntok_t *tokens, const size_t numtok, ...) {
   int ok;
   va_list args;
   va_start(args, numtok);
@@ -70,8 +70,18 @@ static int tokeq(const char *s, jsmntok_t *tokens, unsigned long numtok, ...) {
   return ok;
 }
 
-static int parse(const char *s, int status, unsigned long numtok, ...) {
-  int r;
+static int query(const char *s, const jsmnint_t status) {
+    jsmnint_t r;
+    jsmn_parser p;
+
+    jsmn_init(&p);
+    r = jsmn_parse(&p, s, strlen(s), NULL, 0);
+
+    return (status == r);
+}
+
+static int parse(const char *s, const jsmnint_t status, const size_t numtok, ...) {
+  jsmnint_t r;
   int ok = 1;
   va_list args;
   jsmn_parser p;
