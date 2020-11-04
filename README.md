@@ -11,7 +11,7 @@ You can find more information about JSON format at [json.org][1]
 Library sources are available at https://github.com/zserge/jsmn
 
 The web page with some information about jsmn can be found at
-[http://zserge.com/jsmn.html][2]
+[https://zserge.com/jsmn/][2]
 
 Philosophy
 ----------
@@ -97,7 +97,7 @@ you might need to define additional macros. `#define JSMN_STATIC` hides all
 jsmn API symbols by making them static. Also, if you want to include `jsmn.h`
 from multiple C files, to avoid duplication of symbols you may define  `JSMN_HEADER` macro.
 
-```
+```c
 /* In every .c file that uses jsmn include only declarations: */
 #define JSMN_HEADER
 #include "jsmn.h"
@@ -110,15 +110,16 @@ API
 ---
 
 Token types are described by `jsmntype_t`:
-
-	typedef enum {
-		JSMN_UNDEFINED = 0,
-		JSMN_OBJECT = 1,
-		JSMN_ARRAY = 2,
-		JSMN_STRING = 3,
-		JSMN_PRIMITIVE = 4
-	} jsmntype_t;
-
+```c
+typedef enum {
+	JSMN_UNDEFINED    = 0x0000,
+  JSMN_OBJECT       = 0x0001,   /*!< Object */
+  JSMN_ARRAY        = 0x0002,   /*!< Array */
+  JSMN_STRING       = 0x0004,   /*!< String */
+  JSMN_PRIMITIVE    = 0x0008,   /*!< Other primitive: number, boolean (true/false) or null */
+	...
+} jsmntype_t;
+```
 **Note:** Unlike JSON data types, primitive tokens are not divided into
 numbers, booleans and null, because one can easily tell the type using the
 first character:
@@ -128,30 +129,32 @@ first character:
 * <code>'-', '0'..'9'</code> - number
 
 Token is an object of `jsmntok_t` type:
+```c
+typedef struct {
+	jsmntype_t type;              /*!< type (object, array, string etc.) */
+	jsmnint_t start;              /*!< start position in JSON data string */
+	jsmnint_t end;                /*!< end position in JSON data string */
+	jsmnint_t size;               /*!< number of children */
+	...
+} jsmntok_t;
+```
+**Note:** string tokens point to the first character after the opening quote
+and the previous symbol before final quote. This was made to simplify string
+extraction from JSON data.
 
-	typedef struct {
-		jsmntype_t type; // Token type
-		int start;       // Token start position
-		int end;         // Token end position
-		int size;        // Number of child (nested) tokens
-	} jsmntok_t;
+All jobs are done by the `jsmn_parser` object. You can initialize a new parser
+using:
+```c
+jsmn_parser parser;
+jsmntok_t tokens[10];
 
-**Note:** string tokens point to the first character after
-the opening quote and the previous symbol before final quote. This was made 
-to simplify string extraction from JSON data.
+jsmn_init(&parser);
 
-All job is done by `jsmn_parser` object. You can initialize a new parser using:
-
-	jsmn_parser parser;
-	jsmntok_t tokens[10];
-
-	jsmn_init(&parser);
-
-	// js - pointer to JSON string
-	// tokens - an array of tokens available
-	// 10 - number of tokens available
-	jsmn_parse(&parser, js, strlen(js), tokens, 10);
-
+/* js - pointer to JSON string */
+/* tokens - an array of tokens available */
+/* 10 - number of tokens available */
+jsmn_parse(&parser, js, strlen(js), tokens, 10);
+```
 This will create a parser, and then it tries to parse up to 10 JSON tokens from
 the `js` string.
 
@@ -175,8 +178,8 @@ You will get this error until you reach the end of JSON data.
 Other info
 ----------
 
-This software is distributed under [MIT license](http://www.opensource.org/licenses/mit-license.php),
+This software is distributed under [MIT license](https://opensource.org/licenses/mit-license.php),
  so feel free to integrate it in your commercial products.
 
-[1]: http://www.json.org/
-[2]: http://zserge.com/jsmn.html
+[1]: https://www.json.org/
+[2]: https://zserge.com/jsmn/
