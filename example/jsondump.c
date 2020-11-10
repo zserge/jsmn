@@ -25,9 +25,9 @@ static inline void *realloc_it(void *ptrmem, size_t size) {
  * The output looks like YAML, but I'm not sure if it's really compatible.
  */
 
-static int dump(const char *js, jsmntok_t *t, size_t count, int indent) {
+static int dump(const char *js, jsmntok *t, size_t count, int indent) {
   int i, j, k;
-  jsmntok_t *key;
+  jsmntok *key;
   if (count == 0) {
     return 0;
   }
@@ -76,8 +76,8 @@ int main() {
   size_t jslen = 0;
   char buf[BUFSIZ];
 
-  jsmn_parser p;
-  jsmntok_t *tok;
+  jsmnparser p;
+  jsmntok *tok;
   size_t tokcount = 2;
 
   /* Prepare parser */

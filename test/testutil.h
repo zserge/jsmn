@@ -3,18 +3,18 @@
 
 #include "../jsmn.h"
 
-static int vtokeq(const char *s, const jsmntok_t *t, const size_t numtok,
+static int vtokeq(const char *s, const jsmntok *t, const size_t numtok,
                   va_list ap) {
   if (numtok > 0) {
     size_t i;
-    jsmnint_t start, end, size;
-    jsmntype_t type;
+    jsmnint start, end, size;
+    jsmntype type;
     char *value;
 
     size = JSMN_NEG;
     value = NULL;
     for (i = 0; i < numtok; i++) {
-      type = va_arg(ap, jsmntype_t);
+      type = va_arg(ap, jsmntype);
       if (type == JSMN_STRING) {
         value = va_arg(ap, char *);
         size = va_arg(ap, int);
@@ -61,7 +61,7 @@ static int vtokeq(const char *s, const jsmntok_t *t, const size_t numtok,
   return 1;
 }
 
-static int tokeq(const char *s, const jsmntok_t *tokens, const size_t numtok, ...) {
+static int tokeq(const char *s, const jsmntok *tokens, const size_t numtok, ...) {
   int ok;
   va_list args;
   va_start(args, numtok);
@@ -70,9 +70,9 @@ static int tokeq(const char *s, const jsmntok_t *tokens, const size_t numtok, ..
   return ok;
 }
 
-static int query(const char *s, const jsmnint_t status) {
-    jsmnint_t r;
-    jsmn_parser p;
+static int query(const char *s, const jsmnint status) {
+    jsmnint r;
+    jsmnparser p;
 
     jsmn_init(&p);
     r = jsmn_parse(&p, s, strlen(s), NULL, 0);
@@ -80,12 +80,12 @@ static int query(const char *s, const jsmnint_t status) {
     return (status == r);
 }
 
-static int parse(const char *s, const jsmnint_t status, const size_t numtok, ...) {
-  jsmnint_t r;
+static int parse(const char *s, const jsmnint status, const size_t numtok, ...) {
+  jsmnint r;
   int ok = 1;
   va_list args;
-  jsmn_parser p;
-  jsmntok_t *t = malloc(numtok * sizeof(jsmntok_t));
+  jsmnparser p;
+  jsmntok *t = malloc(numtok * sizeof(jsmntok));
 
   jsmn_init(&p);
   r = jsmn_parse(&p, s, strlen(s), t, numtok);

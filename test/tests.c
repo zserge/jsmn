@@ -1487,9 +1487,9 @@ int test_string(void) {
 }
 
 int test_partial_string(void) {
-  jsmnint_t r;
-  jsmntok_t tok[5];
-  jsmn_parser p;
+  jsmnint r;
+  jsmntok tok[5];
+  jsmnparser p;
   jsmn_init(&p);
 
   const char *js = "{\"x\": \"va\\\\ue\", \"y\": \"value y\"}";
@@ -1503,7 +1503,7 @@ int test_partial_string(void) {
                   JSMN_STRING, "va\\\\ue", 0, JSMN_STRING, "y", 1, JSMN_STRING,
                   "value y", 0));
     } else {
-      check(r == (jsmnint_t)JSMN_ERROR_PART);
+      check(r == (jsmnint)JSMN_ERROR_PART);
     }
   }
   return 0;
@@ -1511,9 +1511,9 @@ int test_partial_string(void) {
 
 int test_partial_array(void) {
 #ifndef JSMN_PERMISSIVE
-  jsmnint_t r;
-  jsmntok_t tok[10];
-  jsmn_parser p;
+  jsmnint r;
+  jsmntok tok[10];
+  jsmnparser p;
   jsmn_init(&p);
 
   const char *js = "[ 1, true, [123, \"hello\"]]";
@@ -1527,7 +1527,7 @@ int test_partial_array(void) {
                   JSMN_PRIMITIVE, "true", JSMN_ARRAY, -1, -1, 2, JSMN_PRIMITIVE,
                   "123", JSMN_STRING, "hello", 0));
     } else {
-      check(r == (jsmnint_t)JSMN_ERROR_PART);
+      check(r == (jsmnint)JSMN_ERROR_PART);
     }
   }
 #endif
@@ -1535,9 +1535,9 @@ int test_partial_array(void) {
 }
 
 int test_array_nomem(void) {
-  jsmnint_t r;
-  jsmntok_t toksmall[10], toklarge[10];
-  jsmn_parser p;
+  jsmnint r;
+  jsmntok toksmall[10], toklarge[10];
+  jsmnparser p;
 
   const char *js = "  [ 1, true, [123, \"hello\"]]";
 
@@ -1547,7 +1547,7 @@ int test_array_nomem(void) {
     memset(toksmall, 0, sizeof(toksmall));
     memset(toklarge, 0, sizeof(toklarge));
     r = jsmn_parse(&p, js, strlen(js), toksmall, i);
-    check(r == (jsmnint_t)JSMN_ERROR_NOMEM);
+    check(r == (jsmnint)JSMN_ERROR_NOMEM);
 
     memcpy(toklarge, toksmall, sizeof(toksmall));
 
@@ -1562,9 +1562,9 @@ int test_array_nomem(void) {
 
 int test_unquoted_keys(void) {
 #ifdef JSMN_PERMISSIVE
-  jsmnint_t r;
-  jsmntok_t tok[10];
-  jsmn_parser p;
+  jsmnint r;
+  jsmntok tok[10];
+  jsmnparser p;
   jsmn_init(&p);
 
   const char *js = "key1: \"value\"\nkey2 : 123";
@@ -1610,9 +1610,9 @@ int test_issue_27(void) {
 }
 
 int test_input_length(void) {
-  jsmnint_t r;
-  jsmntok_t tokens[10];
-  jsmn_parser p;
+  jsmnint r;
+  jsmntok tokens[10];
+  jsmnparser p;
   jsmn_init(&p);
 
   const char *js = "{\"a\": 0}garbage";

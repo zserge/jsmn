@@ -3,7 +3,7 @@
 
 /*!
  * If nothing is defined, the default definitions are JSMN_PARENT_LINKS and   *
- *   JSMN_NEXT_SIBLING with a jsmntok_t field size of 4 bytes (unsigned int). *
+ *   JSMN_NEXT_SIBLING with a jsmntok field size of 4 bytes (unsigned int). *
  * This will parse one json object in a buffer at a time and return after a   *
  *   successful json object parse. To check if there is more data in the      *
  *   buffer that hasn't been parsed, run jsmn_eof.                           !*/
@@ -44,7 +44,7 @@
 /*! @def JSMN_SHORT_TOKENS
  * @brief Changes the tokens field size from a uint32_t to a uint16_t
  *
- * This reduces the jsmntok_t size by half by changing jsmntok_t field sizes
+ * This reduces the jsmntok size by half by changing jsmntok field sizes
  *   from an unsigned int to an unsigned short. NOTE: This reduces the maximum
  *   possible json string length from 4,294,967,295 to 65,535 minus the size of
  *   jsmnerr.

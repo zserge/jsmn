@@ -12,7 +12,7 @@ static const char *JSON_STRING =
     "{\"user\": \"johndoe\", \"admin\": false, \"uid\": 1000,\n  "
     "\"groups\": [\"users\", \"wheel\", \"audio\", \"video\"]}";
 
-static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
+static int jsoneq(const char *json, jsmntok *tok, const char *s) {
   if (tok->type == JSMN_STRING && (int)strlen(s) == tok->end - tok->start &&
       strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
     return 0;
@@ -23,8 +23,8 @@ static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
 int main() {
   int i;
   int r;
-  jsmn_parser p;
-  jsmntok_t t[128]; /* We expect no more than 128 tokens */
+  jsmnparser p;
+  jsmntok t[128]; /* We expect no more than 128 tokens */
 
   jsmn_init(&p);
   r = jsmn_parse(&p, JSON_STRING, strlen(JSON_STRING), t,
@@ -64,7 +64,7 @@ int main() {
         continue; /* We expect groups to be an array of strings */
       }
       for (j = 0; j < t[i + 1].size; j++) {
-        jsmntok_t *g = &t[i + j + 2];
+        jsmntok *g = &t[i + j + 2];
         printf("  * %.*s\n", g->end - g->start, JSON_STRING + g->start);
       }
       i += t[i + 1].size + 1;

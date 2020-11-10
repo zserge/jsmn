@@ -85,8 +85,8 @@ Download `jsmn.h`, include it, done.
 #include "jsmn.h"
 
 ...
-jsmn_parser p;
-jsmntok_t t[128]; /* We expect no more than 128 JSON tokens */
+jsmnparser p;
+jsmntok t[128]; /* We expect no more than 128 JSON tokens */
 
 jsmn_init(&p);
 r = jsmn_parse(&p, s, strlen(s), t, 128);
@@ -109,7 +109,7 @@ from multiple C files, to avoid duplication of symbols you may define  `JSMN_HEA
 API
 ---
 
-Token types are described by `jsmntype_t`:
+Token types are described by `jsmntype`:
 ```c
 typedef enum {
 	JSMN_UNDEFINED    = 0x0000,
@@ -118,7 +118,7 @@ typedef enum {
   JSMN_STRING       = 0x0004,   /*!< String */
   JSMN_PRIMITIVE    = 0x0008,   /*!< Other primitive: number, boolean (true/false) or null */
 	...
-} jsmntype_t;
+} jsmntype;
 ```
 **Note:** Unlike JSON data types, primitive tokens are not divided into
 numbers, booleans and null, because one can easily tell the type using the
@@ -128,25 +128,25 @@ first character:
 * <code>'n'</code> - null
 * <code>'-', '0'..'9'</code> - number
 
-Token is an object of `jsmntok_t` type:
+Token is an object of `jsmntok` type:
 ```c
 typedef struct {
-	jsmntype_t type;              /*!< type (object, array, string etc.) */
-	jsmnint_t start;              /*!< start position in JSON data string */
-	jsmnint_t end;                /*!< end position in JSON data string */
-	jsmnint_t size;               /*!< number of children */
+	jsmntype type;              /*!< type (object, array, string etc.) */
+	jsmnint start;              /*!< start position in JSON data string */
+	jsmnint end;                /*!< end position in JSON data string */
+	jsmnint size;               /*!< number of children */
 	...
-} jsmntok_t;
+} jsmntok;
 ```
 **Note:** string tokens point to the first character after the opening quote
 and the previous symbol before final quote. This was made to simplify string
 extraction from JSON data.
 
-All jobs are done by the `jsmn_parser` object. You can initialize a new parser
+All jobs are done by the `jsmnparser` object. You can initialize a new parser
 using:
 ```c
-jsmn_parser parser;
-jsmntok_t tokens[10];
+jsmnparser parser;
+jsmntok tokens[10];
 
 jsmn_init(&parser);
 
