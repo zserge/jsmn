@@ -99,9 +99,9 @@ int test_jsmn_test_suite_i_(void) {
               JSMN_STRING, "\\ud800abc", 0));
 
   /* i_string_invalid_utf-8.json */
-  check(parse("[\"ˇ\"]", 2, 2,
+  check(parse("[\"\xFF\"]", 2, 2,
               JSMN_ARRAY,  0, 5, 1,
-              JSMN_STRING, "ˇ", 0));
+              JSMN_STRING, "\xFF", 0));
 
   /* i_string_inverted_surrogates_U+1D11E.json */
   check(parse("[\"\\uDd1e\\uD834\"]", 2, 2,
@@ -109,9 +109,9 @@ int test_jsmn_test_suite_i_(void) {
               JSMN_STRING, "\\uDd1e\\uD834", 0));
 
   /* i_string_iso_latin_1.json */
-  check(parse("[\"È\"]", 2, 2,
+  check(parse("[\"\xE9\"]", 2, 2,
               JSMN_ARRAY,  0, 5, 1,
-              JSMN_STRING, "È", 0));
+              JSMN_STRING, "\xE9", 0));
 
   /* i_string_lone_second_surrogate.json */
   check(parse("[\"\\uDFAA\"]", 2, 2,
@@ -119,34 +119,34 @@ int test_jsmn_test_suite_i_(void) {
               JSMN_STRING, "\\uDFAA", 0));
 
   /* i_string_lone_utf8_continuation_byte.json */
-  check(parse("[\"Å\"]", 2, 2,
+  check(parse("[\"\x81\"]", 2, 2,
               JSMN_ARRAY,  0, 5, 1,
-              JSMN_STRING, "Å", 0));
+              JSMN_STRING, "\x81", 0));
 
   /* i_string_not_in_unicode_range.json */
-  check(parse("[\"Ùøøø\"]", 2, 2,
+  check(parse("[\"\xF4\xBF\xBF\xBF\"]", 2, 2,
               JSMN_ARRAY,  0, 8, 1,
-              JSMN_STRING, "Ùøøø", 0));
+              JSMN_STRING, "\xF4\xBF\xBF\xBF", 0));
 
   /* i_string_overlong_sequence_2_bytes.json */
-  check(parse("[\"¿Ø\"]", 2, 2,
+  check(parse("[\"\xC0\xAF\"]", 2, 2,
               JSMN_ARRAY,  0, 6, 1,
-              JSMN_STRING, "¿Ø", 0));
+              JSMN_STRING, "\xC0\xAF", 0));
 
   /* i_string_overlong_sequence_6_bytes.json */
-  check(parse("[\"¸Éøøøø\"]", 2, 2,
+  check(parse("[\"\xFC\x83\xBF\xBF\xBF\xBF\"]", 2, 2,
               JSMN_ARRAY,  0, 10, 1,
-              JSMN_STRING, "¸Éøøøø", 0));
+              JSMN_STRING, "\xFC\x83\xBF\xBF\xBF\xBF", 0));
 
   /* i_string_overlong_sequence_6_bytes_null.json */
-  check(parse("[\"¸ÄÄÄÄÄ\"]", 2, 2,
+  check(parse("[\"\xFC\x80\x80\x80\x80\x80\"]", 2, 2,
               JSMN_ARRAY,  0, 10, 1,
-              JSMN_STRING, "¸ÄÄÄÄÄ", 0));
+              JSMN_STRING, "\xFC\x80\x80\x80\x80\x80", 0));
 
   /* i_string_truncated-utf-8.json */
-  check(parse("[\"‡ˇ\"]", 2, 2,
+  check(parse("[\"\xE0\xFF\"]", 2, 2,
               JSMN_ARRAY,  0, 6, 1,
-              JSMN_STRING, "‡ˇ", 0));
+              JSMN_STRING, "\xE0\xFF", 0));
 
   /* i_string_utf16BE_no_BOM.json failed to parse. */
 
@@ -155,14 +155,14 @@ int test_jsmn_test_suite_i_(void) {
   /* i_string_UTF-16LE_with_BOM.json failed to parse. */
 
   /* i_string_UTF-8_invalid_sequence.json */
-  check(parse("[\"Êó•—à˙\"]", 2, 2,
+  check(parse("[\"\xE6\x97\xA5\xD1\x88\xFA\"]", 2, 2,
               JSMN_ARRAY,  0, 10, 1,
-              JSMN_STRING, "Êó•—à˙", 0));
+              JSMN_STRING, "\xE6\x97\xA5\xD1\x88\xFA", 0));
 
   /* i_string_UTF8_surrogate_U+D800.json */
-  check(parse("[\"Ì†Ä\"]", 2, 2,
+  check(parse("[\"\xED\xA0\x80\"]", 2, 2,
               JSMN_ARRAY,  0, 7, 1,
-              JSMN_STRING, "Ì†Ä", 0));
+              JSMN_STRING, "\xED\xA0\x80", 0));
 
   /* i_structure_500_nested_arrays.json */
   check(parse("[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]", 500, 500,
@@ -278,7 +278,7 @@ int test_jsmn_test_suite_n_(void) {
   check(query("[1 true]", JSMN_ERROR_INVAL));
 
   /* n_array_a_invalid_utf8.json */
-  check(query("[aÂ]", JSMN_ERROR_INVAL));
+  check(query("[a\xE5]", JSMN_ERROR_INVAL));
 
   /* n_array_colon_instead_of_comma.json */
   check(query("[\"\": 1]", JSMN_ERROR_INVAL));
@@ -319,7 +319,7 @@ int test_jsmn_test_suite_n_(void) {
   check(query("[3[4]]", JSMN_ERROR_INVAL));
 
   /* n_array_invalid_utf8.json */
-  check(query("[ˇ]", JSMN_ERROR_INVAL));
+  check(query("[\xFF]", JSMN_ERROR_INVAL));
 
   /* n_array_items_separated_by_semicolon.json */
   check(query("[1:2]", JSMN_ERROR_INVAL));
@@ -465,13 +465,13 @@ int test_jsmn_test_suite_n_(void) {
   check(query("[-123.123foo]", JSMN_ERROR_INVAL));
 
   /* n_number_invalid-utf-8-in-bigger-int.json */
-  check(query("[123Â]", JSMN_ERROR_INVAL));
+  check(query("[123\xE5]", JSMN_ERROR_INVAL));
 
   /* n_number_invalid-utf-8-in-exponent.json */
-  check(query("[1e1Â]", JSMN_ERROR_INVAL));
+  check(query("[1e1\xE5]", JSMN_ERROR_INVAL));
 
   /* n_number_invalid-utf-8-in-int.json */
-  check(query("[0Â]", JSMN_ERROR_INVAL));
+  check(query("[0\xE5]", JSMN_ERROR_INVAL));
 
   /* n_number_++.json */
   check(query("[++1234]", JSMN_ERROR_INVAL));
@@ -504,7 +504,7 @@ int test_jsmn_test_suite_n_(void) {
   check(query("[1ea]", JSMN_ERROR_INVAL));
 
   /* n_number_real_with_invalid_utf8_after_e.json */
-  check(query("[1eÂ]", JSMN_ERROR_INVAL));
+  check(query("[1e\xE5]", JSMN_ERROR_INVAL));
 
   /* n_number_real_without_fractional_part.json */
   check(query("[1.]", JSMN_ERROR_INVAL));
@@ -513,7 +513,7 @@ int test_jsmn_test_suite_n_(void) {
   check(query("[.123]", JSMN_ERROR_INVAL));
 
   /* n_number_U+FF11_fullwidth_digit_one.json */
-  check(query("[Ôºë]", JSMN_ERROR_INVAL));
+  check(query("[\xEF\xBC\x91]", JSMN_ERROR_INVAL));
 
   /* n_number_with_alpha_char.json */
   check(query("[1.8011670033376514H-308]", JSMN_ERROR_INVAL));
@@ -537,7 +537,7 @@ int test_jsmn_test_suite_n_(void) {
   check(query("{\"x\"::\"b\"}", JSMN_ERROR_INVAL));
 
   /* n_object_emoji.json */
-  check(query("{üá®üá≠}", JSMN_ERROR_INVAL));
+  check(query("{\xF0\x9F\x87\xA8\xF0\x9F\x87\xAD}", JSMN_ERROR_INVAL));
 
   /* n_object_garbage_at_end.json */
   check(query("{\"a\":\"a\" 123}", JSMN_ERROR_INVAL));
@@ -546,7 +546,7 @@ int test_jsmn_test_suite_n_(void) {
   check(query("{key: 'value'}", JSMN_ERROR_INVAL));
 
   /* n_object_lone_continuation_byte_in_key_and_trailing_comma.json */
-  check(query("{\"π\":\"0\",}", JSMN_ERROR_INVAL));
+  check(query("{\"\xB9\":\"0\",}", JSMN_ERROR_INVAL));
 
   /* n_object_missing_colon.json */
   check(query("{\"a\" b}", JSMN_ERROR_INVAL));
@@ -644,7 +644,7 @@ int test_jsmn_test_suite_n_(void) {
   check(query("[\"\\uD800\\u\"]", JSMN_ERROR_INVAL));
 
   /* n_string_accentuated_char_no_quotes.json */
-  check(query("[√©]", JSMN_ERROR_INVAL));
+  check(query("[\xC3\xA9]", JSMN_ERROR_INVAL));
 
   /* n_string_backslash_00.json has a null byte in it. */
 
@@ -654,7 +654,7 @@ int test_jsmn_test_suite_n_(void) {
   /* n_string_escaped_ctrl_char_tab.json has a null byte in it. */
 
   /* n_string_escaped_emoji.json */
-  check(query("[\"\\üåÄ\"]", JSMN_ERROR_INVAL));
+  check(query("[\"\\\xF0\x9F\x8C\x80\"]", JSMN_ERROR_INVAL));
 
   /* n_string_escape_x.json */
   check(query("[\"\\x00\"]", JSMN_ERROR_INVAL));
@@ -678,10 +678,10 @@ int test_jsmn_test_suite_n_(void) {
   check(query("[\"\\uqqqq\"]", JSMN_ERROR_INVAL));
 
   /* n_string_invalid_utf8_after_escape.json */
-  check(query("[\"\\Â\"]", JSMN_ERROR_INVAL));
+  check(query("[\"\\\xE5\"]", JSMN_ERROR_INVAL));
 
   /* n_string_invalid-utf-8-in-escape.json */
-  check(query("[\"\\uÂ\"]", JSMN_ERROR_INVAL));
+  check(query("[\"\\u\xE5\"]", JSMN_ERROR_INVAL));
 
   /* n_string_leading_uescaped_thinspace.json */
   check(query("[\\u0020\"asd\"]", JSMN_ERROR_INVAL));
@@ -743,7 +743,7 @@ int test_jsmn_test_suite_n_(void) {
   check(query("[\"asd]", JSMN_ERROR_PART));
 
   /* n_structure_ascii-unicode-identifier.json */
-  check(query("a√•", JSMN_ERROR_INVAL));
+  check(query("a\xC3\xA5", JSMN_ERROR_INVAL));
 
   /* n_structure_capitalized_True.json */
   check(query("[True]", JSMN_ERROR_INVAL));
@@ -771,10 +771,10 @@ int test_jsmn_test_suite_n_(void) {
   check(query("]", JSMN_ERROR_INVAL));
 
   /* n_structure_incomplete_UTF8_BOM.json */
-  check(query("Ôª{}", JSMN_ERROR_INVAL));
+  check(query("\xEF\xBB{}", JSMN_ERROR_INVAL));
 
   /* n_structure_lone-invalid-utf-8.json */
-  check(query("Â", JSMN_ERROR_INVAL));
+  check(query("\xE5", JSMN_ERROR_INVAL));
 
   /* n_structure_lone-open-bracket.json */
   check(query("[", JSMN_ERROR_PART));
@@ -846,7 +846,7 @@ int test_jsmn_test_suite_n_(void) {
   check(query("[\"\\{[\"\\{[\"\\{[\"\\{", JSMN_ERROR_INVAL));
 
   /* n_structure_single_eacute.json */
-  check(query("È", JSMN_ERROR_INVAL));
+  check(query("\xE9", JSMN_ERROR_INVAL));
 
   /* n_structure_single_star.json */
   check(query("*", JSMN_ERROR_INVAL));
@@ -859,7 +859,7 @@ int test_jsmn_test_suite_n_(void) {
 #endif
 
   /* n_structure_U+2060_word_joined.json */
-  check(query("[‚Å†]", JSMN_ERROR_INVAL));
+  check(query("[\xE2\x81\xA0]", JSMN_ERROR_INVAL));
 
   /* n_structure_uescaped_LF_before_string.json */
   check(query("[\\u000A\"\"]", JSMN_ERROR_INVAL));
@@ -880,16 +880,16 @@ int test_jsmn_test_suite_n_(void) {
   check(query("{\"asd\":\"asd\"", JSMN_ERROR_PART));
 
   /* n_structure_unicode-identifier.json */
-  check(query("√•", JSMN_ERROR_INVAL));
+  check(query("\xC3\xA5", JSMN_ERROR_INVAL));
 
   /* n_structure_UTF8_BOM_no_data.json */
-  check(query("Ôªø", JSMN_ERROR_INVAL));
+  check(query("\xEF\xBB\xBF", JSMN_ERROR_INVAL));
 
   /* n_structure_whitespace_formfeed.json */
   check(query("[\f]", JSMN_ERROR_INVAL));
 
   /* n_structure_whitespace_U+2060_word_joiner.json */
-  check(query("[‚Å†]", JSMN_ERROR_INVAL));
+  check(query("[\xE2\x81\xA0]", JSMN_ERROR_INVAL));
 
 #endif /* JSMN_PERMISSIVE */
   return 0;
@@ -1206,14 +1206,14 @@ int test_jsmn_test_suite_y_(void) {
               JSMN_STRING, "new\\u00A0line", 0));
 
   /* y_string_nonCharacterInUTF-8_U+10FFFF.json */
-  check(parse("[\"Ùèøø\"]", 2, 2,
+  check(parse("[\"\xF4\x8F\xBF\xBF\"]", 2, 2,
               JSMN_ARRAY,  0, 8, 1,
-              JSMN_STRING, "Ùèøø", 0));
+              JSMN_STRING, "\xF4\x8F\xBF\xBF", 0));
 
   /* y_string_nonCharacterInUTF-8_U+FFFF.json */
-  check(parse("[\"Ôøø\"]", 2, 2,
+  check(parse("[\"\xEF\xBF\xBF\"]", 2, 2,
               JSMN_ARRAY,  0, 7, 1,
-              JSMN_STRING, "Ôøø", 0));
+              JSMN_STRING, "\xEF\xBF\xBF", 0));
 
   /* y_string_null_escape.json */
   check(parse("[\"\\u0000\"]", 2, 2,
@@ -1226,14 +1226,14 @@ int test_jsmn_test_suite_y_(void) {
               JSMN_STRING, "\\u002c", 0));
 
   /* y_string_pi.json */
-  check(parse("[\"œÄ\"]", 2, 2,
+  check(parse("[\"\xCF\x80\"]", 2, 2,
               JSMN_ARRAY,  0, 6, 1,
-              JSMN_STRING, "œÄ", 0));
+              JSMN_STRING, "\xCF\x80", 0));
 
   /* y_string_reservedCharacterInUTF-8_U+1BFFF.json */
-  check(parse("[\"õøø\"]", 2, 2,
+  check(parse("[\"\xF0\x9B\xBF\xBF\"]", 2, 2,
               JSMN_ARRAY,  0, 8, 1,
-              JSMN_STRING, "õøø", 0));
+              JSMN_STRING, "\xF0\x9B\xBF\xBF", 0));
 
   /* y_string_simple_ascii.json */
   check(parse("[\"asd \"]", 2, 2,
@@ -1260,14 +1260,14 @@ int test_jsmn_test_suite_y_(void) {
               JSMN_STRING, "\\u0123", 0));
 
   /* y_string_u+2028_line_sep.json */
-  check(parse("[\"‚Ä®\"]", 2, 2,
+  check(parse("[\"\xE2\x80\xA8\"]", 2, 2,
               JSMN_ARRAY,  0, 7, 1,
-              JSMN_STRING, "‚Ä®", 0));
+              JSMN_STRING, "\xE2\x80\xA8", 0));
 
   /* y_string_u+2029_par_sep.json */
-  check(parse("[\"‚Ä©\"]", 2, 2,
+  check(parse("[\"\xE2\x80\xA9\"]", 2, 2,
               JSMN_ARRAY,  0, 7, 1,
-              JSMN_STRING, "‚Ä©", 0));
+              JSMN_STRING, "\xE2\x80\xA9", 0));
 
   /* y_string_uescaped_newline.json */
   check(parse("[\"new\\u000Aline\"]", 2, 2,
@@ -1285,9 +1285,9 @@ int test_jsmn_test_suite_y_(void) {
               JSMN_STRING, "", 0));
 
   /* y_string_unicode_2.json */
-  check(parse("[\"‚çÇ„à¥‚çÇ\"]", 2, 2,
+  check(parse("[\"\xE2\x8D\x82\xE3\x88\xB4\xE2\x8D\x82\"]", 2, 2,
               JSMN_ARRAY,  0, 13, 1,
-              JSMN_STRING, "‚çÇ„à¥‚çÇ", 0));
+              JSMN_STRING, "\xE2\x8D\x82\xE3\x88\xB4\xE2\x8D\x82", 0));
 
   /* y_string_unicodeEscapedBackslash.json */
   check(parse("[\"\\u005C\"]", 2, 2,
@@ -1335,9 +1335,9 @@ int test_jsmn_test_suite_y_(void) {
               JSMN_STRING, "\\uFFFE", 0));
 
   /* y_string_utf8.json */
-  check(parse("[\"‚Ç¨ùÑû\"]", 2, 2,
+  check(parse("[\"\xE2\x82\xAC\xF0\x9D\x84\x9E\"]", 2, 2,
               JSMN_ARRAY,  0, 11, 1,
-              JSMN_STRING, "‚Ç¨ùÑû", 0));
+              JSMN_STRING, "\xE2\x82\xAC\xF0\x9D\x84\x9E", 0));
 
   /* y_string_with_del_character.json */
   check(parse("[\"aa\"]", 2, 2,
