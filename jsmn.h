@@ -32,8 +32,17 @@ extern "C" {
 
 #ifdef JSMN_STATIC
 #define JSMN_API static
+#define JSMN_INTERNAL_API static
+#elif defined(JSMN_WIN32_SHARED) && defined(_MSC_VER)
+#ifdef JSMN_API_EXPORTS
+#define JSMN_API __declspec(dllexport)
+#else
+#define JSMN_API __declspec(dllimport)
+#endif
+#define JSMN_INTERNAL_API extern
 #else
 #define JSMN_API extern
+#define JSMN_INTERNAL_API extern
 #endif
 
 /**
@@ -265,7 +274,7 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
 /**
  * Parse JSON string and fill tokens.
  */
-JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
+JSMN_INTERNAL_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
                         jsmntok_t *tokens, const unsigned int num_tokens) {
   int r;
   int i;
@@ -456,7 +465,7 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
  * Creates a new parser based over a given buffer with an array of tokens
  * available.
  */
-JSMN_API void jsmn_init(jsmn_parser *parser) {
+JSMN_INTERNAL_API void jsmn_init(jsmn_parser *parser) {
   parser->pos = 0;
   parser->toknext = 0;
   parser->toksuper = -1;
