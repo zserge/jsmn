@@ -86,6 +86,8 @@ Download `jsmn.h`, include it, done.
 
 ...
 jsmn_parser p;
+const char* s;
+int r;
 jsmntok_t t[128]; /* We expect no more than 128 JSON tokens */
 
 jsmn_init(&p);
