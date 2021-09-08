@@ -31,6 +31,7 @@ clean:
 	rm -f *.o example/*.o
 	rm -f simple_example
 	rm -f jsondump
+	rm -f test/test_default test/test_strict test/test_links test/test_strict_links
 
 .PHONY: clean test
 
