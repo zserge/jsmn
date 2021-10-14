@@ -196,10 +196,10 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
   jsmntok_t *token;
 
   int start = parser->pos;
-
-  parser->pos++;
-
+  
   /* Skip starting quote */
+  parser->pos++;
+  
   for (; parser->pos < len && js[parser->pos] != '\0'; parser->pos++) {
     char c = js[parser->pos];
 
