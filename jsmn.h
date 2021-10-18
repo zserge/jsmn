@@ -101,32 +101,26 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
 
 #ifndef JSMN_HEADER
 /**
- * Allocates a fresh unused token from the token pool.
+ * Allocates a fresh unused token from the token pool. Fills token type and
+ * boundaries.
  */
 static jsmntok_t *jsmn_alloc_token(jsmn_parser *parser, jsmntok_t *tokens,
-                                   const size_t num_tokens) {
+                                   const size_t num_tokens,
+                                   const jsmntype_t type,
+                                   const int start, const int end) {
   jsmntok_t *tok;
   if (parser->toknext >= num_tokens) {
     return NULL;
   }
   tok = &tokens[parser->toknext++];
-  tok->start = tok->end = -1;
+  tok->type = type;
+  tok->start = start;
+  tok->end = end;
   tok->size = 0;
 #ifdef JSMN_PARENT_LINKS
   tok->parent = -1;
 #endif
   return tok;
-}
-
-/**
- * Fills token type and boundaries.
- */
-static void jsmn_fill_token(jsmntok_t *token, const jsmntype_t type,
-                            const int start, const int end) {
-  token->type = type;
-  token->start = start;
-  token->end = end;
-  token->size = 0;
 }
 
 /**
@@ -174,12 +168,12 @@ found:
     parser->pos--;
     return 0;
   }
-  token = jsmn_alloc_token(parser, tokens, num_tokens);
+  token = jsmn_alloc_token(parser, tokens, num_tokens, JSMN_PRIMITIVE, start,
+                           parser->pos);
   if (token == NULL) {
     parser->pos = start;
     return JSMN_ERROR_NOMEM;
   }
-  jsmn_fill_token(token, JSMN_PRIMITIVE, start, parser->pos);
 #ifdef JSMN_PARENT_LINKS
   token->parent = parser->toksuper;
 #endif
@@ -208,12 +202,12 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
       if (tokens == NULL) {
         return 0;
       }
-      token = jsmn_alloc_token(parser, tokens, num_tokens);
+      token = jsmn_alloc_token(parser, tokens, num_tokens, JSMN_STRING,
+                               start + 1, parser->pos);
       if (token == NULL) {
         parser->pos = start;
         return JSMN_ERROR_NOMEM;
       }
-      jsmn_fill_token(token, JSMN_STRING, start + 1, parser->pos);
 #ifdef JSMN_PARENT_LINKS
       token->parent = parser->toksuper;
 #endif
@@ -284,7 +278,9 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
       if (tokens == NULL) {
         break;
       }
-      token = jsmn_alloc_token(parser, tokens, num_tokens);
+      type = (c == '{' ? JSMN_OBJECT : JSMN_ARRAY);
+      token = jsmn_alloc_token(parser, tokens, num_tokens, type, parser->pos,
+                               -1);
       if (token == NULL) {
         return JSMN_ERROR_NOMEM;
       }
@@ -301,8 +297,6 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
         token->parent = parser->toksuper;
 #endif
       }
-      token->type = (c == '{' ? JSMN_OBJECT : JSMN_ARRAY);
-      token->start = parser->pos;
       parser->toksuper = parser->toknext - 1;
       break;
     case '}':
