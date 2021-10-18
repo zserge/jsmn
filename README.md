@@ -140,7 +140,7 @@ Token is an object of `jsmntok_t` type:
 the opening quote and the previous symbol before final quote. This was made 
 to simplify string extraction from JSON data.
 
-All job is done by `jsmn_parser` object. You can initialize a new parser using:
+All jobs are done by the `jsmn_parser` object. You can initialize a new parser using:
 
 	jsmn_parser parser;
 	jsmntok_t tokens[10];
