@@ -336,6 +336,23 @@ int test_object_key(void) {
   return 0;
 }
 
+int test_root(void) {
+	const char *js;
+	js = "\"hello\"";
+	check(parse(js, 1, 1,
+				JSMN_STRING, "hello", 0));
+	js = "null";
+	check(parse(js, 1, 1,
+				JSMN_PRIMITIVE, "null"));
+	js = "1";
+	check(parse(js, 1, 1,
+				JSMN_PRIMITIVE, "1"));
+	js = "false";
+	check(parse(js, 1, 1,
+				JSMN_PRIMITIVE, "false"));
+	return 0;
+}
+
 int main(void) {
   test(test_empty, "test for a empty JSON objects/arrays");
   test(test_object, "test for a JSON objects");
@@ -354,6 +371,7 @@ int main(void) {
   test(test_nonstrict, "test for non-strict mode");
   test(test_unmatched_brackets, "test for unmatched brackets");
   test(test_object_key, "test for key type");
+  test(test_root, "test for values at root");
   printf("\nPASSED: %d\nFAILED: %d\n", test_passed, test_failed);
   return (test_failed > 0);
 }
