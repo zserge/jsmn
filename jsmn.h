@@ -21,6 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+ /* Fixed variable scope warning by Ercan Ersoy. */
+
 #ifndef JSMN_H
 #define JSMN_H
 
@@ -268,7 +271,9 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
 JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
                         jsmntok_t *tokens, const unsigned int num_tokens) {
   int r;
+#ifndef JSMN_PARENT_LINKS
   int i;
+#endif
   jsmntok_t *token;
   int count = parser->toknext;
 
@@ -441,6 +446,9 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
   }
 
   if (tokens != NULL) {
+#ifdef JSMN_PARENT_LINKS
+    int i;
+#endif
     for (i = parser->toknext - 1; i >= 0; i--) {
       /* Unmatched opened object or array */
       if (tokens[i].start != -1 && tokens[i].end == -1) {
