@@ -336,6 +336,204 @@ int test_object_key(void) {
   return 0;
 }
 
+int test_get_total_size(void) {
+  jsmn_parser p;
+  const char *js;
+  jsmntok_t tok[128];
+  int ret;
+
+  js = "{}";
+  jsmn_init(&p);
+  ret = jsmn_parse(&p, js, strlen(js), tok, sizeof(tok) / sizeof(*tok));
+  check(ret == 1);
+  check(jsmn_get_total_size(tok) == ret);
+
+  js = "{ \"el_1\": 5 }";
+  jsmn_init(&p);
+  ret = jsmn_parse(&p, js, strlen(js), tok, sizeof(tok) / sizeof(*tok));
+  check(ret == 3);
+  check(jsmn_get_total_size(tok) == ret);
+  check(jsmn_get_total_size(tok + 1) == 1);
+  check(jsmn_get_total_size(tok + 2) == 1);
+
+  /* Check size of two-element object */
+  js = "{ \"el_1\": 2, \"el_3\": 4 }";
+  jsmn_init(&p);
+  ret = jsmn_parse(&p, js, strlen(js), tok, sizeof(tok) / sizeof(*tok));
+  check(ret == 5);
+  check(jsmn_get_total_size(tok) == ret);
+
+  /* Check array handling */
+  js = "{ \"el_1\": [ 3, 4 ], \"el_5\": 6, \"el_7\": 8 }";
+  jsmn_init(&p);
+  ret = jsmn_parse(&p, js, strlen(js), tok, sizeof(tok) / sizeof(*tok));
+  check(ret == 9);
+  check(jsmn_get_total_size(tok) == ret);
+  check(jsmn_get_total_size(tok + 2) == 3);
+  check(jsmn_get_total_size(tok + 3) == 1);
+
+  /* Check string handling */
+  js = "{ \"el_1\": \"el_2\", \"el_3\": \"el_4\", \"el_5\": \"el_6\" }";
+  jsmn_init(&p);
+  ret = jsmn_parse(&p, js, strlen(js), tok, sizeof(tok) / sizeof(*tok));
+  check(ret == 7);
+  check(jsmn_get_total_size(tok) == ret);
+
+  /* Check nesting */
+  js = "{ \"el_1\": { \"el_3\": \"el_4\", \"el_5\": [ 7, 8 ], \"el_9\": 10 } }";
+  jsmn_init(&p);
+  ret = jsmn_parse(&p, js, strlen(js), tok, sizeof(tok) / sizeof(*tok));
+  check(ret == 11);
+  check(jsmn_get_total_size(tok) == ret);
+  check(jsmn_get_total_size(tok + 2) == 9);
+  check(jsmn_get_total_size(tok + 6) == 3);
+  check(jsmn_get_total_size(tok + 9) == 1);
+  check(jsmn_get_total_size(tok + 10) == 1);
+
+  /* Check arrays */
+  js = "[ 6 7 ]";
+  jsmn_init(&p);
+  ret = jsmn_parse(&p, js, strlen(js), tok, sizeof(tok) / sizeof(*tok));
+  check(ret == 3);
+
+  check(jsmn_get_total_size(tok) == ret);
+  check(jsmn_get_total_size(tok + 1) == 1);
+  check(jsmn_get_total_size(tok + 2) == 1);
+  return 0;
+}
+
+int test_get_by_key(void) {
+  jsmn_parser p;
+  const char *js;
+  jsmntok_t tok[128];
+  int ret;
+
+  /* No element found in case there is only a top element */
+  js = "{}";
+  jsmn_init(&p);
+  ret = jsmn_parse(&p, js, strlen(js), tok, sizeof(tok) / sizeof(*tok));
+  check(ret == 1);
+  check(jsmn_get_token_by_key(js, tok, "name") == NULL);
+  check(jsmn_get_token_by_key(js, tok, "") == NULL);
+
+  js = "{ \"el_1\": 2 }";
+  jsmn_init(&p);
+  ret = jsmn_parse(&p, js, strlen(js), tok, sizeof(tok) / sizeof(*tok));
+  check(ret == 3);
+
+  /* Find after top level should succeed */
+  check(jsmn_get_token_by_key(js, tok + 1, "el_1") == NULL);
+  /* Find on top-level will find nothing because of nesting level */
+  check(jsmn_get_token_by_key(js, tok, "el_1") == &tok[1]);
+
+  /* Find when there are two elements */
+  js = "{ \"el_1\": 2, \"el_3\": 4 }";
+  jsmn_init(&p);
+  ret = jsmn_parse(&p, js, strlen(js), tok, sizeof(tok) / sizeof(*tok));
+  check(ret == 5);
+
+  check(jsmn_get_token_by_key(js, tok, "el_1") == &tok[1]);
+  check(jsmn_get_token_by_key(js, tok, "el_3") == &tok[3]);
+
+  /* Check array handling */
+  js = "{ \"el_1\": [ 3, 4 ], \"el_5\": 6, \"el_7\": 8 }";
+  jsmn_init(&p);
+  ret = jsmn_parse(&p, js, strlen(js), tok, sizeof(tok) / sizeof(*tok));
+  check(ret == 9);
+
+  check(jsmn_get_token_by_key(js, tok, "el_1") == &tok[1]);
+  check(jsmn_get_token_by_key(js, tok, "el_5") == &tok[5]);
+  check(jsmn_get_token_by_key(js, tok, "el_7") == &tok[7]);
+
+  /* Check string handling */
+  js = "{ \"el_1\": \"el_2\", \"el_3\": \"el_4\", \"el_5\": \"el_6\" }";
+  jsmn_init(&p);
+  ret = jsmn_parse(&p, js, strlen(js), tok, sizeof(tok) / sizeof(*tok));
+  check(ret == 7);
+
+  check(jsmn_get_token_by_key(js, tok, "el_1") == &tok[1]);
+  check(jsmn_get_token_by_key(js, tok, "el_2") == NULL);
+  check(jsmn_get_token_by_key(js, tok, "el_3") == &tok[3]);
+  check(jsmn_get_token_by_key(js, tok, "el_4") == NULL);
+  check(jsmn_get_token_by_key(js, tok, "el_5") == &tok[5]);
+  check(jsmn_get_token_by_key(js, tok, "el_6") == NULL);
+
+  /* Check nesting */
+  js = "{ \"el_1\": { \"el_3\": \"el_4\", \"el_5\": [ 7, 8 ], \"el_9\": 10 } }";
+  jsmn_init(&p);
+  ret = jsmn_parse(&p, js, strlen(js), tok, sizeof(tok) / sizeof(*tok));
+  check(ret == 11);
+
+  check(jsmn_get_token_by_key(js, tok, "el_1") == &tok[1]);
+  check(jsmn_get_token_by_key(js, tok, "el_9") == NULL);
+  check(jsmn_get_token_by_key(js, tok + 2, "el_9") == &tok[9]);
+
+  /* Check arrays */
+  js = "[ 1 2 ]";
+  jsmn_init(&p);
+  ret = jsmn_parse(&p, js, strlen(js), tok, sizeof(tok) / sizeof(*tok));
+  check(ret == 3);
+
+  check(jsmn_get_token_by_key(js, tok, "el_1") == NULL);
+  return 0;
+}
+
+int test_get_by_index(void) {
+  jsmn_parser p;
+  const char *js;
+  jsmntok_t tok[128];
+  int ret;
+
+  /* Object handling */
+  js = "{}";
+  jsmn_init(&p);
+  ret = jsmn_parse(&p, js, strlen(js), tok, sizeof(tok) / sizeof(*tok));
+  check(ret == 1);
+  check(jsmn_get_token_by_index(tok, 0) == NULL);
+  check(jsmn_get_token_by_index(tok, 1) == NULL);
+  check(jsmn_get_token_by_index(tok, 2) == NULL);
+
+  js = "{ \"el_1\": 2 }";
+  jsmn_init(&p);
+  ret = jsmn_parse(&p, js, strlen(js), tok, sizeof(tok) / sizeof(*tok));
+  check(ret == 3);
+  check(jsmn_get_token_by_index(tok, 0) == NULL);
+  check(jsmn_get_token_by_index(tok, 1) == NULL);
+  check(jsmn_get_token_by_index(tok, 2) == NULL);
+
+  /* Trivial arrays */
+  js = "[ \"el_1\", 2 ]";
+  jsmn_init(&p);
+  ret = jsmn_parse(&p, js, strlen(js), tok, sizeof(tok) / sizeof(*tok));
+  check(ret == 3);
+  check(jsmn_get_token_by_index(tok, 0) == &tok[1]);
+  check(jsmn_get_token_by_index(tok, 1) == &tok[2]);
+  check(jsmn_get_token_by_index(tok, 2) == NULL);
+
+  js = "[ \"el_1\", 2, \"el_3\", 4 ]";
+  jsmn_init(&p);
+  ret = jsmn_parse(&p, js, strlen(js), tok, sizeof(tok) / sizeof(*tok));
+  check(ret == 5);
+  check(jsmn_get_token_by_index(tok, 0) == &tok[1]);
+  check(jsmn_get_token_by_index(tok, 1) == &tok[2]);
+  check(jsmn_get_token_by_index(tok, 2) == &tok[3]);
+  check(jsmn_get_token_by_index(tok, 3) == &tok[4]);
+
+  /* Simple nested arrays */
+  js = "[ [ 2, 3 ], 4, [ 6, 7, 8, 9] ]";
+  jsmn_init(&p);
+  ret = jsmn_parse(&p, js, strlen(js), tok, sizeof(tok) / sizeof(*tok));
+  check(ret == 10);
+  check(jsmn_get_token_by_index(tok, 0) == &tok[1]);
+  check(jsmn_get_token_by_index(tok, 1) == &tok[4]);
+  check(jsmn_get_token_by_index(tok, 2) == &tok[5]);
+  check(jsmn_get_token_by_index(tok + 1, 0) == &tok[2]);
+  check(jsmn_get_token_by_index(tok + 1, 1) == &tok[3]);
+  check(jsmn_get_token_by_index(tok + 1, 2) == NULL);
+
+  return 0;
+}
+
 int main(void) {
   test(test_empty, "test for a empty JSON objects/arrays");
   test(test_object, "test for a JSON objects");
@@ -354,6 +552,9 @@ int main(void) {
   test(test_nonstrict, "test for non-strict mode");
   test(test_unmatched_brackets, "test for unmatched brackets");
   test(test_object_key, "test for key type");
+  test(test_get_total_size, "test size calculation");
+  test(test_get_by_key, "test key-based retrieval");
+  test(test_get_by_index, "test index-based retrieval");
   printf("\nPASSED: %d\nFAILED: %d\n", test_passed, test_failed);
   return (test_failed > 0);
 }
