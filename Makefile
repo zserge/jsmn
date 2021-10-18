@@ -15,10 +15,15 @@ test_strict_links: test/tests.c jsmn.h
 	$(CC) -DJSMN_STRICT=1 -DJSMN_PARENT_LINKS=1 $(CFLAGS) $(LDFLAGS) $< -o test/$@
 	./test/$@
 
+examples: simple_example jsondump access
+
 simple_example: example/simple.c jsmn.h
 	$(CC) $(LDFLAGS) $< -o $@
 
 jsondump: example/jsondump.c jsmn.h
+	$(CC) $(LDFLAGS) $< -o $@
+
+access: example/access.c jsmn.h
 	$(CC) $(LDFLAGS) $< -o $@
 
 fmt:
