@@ -1697,6 +1697,24 @@ int test_object_key(void) {
   return 0;
 }
 
+int test_simple(void) {
+  check(parse("{\"user\": \"johndoe\", \"admin\": false, \"uid\": 1000,\"groups\": [\"users\", \"wheel\", \"audio\", \"video\"]}", 13, 13,
+              JSMN_OBJECT, 0, 95, 4,
+              JSMN_STRING, "user", 1,
+              JSMN_STRING, "johndoe", 0,
+              JSMN_STRING, "admin", 1,
+              JSMN_PRIMITIVE, "false",
+              JSMN_STRING, "uid", 1,
+              JSMN_PRIMITIVE, "1000",
+              JSMN_STRING, "groups", 1,
+              JSMN_ARRAY, 58, 94, 4,
+              JSMN_STRING, "users", 0,
+              JSMN_STRING, "wheel", 0,
+              JSMN_STRING, "audio", 0,
+              JSMN_STRING, "video", 0));
+  return 0;
+}
+
 int main(void) {
   test(test_empty, "test for a empty JSON objects/arrays");
   test(test_object, "test for a JSON objects");
@@ -1715,6 +1733,7 @@ int main(void) {
   test(test_nonstrict, "test for non-strict mode");
   test(test_unmatched_brackets, "test for unmatched brackets");
   test(test_object_key, "test for key type");
+  test(test_simple, "test for jsmn string from simple.c");
 
   test(test_jsmn_test_suite_i_, "test jsmn test suite implementation");
   test(test_jsmn_test_suite_n_, "test jsmn test suite should fail");
