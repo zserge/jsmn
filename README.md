@@ -89,7 +89,7 @@ jsmn_parser p;
 jsmntok_t t[128]; /* We expect no more than 128 JSON tokens */
 
 jsmn_init(&p);
-r = jsmn_parse(&p, s, strlen(s), t, 128);
+r = jsmn_parse(&p, s, strlen(s), t, 128); // "s" is the char array holding the json content
 ```
 
 Since jsmn is a single-header, header-only library, for more complex use cases
@@ -113,10 +113,10 @@ Token types are described by `jsmntype_t`:
 
 	typedef enum {
 		JSMN_UNDEFINED = 0,
-		JSMN_OBJECT = 1,
-		JSMN_ARRAY = 2,
-		JSMN_STRING = 3,
-		JSMN_PRIMITIVE = 4
+		JSMN_OBJECT = 1 << 0,
+		JSMN_ARRAY = 1 << 1,
+		JSMN_STRING = 1 << 2,
+		JSMN_PRIMITIVE = 1 << 3
 	} jsmntype_t;
 
 **Note:** Unlike JSON data types, primitive tokens are not divided into
