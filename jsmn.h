@@ -137,11 +137,13 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
                                 const size_t num_tokens) {
   jsmntok_t *token;
   int start;
+  unsigned char b;
 
   start = parser->pos;
 
   for (; parser->pos < len && js[parser->pos] != '\0'; parser->pos++) {
-    switch (js[parser->pos]) {
+    b = js[parser->pos];
+    switch (b) {
 #ifndef JSMN_STRICT
     /* In strict mode primitive must be followed by "," or "}" or "]" */
     case ':':
@@ -158,9 +160,19 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
                    /* to quiet a warning from gcc*/
       break;
     }
-    if (js[parser->pos] < 32 || js[parser->pos] >= 127) {
+
+    if (b < 32) {
       parser->pos = start;
       return JSMN_ERROR_INVAL;
+    }
+
+    if (b >= 127 &&
+      (b & (0xc0 | 0x20)) != 0xc0 &&
+      (b & (0xe0 | 0x10)) != 0xe0 &&
+      (b & (0xf0 | 0x08)) != 0xf0 &&
+      (b & (0x80 | 0x40)) != 0x80) {
+        parser->pos = start;
+        return JSMN_ERROR_INVAL;
     }
   }
 #ifdef JSMN_STRICT
