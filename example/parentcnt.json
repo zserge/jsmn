@@ -1,0 +1,22 @@
+{
+  "version": "0.1",
+  "endpoint": "outlets",
+  "cmd": "set",
+  "switches": [
+    {
+      "serial": "12345",
+      "index": [0, 1, 2, 3],
+      "state": ["open", "close", "open", "close"]
+    },
+    {
+      "serial": "67890",
+      "index": [0, 1, 2, 3],
+      "state": ["open", "open", "open", "close"]
+    }
+  ],
+  "test": {
+    "test2": {
+      "key": "value"
+    }
+  }
+}
