@@ -296,9 +296,17 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
           return JSMN_ERROR_INVAL;
         }
 #endif
+#ifndef JSMN_PARENT_CNT
         t->size++;
+#endif
 #ifdef JSMN_PARENT_LINKS
         token->parent = parser->toksuper;
+#ifdef JSMN_PARENT_CNT
+        for (int parent = token->parent; parent>=0 ;
+                    parent = tokens[parent].parent) {
+            tokens[parent].size++;
+        }
+#endif
 #endif
       }
       token->type = (c == '{' ? JSMN_OBJECT : JSMN_ARRAY);
@@ -365,7 +373,14 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
       }
       count++;
       if (parser->toksuper != -1 && tokens != NULL) {
+#ifndef JSMN_PARENT_CNT
         tokens[parser->toksuper].size++;
+#else
+        for (int parent = parser->toksuper; parent>=0 ;
+                    parent = tokens[parent].parent) {
+            tokens[parent].size++;
+        }
+#endif
       }
       break;
     case '\t':
@@ -428,7 +443,14 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
       }
       count++;
       if (parser->toksuper != -1 && tokens != NULL) {
+#ifndef JSMN_PARENT_CNT
         tokens[parser->toksuper].size++;
+#else
+        for (int parent = parser->toksuper; parent>=0 ;
+                    parent = tokens[parent].parent) {
+            tokens[parent].size++;
+        }
+#endif
       }
       break;
 
