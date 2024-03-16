@@ -172,6 +172,15 @@ If you get `JSMN_ERROR_NOMEM`, you can re-allocate more tokens and call
 periodically call `jsmn_parse` and check if return value is `JSMN_ERROR_PART`.
 You will get this error until you reach the end of JSON data.
 
+
+JSMN ORGANIZER
+--------------
+* Goal : is to organize the tokens into key value pairs correctly
+* Currently able to : print the key value pairs correctly
+* Future Plan : Able to extract the key value pairs in a useful form for internal processing inside the micro-controller. Planning to add this when such needs arises.
+* Working : Refer the `jsmn_organizer_test.c` file.
+
+
 Other info
 ----------
 
