@@ -30,7 +30,7 @@ Also please edit out this. @Serge A. Zaitsev
  * SOFTWARE.
  */
 
-#include "../Inc/jsmn_organizer.h"
+#include "jsmn_organizer.h"
 
 
 
@@ -124,6 +124,12 @@ void jsmn_print_organized_key_value_pairs
 						)
 /*
  * Use this function
+ * Key: name, Value: John
+ * Key: age, Value: 30
+ * Key: isStudent, Value: false
+ * Key: marks, Value: ["address": {"city": "New York","country": "USA"}, 90, 85, 95]
+ * Key: address, Value: {"city": "New York","country": "USA"}
+ * Key: languages, Value: ["English", "Spanish"]
  */
 {
 
