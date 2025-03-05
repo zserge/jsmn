@@ -92,6 +92,31 @@ jsmn_init(&p);
 r = jsmn_parse(&p, s, strlen(s), t, 128); // "s" is the char array holding the json content
 ```
 
+A maximum depth of JSMN_MAX_FAST_DEPTH (default 64) is accellerated.
+
+If you want to dynamically determine max_depth and allocate toksupers
+(unsigned int array of max_depth):
+
+```
+#include "jsmn.h"
+
+...
+jsmn_parser p;
+jsmntok_t t[128]; /* We expect no more than 128 JSON tokens */
+unsigned int max_depth;
+unsigned int *toksupers;
+
+jsmn_init(&p);
+// "s" is the char array holding the json content
+r = jsmn_parse_fast(&p, s, strlen(s), NULL, 128, &max_depth, NULL);
+toksupers = (unsigned int*)malloc(max_depth, sizeof(unsigned int));
+r = jsmn_parse_fast(&p, s, strlen(s), t, 128, &max_depth, toksupers);
+```
+
+"max_depth" must contain at most the length of toksupers and will be overwritten
+with the encountered maximum nesting depth.
+Or you can first set t and toksupers to NULL to determine max_depth.
+
 Since jsmn is a single-header, header-only library, for more complex use cases
 you might need to define additional macros. `#define JSMN_STATIC` hides all
 jsmn API symbols by making them static. Also, if you want to include `jsmn.h`

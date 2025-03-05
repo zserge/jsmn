@@ -103,8 +103,8 @@ int test_partial_string(void) {
   jsmntok_t tok[5];
   const char *js = "{\"x\": \"va\\\\ue\", \"y\": \"value y\"}";
 
-  jsmn_init(&p);
   for (i = 1; i <= strlen(js); i++) {
+    jsmn_init(&p);
     r = jsmn_parse(&p, js, i, tok, sizeof(tok) / sizeof(tok[0]));
     if (i == strlen(js)) {
       check(r == 5);
@@ -126,8 +126,8 @@ int test_partial_array(void) {
   jsmntok_t tok[10];
   const char *js = "[ 1, true, [123, \"hello\"]]";
 
-  jsmn_init(&p);
   for (i = 1; i <= strlen(js); i++) {
+    jsmn_init(&p);
     r = jsmn_parse(&p, js, i, tok, sizeof(tok) / sizeof(tok[0]));
     if (i == strlen(js)) {
       check(r == 6);
@@ -160,6 +160,7 @@ int test_array_nomem(void) {
 
     memcpy(toklarge, toksmall, sizeof(toksmall));
 
+    jsmn_init(&p);
     r = jsmn_parse(&p, js, strlen(js), toklarge, 10);
     check(r >= 0);
     check(tokeq(js, toklarge, 4, JSMN_ARRAY, -1, -1, 3, JSMN_PRIMITIVE, "1",

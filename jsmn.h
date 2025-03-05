@@ -36,6 +36,10 @@ extern "C" {
 #define JSMN_API extern
 #endif
 
+#ifndef JSMN_MAX_FAST_DEPTH
+#define JSMN_MAX_FAST_DEPTH 64
+#endif
+
 /**
  * JSON type identifier. Basic types are:
  * 	o Object
@@ -95,9 +99,23 @@ JSMN_API void jsmn_init(jsmn_parser *parser);
  * Run JSON parser. It parses a JSON data string into and array of tokens, each
  * describing
  * a single JSON object.
+ * It is made fast by passing memoization space per anticipated depth level.
+ * max_depth contains the maximum anticipated and allocated depth.
+ * On return it will contain the maximum depth encountered.
+ * If necessary, determine max_levels first by passing tokens = NULL and toksupers = NULL.
+ */
+JSMN_API int jsmn_parse_fast(jsmn_parser *parser, const char *js, const size_t len,
+                        jsmntok_t *tokens, const unsigned int num_tokens,
+                        unsigned int *max_depth, unsigned int *toksupers);
+
+/**
+ * Run JSON parser. It parses a JSON data string into and array of tokens, each
+ * describing
+ * a single JSON object.
+ * Assumes a max depth of JSMN_MAX_FAST_DEPTH
  */
 JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
-                        jsmntok_t *tokens, const unsigned int num_tokens);
+  jsmntok_t *tokens, const unsigned int num_tokens);
 
 #ifndef JSMN_HEADER
 /**
@@ -265,12 +283,13 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
 /**
  * Parse JSON string and fill tokens.
  */
-JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
-                        jsmntok_t *tokens, const unsigned int num_tokens) {
+JSMN_API int jsmn_parse_fast(jsmn_parser *parser, const char *js, const size_t len,
+  jsmntok_t *tokens, const unsigned int num_tokens, unsigned int *max_depth, unsigned int* toksupers) {
   int r;
   int i;
   jsmntok_t *token;
   int count = parser->toknext;
+  unsigned int depth = 0;
 
   for (; parser->pos < len && js[parser->pos] != '\0'; parser->pos++) {
     char c;
@@ -280,6 +299,7 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
     switch (c) {
     case '{':
     case '[':
+      depth++;
       count++;
       if (tokens == NULL) {
         break;
@@ -287,6 +307,9 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
       token = jsmn_alloc_token(parser, tokens, num_tokens);
       if (token == NULL) {
         return JSMN_ERROR_NOMEM;
+      }
+      if (*max_depth >= depth) {
+        toksupers[depth - 1] = parser->toknext - 1;
       }
       if (parser->toksuper != -1) {
         jsmntok_t *t = &tokens[parser->toksuper];
@@ -307,6 +330,9 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
       break;
     case '}':
     case ']':
+      if (!depth--) {
+        return JSMN_ERROR_INVAL;
+      }
       if (tokens == NULL) {
         break;
       }
@@ -334,6 +360,18 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
         token = &tokens[token->parent];
       }
 #else
+      if (*max_depth < depth) {
+        i = toksupers[depth];
+        token = &tokens[i];
+        token->end = parser->pos + 1;
+        if (token->type != type) {
+          return JSMN_ERROR_INVAL;
+        }
+        parser->toksuper = depth ? toksupers[depth - 1] : -1;
+        break;
+      }
+
+      // Fallback to old method if toksupers is too small
       for (i = parser->toknext - 1; i >= 0; i--) {
         token = &tokens[i];
         if (token->start != -1 && token->end == -1) {
@@ -449,8 +487,20 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
     }
   }
 
+  *max_depth = depth;
   return count;
 }
+
+/**
+ * Original API of jsmn_parse_fast that assumes a maximum depth using JSMN_MAX_FAST_DEPTH.
+ */
+JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
+  jsmntok_t *tokens, const unsigned int num_tokens) {
+  unsigned int max_depth = JSMN_MAX_FAST_DEPTH;
+  unsigned int toksupers[JSMN_MAX_FAST_DEPTH];
+  jsmn_parse_fast(parser, js, len, tokens, num_tokens, &max_depth, toksupers);
+}
+
 
 /**
  * Creates a new parser based over a given buffer with an array of tokens
