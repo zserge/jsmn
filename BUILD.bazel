@@ -1,0 +1,33 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+
+cc_library(
+    name = "jsmn",
+    hdrs = ["jsmn.h"],
+    visibility = ["//visibility:public"],
+)
+
+cc_test(
+    name = "test",
+    srcs = [
+        "test/test.h",
+        "test/tests.c",
+        "test/testutil.h",
+    ],
+    copts = [
+        "-DJSMN_STRICT=1",
+        "-DJSMN_PARENT_LINKS=1",
+    ],
+    deps = [":jsmn"],
+)
+
+cc_binary(
+    name = "example-simple",
+    srcs = ["example/simple.c"],
+    deps = [":jsmn"],
+)
+
+cc_binary(
+    name = "example-jsondump",
+    srcs = ["example/jsondump.c"],
+    deps = [":jsmn"],
+)

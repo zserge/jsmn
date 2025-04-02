@@ -1,0 +1,13 @@
+"""
+Module: jsmn
+Purpose: Provides the jsmn library compileable as a Bazel target. Includes tests through Bazel and the examples as binary targets
+"""
+
+module(
+    name = "jsmn",
+    version = "1.1.1-0.20211014115138-25647e692c79",
+    compatibility_level = 1,
+)
+
+bazel_dep(name = "rules_cc", version = "0.1.1")
+bazel_dep(name = "platforms", version = "0.0.11")
