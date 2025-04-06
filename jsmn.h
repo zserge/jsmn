@@ -74,6 +74,9 @@ typedef struct jsmntok {
 #ifdef JSMN_PARENT_LINKS
   int parent;
 #endif
+#ifdef JSMN_TOKNEXT
+  int toknext;
+#endif
 } jsmntok_t;
 
 /**
@@ -114,6 +117,9 @@ static jsmntok_t *jsmn_alloc_token(jsmn_parser *parser, jsmntok_t *tokens,
   tok->size = 0;
 #ifdef JSMN_PARENT_LINKS
   tok->parent = -1;
+#endif
+#ifdef JSMN_TOKNEXT
+  tok->toknext = -1;
 #endif
   return tok;
 }
@@ -342,7 +348,10 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
           }
           parser->toksuper = -1;
           token->end = parser->pos + 1;
-          break;
+#ifdef JSMN_TOKNEXT
+          token->toknext = parser->toknext;
+#endif
+        break;
         }
       }
       /* Error if unmatched closing bracket */
@@ -460,6 +469,23 @@ JSMN_API void jsmn_init(jsmn_parser *parser) {
   parser->pos = 0;
   parser->toknext = 0;
   parser->toksuper = -1;
+}
+
+/**
+ * Find next token on the same level of JSON structure.
+ */
+JSMN_API int jsmn_next_token(jsmntok_t *tokens, const size_t num_tokens, int i) {
+#ifdef JSMN_TOKNEXT
+  int toknext = tokens[i].toknext;
+  if (toknext > 0)
+    return toknext;
+#endif
+  int end = tokens[i++].end;
+  for (; i < num_tokens; i++) {
+    if (tokens[i].start > end)
+      break;
+  }
+  return i;
 }
 
 #endif /* JSMN_HEADER */

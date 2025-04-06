@@ -21,6 +21,9 @@ simple_example: example/simple.c jsmn.h
 jsondump: example/jsondump.c jsmn.h
 	$(CC) $(LDFLAGS) $< -o $@
 
+tokendump: example/tokendump.c jsmn.h
+	$(CC) $(LDFLAGS) $< -o $@
+
 fmt:
 	clang-format -i jsmn.h test/*.[ch] example/*.[ch]
 
@@ -31,6 +34,7 @@ clean:
 	rm -f *.o example/*.o
 	rm -f simple_example
 	rm -f jsondump
+	rm -f tokendump
 
 .PHONY: clean test
 
