@@ -2,16 +2,16 @@
 -include config.mk
 
 test: test_default test_strict test_links test_strict_links
-test_default: test/tests.c jsmn.h
+test_default: test/tests.c jsmn.h  test/testutil.h test/test.h
 	$(CC) $(CFLAGS) $(LDFLAGS) $< -o test/$@
 	./test/$@
-test_strict: test/tests.c jsmn.h
+test_strict: test/tests.c jsmn.h  test/testutil.h test/test.h
 	$(CC) -DJSMN_STRICT=1 $(CFLAGS) $(LDFLAGS) $< -o test/$@
 	./test/$@
-test_links: test/tests.c jsmn.h
+test_links: test/tests.c jsmn.h  test/testutil.h test/test.h
 	$(CC) -DJSMN_PARENT_LINKS=1 $(CFLAGS) $(LDFLAGS) $< -o test/$@
 	./test/$@
-test_strict_links: test/tests.c jsmn.h
+test_strict_links: test/tests.c jsmn.h  test/testutil.h test/test.h
 	$(CC) -DJSMN_STRICT=1 -DJSMN_PARENT_LINKS=1 $(CFLAGS) $(LDFLAGS) $< -o test/$@
 	./test/$@
 
@@ -21,16 +21,15 @@ simple_example: example/simple.c jsmn.h
 jsondump: example/jsondump.c jsmn.h
 	$(CC) $(LDFLAGS) $< -o $@
 
-fmt:
+fmt: 
 	clang-format -i jsmn.h test/*.[ch] example/*.[ch]
 
-lint:
+lint: 
 	clang-tidy jsmn.h --checks='*'
 
-clean:
+clean: 
 	rm -f *.o example/*.o
 	rm -f simple_example
 	rm -f jsondump
 
 .PHONY: clean test
-
