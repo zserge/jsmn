@@ -172,6 +172,35 @@ If you get `JSMN_ERROR_NOMEM`, you can re-allocate more tokens and call
 periodically call `jsmn_parse` and check if return value is `JSMN_ERROR_PART`.
 You will get this error until you reach the end of JSON data.
 
+
+Git Submodule in CMake Projects
+-------------------------------
+
+The jsmn library can be integrated into a CMake project as a git submodule 
+using the CMakeLists.txt file provided in the jsmn repository.
+
+Your project must first be initialized with git:
+
+	git init
+
+Then, add the jsmn library as a submodule of your project:
+
+	git submodule add https://github.com/zserge/jsmn.git
+
+Next, update the submodules:
+
+	git submodule update --init --recursive
+
+Finally, include the jsmn library in your CMakeLists.txt file with the 
+add_subdirectory and target_link_libraries commands:
+
+	add_subdirectory(jsmn build)
+	target_link_libraries(my_project jsmn)
+
+You can then use #include "jsmn.h" in your source files to include the
+jsmn library and begin using the jsmn library.
+
+
 Other info
 ----------
 
