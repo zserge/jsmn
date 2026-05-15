@@ -36,6 +36,18 @@ extern "C" {
 #define JSMN_API extern
 #endif
 
+#ifndef JSMN_TOKEN_START_TYPE
+#define JSMN_TOKEN_START_TYPE int
+#endif
+
+#ifndef JSMN_TOKEN_END_TYPE
+#define JSMN_TOKEN_END_TYPE int
+#endif
+
+#ifndef JSMN_TOKEN_SIZE_TYPE
+#define JSMN_TOKEN_SIZE_TYPE int
+#endif
+
 /**
  * JSON type identifier. Basic types are:
  * 	o Object
@@ -67,13 +79,13 @@ enum jsmnerr {
  * end		end position in JSON data string
  */
 typedef struct jsmntok {
-  jsmntype_t type;
-  int start;
-  int end;
-  int size;
+  JSMN_TOKEN_START_TYPE start;
+  JSMN_TOKEN_END_TYPE end;
+  JSMN_TOKEN_SIZE_TYPE size;
 #ifdef JSMN_PARENT_LINKS
   int parent;
 #endif
+  jsmntype_t type : 8;
 } jsmntok_t;
 
 /**
@@ -155,7 +167,7 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
     case '}':
       goto found;
     default:
-                   /* to quiet a warning from gcc*/
+      /* to quiet a warning from gcc*/
       break;
     }
     if (js[parser->pos] < 32 || js[parser->pos] >= 127) {
@@ -196,10 +208,10 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
   jsmntok_t *token;
 
   int start = parser->pos;
-  
+
   /* Skip starting quote */
   parser->pos++;
-  
+
   for (; parser->pos < len && js[parser->pos] != '\0'; parser->pos++) {
     char c = js[parser->pos];
 
