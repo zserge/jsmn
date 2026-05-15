@@ -128,17 +128,28 @@ first character:
 * <code>'-', '0'..'9'</code> - number
 
 Token is an object of `jsmntok_t` type:
-
+```c
 	typedef struct {
-		jsmntype_t type; // Token type
-		int start;       // Token start position
-		int end;         // Token end position
-		int size;        // Number of child (nested) tokens
+		JSMN_TOKEN_START_TYPE start;       // Token start position
+		JSMN_TOKEN_END_TYPE   end;         // Token end position
+		JSMN_TOKEN_SIZE_TYPE  size;        // Number of child (nested) tokens
+		jsmntype_t type : 8; // Token type
 	} jsmntok_t;
+```
 
-**Note:** string tokens point to the first character after
-the opening quote and the previous symbol before final quote. This was made 
-to simplify string extraction from JSON data.
+**Note:**
+- string tokens point to the first character after the opening quote and the
+  previous symbol before final quote. This was made to simplify string
+  extraction from JSON data.
+- token field types can be overridden at build time to reduce memory usage on
+  constrained targets (`int` by default). The example below defines the
+  following macros before including `jsmn.h` :
+  ```c
+  #define JSMN_TOKEN_START_TYPE int16_t
+  #define JSMN_TOKEN_END_TYPE   short
+  #define JSMN_TOKEN_SIZE_TYPE  uint8_t
+  #include "jsmn.h"
+  ```
 
 All job is done by `jsmn_parser` object. You can initialize a new parser using:
 
