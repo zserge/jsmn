@@ -41,14 +41,23 @@ static int dump(const char *js, jsmntok_t *t, size_t count, int indent) {
     printf("\n");
     j = 0;
     for (i = 0; i < t->size; i++) {
+      /* count still includes t itself, so a child at offset 1 + j only
+       * exists while 1 + j is less than count. jsmn's non-strict grammar
+       * can accept malformed input whose token tree claims more children
+       * for t than the token pool actually holds (see jsmn issue #249),
+       * so this has to be checked before the key pointer is even formed,
+       * let alone dereferenced. */
+      if ((size_t)(1 + j) >= count) {
+        break;
+      }
       for (k = 0; k < indent; k++) {
         printf("  ");
       }
       key = t + 1 + j;
-      j += dump(js, key, count - j, indent + 1);
-      if (key->size > 0) {
+      j += dump(js, key, count - 1 - j, indent + 1);
+      if ((size_t)(1 + j) < count && key->size > 0) {
         printf(": ");
-        j += dump(js, t + 1 + j, count - j, indent + 1);
+        j += dump(js, t + 1 + j, count - 1 - j, indent + 1);
       }
       printf("\n");
     }
@@ -57,11 +66,14 @@ static int dump(const char *js, jsmntok_t *t, size_t count, int indent) {
     j = 0;
     printf("\n");
     for (i = 0; i < t->size; i++) {
+      if ((size_t)(1 + j) >= count) {
+        break;
+      }
       for (k = 0; k < indent - 1; k++) {
         printf("  ");
       }
       printf("   - ");
-      j += dump(js, t + 1 + j, count - j, indent + 1);
+      j += dump(js, t + 1 + j, count - 1 - j, indent + 1);
       printf("\n");
     }
     return j + 1;

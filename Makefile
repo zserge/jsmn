@@ -1,7 +1,7 @@
 # You can put your build options here
 -include config.mk
 
-test: test_default test_strict test_links test_strict_links
+test: test_default test_strict test_links test_strict_links test_jsondump_oob
 test_default: test/tests.c jsmn.h
 	$(CC) $(CFLAGS) $(LDFLAGS) $< -o test/$@
 	./test/$@
@@ -13,6 +13,9 @@ test_links: test/tests.c jsmn.h
 	./test/$@
 test_strict_links: test/tests.c jsmn.h
 	$(CC) -DJSMN_STRICT=1 -DJSMN_PARENT_LINKS=1 $(CFLAGS) $(LDFLAGS) $< -o test/$@
+	./test/$@
+test_jsondump_oob: test/test_jsondump_oob.c example/jsondump.c jsmn.h
+	$(CC) $(CFLAGS) $(LDFLAGS) $< -o test/$@
 	./test/$@
 
 simple_example: example/simple.c jsmn.h
