@@ -95,9 +95,13 @@ int main() {
     r = fread(buf, 1, sizeof(buf), stdin);
     if (r < 0) {
       fprintf(stderr, "fread(): %d, errno=%d\n", r, errno);
+      free(tok);
+      free(js);
       return 1;
     }
     if (r == 0) {
+      free(tok);
+      free(js);
       if (eof_expected != 0) {
         return 0;
       } else {
@@ -108,6 +112,7 @@ int main() {
 
     js = realloc_it(js, jslen + r + 1);
     if (js == NULL) {
+      free(tok);
       return 3;
     }
     strncpy(js + jslen, buf, r);
@@ -120,6 +125,7 @@ int main() {
         tokcount = tokcount * 2;
         tok = realloc_it(tok, sizeof(*tok) * tokcount);
         if (tok == NULL) {
+          free(js);
           return 3;
         }
         goto again;
