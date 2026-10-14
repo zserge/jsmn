@@ -280,6 +280,81 @@ int test_count(void) {
   return 0;
 }
 
+static int check_incremental_count(const char *js) {
+  int count;
+  int r;
+  int token_index;
+  size_t i;
+  jsmn_parser count_parser;
+  jsmn_parser token_parser;
+  jsmntok_t tokens[32];
+  jsmntok_t counted_tokens[32];
+  size_t len;
+
+  len = strlen(js);
+  jsmn_init(&token_parser);
+  count = jsmn_parse(&token_parser, js, len, tokens,
+                     sizeof(tokens) / sizeof(tokens[0]));
+  check(count >= 0);
+
+  jsmn_init(&count_parser);
+  for (i = 1; i <= len; i++) {
+    r = jsmn_parse(&count_parser, js, i, NULL, 0);
+    check((unsigned int)count_parser.toknext <= (unsigned int)count);
+    if (r >= 0) {
+      check(r == (int)count_parser.toknext);
+    } else {
+      check(r == JSMN_ERROR_PART);
+    }
+  }
+  check(r == count);
+  check((unsigned int)count_parser.toknext == (unsigned int)count);
+
+  jsmn_init(&count_parser);
+  r = jsmn_parse(&count_parser, js, len, counted_tokens,
+                 sizeof(counted_tokens) / sizeof(counted_tokens[0]));
+  check(r == count);
+  for (token_index = 0; token_index < count; token_index++) {
+    check(counted_tokens[token_index].type == tokens[token_index].type);
+    check(counted_tokens[token_index].start == tokens[token_index].start);
+    check(counted_tokens[token_index].end == tokens[token_index].end);
+    check(counted_tokens[token_index].size == tokens[token_index].size);
+#ifdef JSMN_PARENT_LINKS
+    check(counted_tokens[token_index].parent == tokens[token_index].parent);
+#endif
+  }
+  return 0;
+}
+
+int test_count_incremental(void) {
+  const char *js;
+
+  js = "{\"quoted\":\"text\",\"escaped\":\"line\\nquote\\\"\","
+       "\"array\":[\"one\",{\"nested\":\"two\"}],"
+       "\"object\":{\"empty\":[]}}";
+  check(check_incremental_count(js) == 0);
+
+#ifdef JSMN_STRICT
+  js = "[\"quoted\",true,null,-12,{\"ok\":false}]";
+  check(check_incremental_count(js) == 0);
+#endif
+  return 0;
+}
+
+#ifndef JSMN_STRICT
+int test_count_nonstrict_primitive_boundary(void) {
+  const char *js;
+  jsmn_parser p;
+
+  js = "12";
+  jsmn_init(&p);
+  check(jsmn_parse(&p, js, 1, NULL, 0) == 1);
+  check(jsmn_parse(&p, js, 2, NULL, 0) == 2);
+  check(p.toknext == 2);
+  return 0;
+}
+#endif
+
 int test_nonstrict(void) {
 #ifndef JSMN_STRICT
   const char *js;
@@ -351,6 +426,11 @@ int main(void) {
   test(test_issue_22, "test issue #22");
   test(test_issue_27, "test issue #27");
   test(test_count, "test tokens count estimation");
+  test(test_count_incremental, "test incremental token counting");
+#ifndef JSMN_STRICT
+  test(test_count_nonstrict_primitive_boundary,
+       "test non-strict primitive buffer boundary");
+#endif
   test(test_nonstrict, "test for non-strict mode");
   test(test_unmatched_brackets, "test for unmatched brackets");
   test(test_object_key, "test for key type");

@@ -282,6 +282,7 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
     case '[':
       count++;
       if (tokens == NULL) {
+        parser->toknext++;
         break;
       }
       token = jsmn_alloc_token(parser, tokens, num_tokens);
@@ -364,6 +365,9 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
         return r;
       }
       count++;
+      if (tokens == NULL) {
+        parser->toknext++;
+      }
       if (parser->toksuper != -1 && tokens != NULL) {
         tokens[parser->toksuper].size++;
       }
@@ -427,6 +431,9 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
         return r;
       }
       count++;
+      if (tokens == NULL) {
+        parser->toknext++;
+      }
       if (parser->toksuper != -1 && tokens != NULL) {
         tokens[parser->toksuper].size++;
       }

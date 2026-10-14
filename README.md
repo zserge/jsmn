@@ -159,7 +159,10 @@ A non-negative return value of `jsmn_parse` is the number of tokens actually
 used by the parser.
 Passing NULL instead of the tokens array would not store parsing results, but
 instead the function will return the number of tokens needed to parse the given
-string. This can be useful if you don't know yet how many tokens to allocate.
+string. The count is cumulative when the parser is resumed with more input. To
+parse into a token array after counting, call `jsmn_init` on the parser first;
+counting advances its position and token count, but does not populate tokens.
+This can be useful if you don't know yet how many tokens to allocate.
 
 If something goes wrong, you will get an error. Error will be one of these:
 
@@ -171,6 +174,12 @@ If you get `JSMN_ERROR_NOMEM`, you can re-allocate more tokens and call
 `jsmn_parse` once more.  If you read json data from the stream, you can
 periodically call `jsmn_parse` and check if return value is `JSMN_ERROR_PART`.
 You will get this error until you reach the end of JSON data.
+
+In non-strict mode, a primitive that reaches the end of the supplied buffer is
+treated as complete. If a later chunk continues that primitive, the later bytes
+are parsed as a separate primitive. Include a delimiter in the same chunk when
+streaming non-strict primitives. In strict mode, a primitive at the buffer end
+returns `JSMN_ERROR_PART` and is resumed when more input arrives.
 
 Other info
 ----------
